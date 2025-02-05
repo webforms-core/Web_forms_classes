@@ -35,20 +35,30 @@ package com.example.demo;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import WebFormsCore.WebForms;
+import WebFormsCore.InputPlace;
 
 @Controller
 public class MyController {
 
+    @GetMapping("/")
+    public String PageLoad(Model model) {
+        return "default"; // This will map to default.html
+    }
+
     @PostMapping("/")
-    public String handleFormSubmission(
-            @RequestParam(name = "txt_Name", required = false) String name,
-            @RequestParam(name = "txt_BackgroundColor", required = false) String backgroundColor,
-            @RequestParam(name = "txt_FontSize", required = false, defaultValue = "16") int fontSize,
-            @RequestParam(name = "btn_SetBodyValue", required = false) String button) {
-        
-        if (button != null) {
+    @ResponseBody
+    public String handleSubmit(@RequestParam("txt_Name") String name,
+                               @RequestParam("txt_BackgroundColor") String backgroundColor,
+                               @RequestParam("txt_FontSize") int fontSize,
+                               @RequestParam("btn_SetBodyValue") String button) {
+                
+        if (button != null){
             WebForms form = new WebForms();
             
             form.setFontSize(InputPlace.tag("form"), fontSize);
@@ -58,8 +68,10 @@ public class MyController {
             form.addTag(InputPlace.tag("form"), "h3", null);
             form.setText(InputPlace.tag("h3"), "Welcome " + name + "!");
 
-            return form.response();
+            return form.response(); 
         }
+
+        return "";
     }
 }
 ```
