@@ -1,6 +1,6 @@
 ## How to work with WebForms Core in Java (Spring Boot framework)
 
-To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
+To use WebForms Core, first copy the WebFormsCore directory (with class files) in this directory to path: "{YourProjectName}\src\main\java" in your project. Then create a new View file similar to the one below.
 
 View file (default.html)
 ```html
