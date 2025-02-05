@@ -84,3 +84,12 @@ As you can see, the WebFormsJS script has been added in the header section of th
 The latest version of the WebFormsJS script is available through the link below.
 
 https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
+
+In addition to the Java programming language, you can use the WebForms classes located in the WebFormsCore directory directly or after compilation in the following programming languages (or implementations):
+- Kotlin
+- Scala
+- Groovy
+- Clojure
+- JRuby
+- Jython
+- Fantom
