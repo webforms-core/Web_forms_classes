@@ -2,7 +2,7 @@
 
 To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
-View file
+View file (default.html)
 ```html
 <!DOCTYPE html>
 <html>
