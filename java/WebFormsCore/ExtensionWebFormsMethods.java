@@ -1,5 +1,6 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
 public class ExtensionWebFormsMethods {
     /// <summary>
     /// This Method Does Not Support QueryAll
