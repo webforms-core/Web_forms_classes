@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 import java.util.List;
 import jakarta.servlet.http.HttpServletResponse;
 
