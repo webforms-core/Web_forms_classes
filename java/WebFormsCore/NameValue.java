@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 class NameValue {
     private String name;
     private String value;
