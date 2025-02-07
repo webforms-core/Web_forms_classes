@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 public class InputPlace {
     public static String id(String id) {
         return id;
