@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 /// <summary>
 /// Do Not Add Any Data Before Or After It
 /// </summary>
