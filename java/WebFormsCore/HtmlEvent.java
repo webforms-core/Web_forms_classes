@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 public class HtmlEvent { 
     public static final String OnAbort = "onabort"; 
     public static final String OnAfterPrint = "onafterprint"; 
