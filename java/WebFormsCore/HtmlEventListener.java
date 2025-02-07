@@ -1,5 +1,7 @@
 package WebFormsCore;
 
+// Compatible with WebFormsJS version 1.6
+
 public class HtmlEventListener {
     public static final String Abort = "abort";
     public static final String AfterPrint = "afterprint";
