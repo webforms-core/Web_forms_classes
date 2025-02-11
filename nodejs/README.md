@@ -10,6 +10,8 @@ const { WebForms, InputPlace } = require('./WebForms');
 const app = express();
 const PORT = 3000;
 
+app.use(express.static('public'));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
