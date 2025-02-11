@@ -31,7 +31,7 @@ def index():
     <html>
     <head>
       <title>Using WebForms Core</title>
-      <script type="text/javascript" src="/script/web-forms.js"></script>
+      <script type="text/javascript" src="/static/script/web-forms.js"></script>
     </head>
     <body>
         <form method="post" action="/">
