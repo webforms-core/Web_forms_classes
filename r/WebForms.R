@@ -4,6 +4,34 @@ library(BH)
 WebForms <- function() {
   WebFormsData <- NameValueCollection()
   
+    GetFormsActionData = function() {
+      ReturnValue <- ""
+      for (nv in WebFormsData$GetList()) {
+        ReturnValue <- paste0(ReturnValue, '\n', nv$Name)
+        if (nchar(nv$Value) > 0) {
+          ReturnValue <- paste0(ReturnValue, "=", nv$Value)
+        }
+      }
+      ReturnValue
+    }
+	
+    GetFormsActionDataLineBreak = function() {
+      ReturnValue <- ""
+      WebFormsDataList <- WebFormsData$GetList()
+      i <- length(WebFormsDataList)
+      for (nv in WebFormsDataList) {
+        ReturnValue <- paste0(ReturnValue, nv$Name)
+        if (nchar(nv$Value) > 0) {
+          ReturnValue <- paste0(ReturnValue, "=", gsub("\"", "$[dq];", nv$Value))
+        }
+        if (i > 1) {
+          ReturnValue <- paste0(ReturnValue, "$[sln];")
+        }
+        i <- i - 1
+      }
+      ReturnValue
+    }
+  
   list(
     AddLine = function(Name, Value) {
       WebFormsData$Add(Name, Value)
@@ -23,7 +51,7 @@ WebForms <- function() {
     AddStyle = function(InputPlace, Style) {
       WebFormsData$Add(paste0("as", InputPlace), Style)
     },
-    AddStyleWithValue = function(InputPlace, Name, Value) {
+    AddStyleWithNameValue = function(InputPlace, Name, Value) {
       WebFormsData$Add(paste0("as", InputPlace), paste0(Name, ":", Value))
     },
     AddOptionTag = function(InputPlace, Text, Value, Selected = FALSE) {
@@ -71,7 +99,7 @@ WebForms <- function() {
     SetStyle = function(InputPlace, Style) {
       WebFormsData$Add(paste0("ss", InputPlace), Style)
     },
-    SetStyleWithValue = function(InputPlace, Name, Value) {
+    SetStyleWithNameValue = function(InputPlace, Name, Value) {
       WebFormsData$Add(paste0("ss", InputPlace), paste0(Name, ":", Value))
     },
     SetOptionTag = function(InputPlace, Text, Value, Selected = FALSE) {
@@ -92,13 +120,13 @@ WebForms <- function() {
     SetAttribute = function(InputPlace, Attribute, Value = "") {
       WebFormsData$Add(paste0("sa", InputPlace), paste0(Attribute, ifelse(nchar(Value) > 0, paste0("|", Value), "")))
     },
-    SetWidth = function(InputPlace, Width) {
+    SetWidthString = function(InputPlace, Width) {
       WebFormsData$Add(paste0("sw", InputPlace), Width)
     },
     SetWidth = function(InputPlace, Width) {
       SetWidth(InputPlace, paste0(Width, "px"))
     },
-    SetHeight = function(InputPlace, Height) {
+    SetHeightString = function(InputPlace, Height) {
       WebFormsData$Add(paste0("sh", InputPlace), Height)
     },
     SetHeight = function(InputPlace, Height) {
@@ -119,7 +147,7 @@ WebForms <- function() {
     InsertStyle = function(InputPlace, Style) {
       WebFormsData$Add(paste0("is", InputPlace), Style)
     },
-    InsertStyle = function(InputPlace, Name, Value) {
+    InsertStyleWithNameValue = function(InputPlace, Name, Value) {
       WebFormsData$Add(paste0("is", InputPlace), paste0(Name, ":", Value))
     },
     InsertOptionTag = function(InputPlace, Text, Value, Selected = FALSE) {
@@ -188,10 +216,10 @@ WebForms <- function() {
     SetFontName = function(InputPlace, Name) {
       WebFormsData$Add(paste0("fn", InputPlace), Name)
     },
-    SetFontSize = function(InputPlace, Size) {
+    SetFontSizeString = function(InputPlace, Size) {
       WebFormsData$Add(paste0("fs", InputPlace), Size)
     },
-    SetFontSizeString = function(InputPlace, Size) {
+    SetFontSize = function(InputPlace, Size) {
       WebFormsData$Add(paste0("fs", InputPlace), paste0(Size, "px"))
     },
     SetFontBold = function(InputPlace, Bold) {
@@ -257,7 +285,7 @@ WebForms <- function() {
     SetCache = function(Second) {
       WebFormsData$Add("cd", as.character(Second))
     },
-    SetCache = function() {
+    SetCacheNoTime = function() {
       WebFormsData$Add("cd", "*")
     },
     IncreaseMinLength = function(InputPlace, Value) {
@@ -317,25 +345,25 @@ WebForms <- function() {
     SetGetEvent = function(InputPlace, HtmlEvent, Path = NULL) {
       WebFormsData$Add(paste0("Eg", InputPlace), paste0(HtmlEvent, "|", ifelse(is.null(Path), "#", Path)))
     },
-    SetGetEvent = function(InputPlace, HtmlEvent, OutputPlace, Path = NULL) {
+    SetGetEventWithOutput = function(InputPlace, HtmlEvent, OutputPlace, Path = NULL) {
       WebFormsData$Add(paste0("Eg", InputPlace), paste0(HtmlEvent, "|", ifelse(is.null(Path), "#", Path), "|", OutputPlace))
     },
     SetGetEventInForm = function(InputPlace, HtmlEvent) {
       WebFormsData$Add(paste0("Eg", InputPlace), HtmlEvent)
     },
-    SetGetEventInForm = function(InputPlace, HtmlEvent, OutputPlace) {
+    SetGetEventInFormWithOutput = function(InputPlace, HtmlEvent, OutputPlace) {
       WebFormsData$Add(paste0("Eg", InputPlace), paste0(HtmlEvent, "|", OutputPlace))
     },
     SetGetEventListener = function(InputPlace, HtmlEventListener, Path = NULL) {
       WebFormsData$Add(paste0("EG", InputPlace), paste0(HtmlEventListener, "|", ifelse(is.null(Path), "#", Path)))
     },
-    SetGetEventListener = function(InputPlace, HtmlEventListener, OutputPlace, Path = NULL) {
+    SetGetEventListenerWithOutput = function(InputPlace, HtmlEventListener, OutputPlace, Path = NULL) {
       WebFormsData$Add(paste0("EG", InputPlace), paste0(HtmlEventListener, "|", ifelse(is.null(Path), "#", Path), "|", OutputPlace))
     },
     SetGetEventInFormListener = function(InputPlace, HtmlEventListener) {
       WebFormsData$Add(paste0("EG", InputPlace), HtmlEventListener)
     },
-    SetGetEventInFormListener = function(InputPlace, HtmlEventListener, OutputPlace) {
+    SetGetEventInFormListenerWithOutput = function(InputPlace, HtmlEventListener, OutputPlace) {
       WebFormsData$Add(paste0("EG", InputPlace), paste0(HtmlEventListener, "|", OutputPlace))
     },
     SetTagEvent = function(InputPlace, HtmlEvent, OutputPlace) {
@@ -446,46 +474,19 @@ WebForms <- function() {
     StartIndex = function(Name = "") {
       WebFormsData$Add("#", Name)
     },
-    GetFormsActionData = function() {
-      ReturnValue <- ""
-      for (nv in WebFormsData$GetList()) {
-        ReturnValue <- paste0(ReturnValue, "\n", nv$Name)
-        if (nchar(nv$Value) > 0) {
-          ReturnValue <- paste0(ReturnValue, "=", nv$Value)
-        }
+    Response = function(res = NULL) {
+      if (!is.null(res)) {
+        SetHeaders(res)
       }
-      ReturnValue
-    },
-    Response = function() {
       paste0("[web-forms]", GetFormsActionData())
-    },
-    Response = function(context) {
-      SetHeaders(context)
-      Response()
-    },
-    GetFormsActionDataLineBreak = function() {
-      ReturnValue <- ""
-      WebFormsDataList <- WebFormsData$GetList()
-      i <- length(WebFormsDataList)
-      for (nv in WebFormsDataList) {
-        ReturnValue <- paste0(ReturnValue, nv$Name)
-        if (nchar(nv$Value) > 0) {
-          ReturnValue <- paste0(ReturnValue, "=", gsub("\"", "$[dq];", nv$Value))
-        }
-        if (i > 1) {
-          ReturnValue <- paste0(ReturnValue, "$[sln];")
-        }
-        i <- i - 1
-      }
-      ReturnValue
     },
     ExportToWebFormsTag = function(src = NULL) {
       paste0("<web-forms ac=\"", GetFormsActionDataLineBreak(), "\"", ifelse(!is.null(src), paste0(" src=\"", src, "\""), ""), "></web-forms>")
     },
-    ExportToWebFormsTag = function(Width, Height, src = NULL) {
+    ExportToWebFormsTagWithDimensions = function(Width, Height, src = NULL) {
       paste0("<web-forms ac=\"", GetFormsActionDataLineBreak(), "\" width=\"", Width, "\" height=\"", Height, "\"", ifelse(!is.null(src), paste0(" src=\"", src, "\""), ""), "></web-forms>")
     },
-    ExportToWebFormsTag = function(Width, Height, src = NULL) {
+    ExportToWebFormsTagWithDimensionsInt = function(Width, Height, src = NULL) {
       ExportToWebFormsTag(paste0(Width, "px"), paste0(Height, "px"), src)
     },
     DoneToWebFormsTag = function(Id = NULL) {
@@ -497,8 +498,8 @@ WebForms <- function() {
     AppendForm = function(form) {
       WebFormsData$AddList(form$ExportToNameValue()$GetList())
     },
-    SetHeaders = function(context) {
-      context$Response$Headers$Add("Content-Type", "text/plain")
+    SetHeaders = function(res) {
+      res$setHeader("Content-Type", "text/plain")
     },
     Clean = function() {
       WebFormsData <- NameValueCollection()
