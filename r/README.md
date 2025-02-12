@@ -86,6 +86,12 @@ server <- startServer("127.0.0.1", 8080, app)
 In the upper part of the View file, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
 Please note that if the submit button is not clicked (initial request), the view page will be displayed completely for the requester.
 
+> Note: To use the `WebForms.R` class (only in R), you need to install the `BH` package.
+The BH package is installed with the following command:
+```
+install.packages("BH")
+```
+
 As you can see, the WebFormsJS script has been added in the header section of the View file above.
 
 The latest version of the WebFormsJS script is available through the link below.
