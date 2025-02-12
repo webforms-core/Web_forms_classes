@@ -416,7 +416,7 @@ class WebForms
         $this->webFormsData->add("cd", $second);
     }
 
-    public function setCacheAll()
+    public function setCacheNoTime()
     {
         $this->webFormsData->add("cd", "*");
     }
