@@ -1,3 +1,5 @@
+# Compatible with WebFormsJS version 1.6
+
 library(BH)
 
 # Define the WebForms class
