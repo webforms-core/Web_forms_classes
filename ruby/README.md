@@ -6,6 +6,10 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 require 'sinatra'
 require_relative 'WebForms'
 
+get '/' do
+  erb :view
+end
+
 post '/' do
   if params['btn_SetBodyValue']
     name = params['txt_Name']
@@ -23,13 +27,11 @@ post '/' do
 
     return form.response
   end
-
-  erb :form
 end
 
 __END__
 
-@@form
+@@view
 <!DOCTYPE html>
 <html>
 <head>
