@@ -101,7 +101,7 @@ The settings of the "Cargo.toml" file are as follows.
 [package]
 name = "web_forms_core"
 version = "0.1.0"
-edition = "2025"
+edition = "2021"
 
 [dependencies]
 actix-web = "4"
