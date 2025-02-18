@@ -66,6 +66,9 @@ public partial class ContactController : CodeBehindController
 }
 ```
 
+The GIF image below shows how the above code works.
+![WebForms Core example in web forms classes](https://github.com/user-attachments/assets/a4bc19eb-578b-42d0-b725-2ec28d16e3e5)
+
 In this example, after clicking the button, first an instance of the WebForms class is created. Then a new h3 tag is created and the submit text is successfully added in it and shown to the user for 3 seconds and then removed. The submit button is also disabled and finally the response is sent to the client using the `Response` method.
 
 **What is sent from the client to the server?**
@@ -86,10 +89,6 @@ bc<h3>=green
 st<h3>=Adriano! Your message was sent successfully.
 :3)de<h3>=1
 ```
-
-You can see how WebForms Core works in the link below:
-
-https://github.com/elanatframework/Code_behind/blob/elanat_framework/doc/using_web_forms.md
 
 ## Feel free to create pull requests
 In this repository, you convert the WebForms class in the CodeBehind framework (written in C# programming language) into a WebForms class in your desired programming language.
