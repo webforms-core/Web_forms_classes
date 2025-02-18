@@ -31,7 +31,7 @@ To use WebForms Core technology, you need to get the [WebFormsJS](https://github
 
 On the server side, you also need to get the [WebForms class](https://github.com/elanatframework/Web_forms_classes) for the server programming language and implement it on your system.
 
-**C# example in CodeBehind framework***
+**C# example in CodeBehind framework**
 ```csharp
 using CodeBehind;
 
