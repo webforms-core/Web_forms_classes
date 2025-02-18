@@ -5,12 +5,18 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 ```swift
 import Vapor
 
+struct FormData: Content {
+    var txt_Name: String
+    var txt_BackgroundColor: String
+    var txt_FontSize: Int
+}
+
 func routes(_ app: Application) throws {
     app.post { req -> Response in
         guard let data = try? req.content.decode(FormData.self) else {
             throw Abort(.badRequest)
         }
-        
+
         let name = data.txt_Name
         let backgroundColor = data.txt_BackgroundColor
         let fontSize = data.txt_FontSize
@@ -26,12 +32,10 @@ func routes(_ app: Application) throws {
 
         return form.response()
     }
-}
 
-struct FormData: Content {
-    var txt_Name: String
-    var txt_BackgroundColor: String
-    var txt_FontSize: Int
+    app.get { req in
+        return Response(status: .ok, body: .init(string: renderForm()))
+    }
 }
 
 func renderForm() -> String {
@@ -60,8 +64,20 @@ func renderForm() -> String {
     """
 }
 
-app.get { req in
-    return Response(status: .ok, body: .init(string: renderForm()))
+public func configure(_ app: Application) throws {
+    // Register routes
+    try routes(app)
+}
+
+let app = Application()
+defer { app.shutdown() }
+
+do {
+    try configure(app)
+    try app.run()
+} catch {
+    app.logger.error("Failed to start the app: \(error)")
+    throw error
 }
 ```
 
