@@ -90,6 +90,16 @@ st<h3>=Adriano! Your message was sent successfully.
 :3)de<h3>=1
 ```
 
+## Other programming languages 
+
+- **C#:** WebForms classes in all programming languages ​​are built from the C# class in [this link](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs). This class is the parent class of all WebForms classes.
+> Note: WebForms Core technology is a feature of the [CodeBehind framework](https://github.com/elanatframework/Code_behind), but at Elanat we provide WebForms Core for all programming languages.
+- **Scala and Kotlin:** By configuring the build tools (such as Gradle, Maven, or SBT), you can use the [Java WebForms classes](https://github.com/elanatframework/Web_forms_classes/tree/elanat_framework/java/WebFormsCore) for Scala and Kotlin programming languages.
+- **C++:** C calls are allowed in C++, so you can easily use the C WebForms.h class.
+- **Visual Basic:** You can easily use the C# [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class for Visual Basic programming language.
+- **Less popular programming languages:** We strive to provide the WebForms class on the server for 99% of web development cases; if you would like to use WebForms Core technology in a less popular programming language (on the web), ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
+- **Deprecated programming languages:** The likelihood of using these programming languages ​​is low, but we respect the developers of these programming languages, so you can still ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
+
 ## Feel free to create pull requests
 In this repository, you convert the WebForms class in the CodeBehind framework (written in C# programming language) into a WebForms class in your desired programming language.
 
