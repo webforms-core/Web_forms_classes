@@ -1,391 +1,718 @@
+// Compatible with WebFormsJS version 1.6
+
 import Foundation
 
 class WebForms {
-    private var webFormsData = [String: String]()
-
+    private var webFormsData = NameValueCollection()
+    
+    // For Extension
+    func addLine(name: String, value: String) {
+        webFormsData.add(name: name, value: value)
+    }
+    
     // Add
-    func addId(_ inputPlace: String, _ id: String) {
-        webFormsData["ai\(inputPlace)"] = id
+    func addId(inputPlace: String, id: String) {
+        webFormsData.add(name: "ai" + inputPlace, value: id)
     }
     
-    func addName(_ inputPlace: String, _ name: String) {
-        webFormsData["an\(inputPlace)"] = name
+    func addName(inputPlace: String, name: String) {
+        webFormsData.add(name: "an" + inputPlace, value: name)
     }
     
-    func addValue(_ inputPlace: String, _ value: String) {
-        webFormsData["av\(inputPlace)"] = value
+    func addValue(inputPlace: String, value: String) {
+        webFormsData.add(name: "av" + inputPlace, value: value)
     }
     
-    func addClass(_ inputPlace: String, _ className: String) {
-        webFormsData["ac\(inputPlace)"] = className
+    func addClass(inputPlace: String, className: String) {
+        webFormsData.add(name: "ac" + inputPlace, value: className)
     }
     
-    func addStyle(_ inputPlace: String, _ style: String) {
-        webFormsData["as\(inputPlace)"] = style
+    func addStyle(inputPlace: String, style: String) {
+        webFormsData.add(name: "as" + inputPlace, value: style)
     }
     
-    func addOptionTag(_ inputPlace: String, text: String, value: String, selected: Bool = false) {
-        webFormsData["ao\(inputPlace)"] = "\(value)|\(text)\(selected ? "|1" : "")"
+    func addStyle(inputPlace: String, name: String, value: String) {
+        webFormsData.add(name: "as" + inputPlace, value: "\(name):\(value)")
     }
     
-    func addCheckBoxTag(_ inputPlace: String, text: String, value: String, checked: Bool = false) {
-        webFormsData["ak\(inputPlace)"] = "\(value)|\(text)\(checked ? "|1" : "")"
+    func addOptionTag(inputPlace: String, text: String, value: String, selected: Bool = false) {
+        let selectedValue = selected ? "|1" : ""
+        webFormsData.add(name: "ao" + inputPlace, value: "\(value)|\(text)\(selectedValue)")
     }
     
-    func addTitle(_ inputPlace: String, _ title: String) {
-        webFormsData["al\(inputPlace)"] = title
+    func addCheckBoxTag(inputPlace: String, text: String, value: String, checked: Bool = false) {
+        let checkedValue = checked ? "|1" : ""
+        webFormsData.add(name: "ak" + inputPlace, value: "\(value)|\(text)\(checkedValue)")
     }
     
-    func addText(_ inputPlace: String, _ text: String) {
-        webFormsData["at\(inputPlace)"] = text.replacingOccurrences(of: "\n", with: "$[ln];")
+    func addTitle(inputPlace: String, title: String) {
+        webFormsData.add(name: "al" + inputPlace, value: title)
     }
     
-    func addAttribute(_ inputPlace: String, _ attribute: String, _ value: String = "") {
-        webFormsData["aa\(inputPlace)"] = "\(attribute)|\(value)"
+    func addText(inputPlace: String, text: String) {
+        let modifiedText = text.replacingOccurrences(of: "\n", with: "$[ln];")
+        webFormsData.add(name: "at" + inputPlace, value: modifiedText)
     }
     
-    func addTag(_ inputPlace: String, tagName: String, id: String = "") {
-        webFormsData["nt\(inputPlace)"] = "\(tagName)\(id.isEmpty ? "" : "|\(id)")"
+    func addTextToUp(inputPlace: String, text: String) {
+        let modifiedText = text.replacingOccurrences(of: "\n", with: "$[ln];")
+        webFormsData.add(name: "pt" + inputPlace, value: modifiedText)
     }
-
+    
+    func addAttribute(inputPlace: String, attribute: String, value: String = "") {
+        webFormsData.add(name: "aa" + inputPlace, value: "\(attribute)|\(value)")
+    }
+    
+    func addTag(inputPlace: String, tagName: String, id: String = "") {
+        let tagValue = !id.isEmpty ? "\(tagName)|\(id)" : tagName
+        webFormsData.add(name: "nt" + inputPlace, value: tagValue)
+    }
+    
+    func addTagToUp(inputPlace: String, tagName: String, id: String = "") {
+        let tagValue = !id.isEmpty ? "\(tagName)|\(id)" : tagName
+        webFormsData.add(name: "ut" + inputPlace, value: tagValue)
+    }
+    
+    func addTagBefore(inputPlace: String, tagName: String, id: String = "") {
+        let tagValue = !id.isEmpty ? "\(tagName)|\(id)" : tagName
+        webFormsData.add(name: "bt" + inputPlace, value: tagValue)
+    }
+    
+    func addTagAfter(inputPlace: String, tagName: String, id: String = "") {
+        let tagValue = !id.isEmpty ? "\(tagName)|\(id)" : tagName
+        webFormsData.add(name: "ft" + inputPlace, value: tagValue)
+    }
+    
     // Set
-    func setId(_ inputPlace: String, _ id: String) {
-        webFormsData["si\(inputPlace)"] = id
+    func setId(inputPlace: String, id: String) {
+        webFormsData.add(name: "si" + inputPlace, value: id)
     }
     
-    func setName(_ inputPlace: String, _ name: String) {
-        webFormsData["sn\(inputPlace)"] = name
+    func setName(inputPlace: String, name: String) {
+        webFormsData.add(name: "sn" + inputPlace, value: name)
     }
     
-    func setValue(_ inputPlace: String, _ value: String) {
-        webFormsData["sv\(inputPlace)"] = value
+    func setValue(inputPlace: String, value: String) {
+        webFormsData.add(name: "sv" + inputPlace, value: value)
     }
     
-    func setClass(_ inputPlace: String, _ className: String) {
-        webFormsData["sc\(inputPlace)"] = className
+    func setClass(inputPlace: String, className: String) {
+        webFormsData.add(name: "sc" + inputPlace, value: className)
     }
     
-    func setStyle(_ inputPlace: String, _ style: String) {
-        webFormsData["ss\(inputPlace)"] = style
+    func setStyle(inputPlace: String, style: String) {
+        webFormsData.add(name: "ss" + inputPlace, value: style)
     }
     
-    func setOptionTag(_ inputPlace: String, text: String, value: String, selected: Bool = false) {
-        webFormsData["so\(inputPlace)"] = "\(value)|\(text)\(selected ? "|1" : "")"
+    func setStyle(inputPlace: String, name: String, value: String) {
+        webFormsData.add(name: "ss" + inputPlace, value: "\(name):\(value)")
     }
     
-    func setChecked(_ inputPlace: String, _ checked: Bool = false) {
-        webFormsData["sk\(inputPlace)"] = checked ? "1" : "0"
+    func setOptionTag(inputPlace: String, text: String, value: String, selected: Bool = false) {
+        let selectedValue = selected ? "|1" : ""
+        webFormsData.add(name: "so" + inputPlace, value: "\(value)|\(text)\(selectedValue)")
     }
     
-    func setCheckBoxTagToList(_ inputPlace: String, text: String, value: String, checked: Bool = false) {
-        webFormsData["sk\(inputPlace)"] = "\(value)|\(text)\(checked ? "|1" : "")"
+    func setChecked(inputPlace: String, checked: Bool = false) {
+        webFormsData.add(name: "sk" + inputPlace, value: checked ? "1" : "0")
     }
-
-    func setTitle(_ inputPlace: String, _ title: String) {
-        webFormsData["sl\(inputPlace)"] = title
+    
+    func setCheckBoxTagToList(inputPlace: String, text: String, value: String, checked: Bool = false) {
+        let checkedValue = checked ? "|1" : ""
+        webFormsData.add(name: "sk" + inputPlace, value: "\(value)|\(text)\(checkedValue)")
     }
-
-    func setText(_ inputPlace: String, _ text: String) {
-        webFormsData["st\(inputPlace)"] = text.replacingOccurrences(of: "\n", with: "$[ln];")
+    
+    func setTitle(inputPlace: String, title: String) {
+        webFormsData.add(name: "sl" + inputPlace, value: title)
     }
-
-    func setAttribute(_ inputPlace: String, _ attribute: String, _ value: String = "") {
-        webFormsData["sa\(inputPlace)"] = "\(attribute)\(value.isEmpty ? "" : "|\(value)")"
+    
+    func setText(inputPlace: String, text: String) {
+        let modifiedText = text.replacingOccurrences(of: "\n", with: "$[ln];")
+        webFormsData.add(name: "st" + inputPlace, value: modifiedText)
     }
-
-    func setWidth(_ inputPlace: String, _ width: String) {
-        webFormsData["sw\(inputPlace)"] = width
+    
+    func setAttribute(inputPlace: String, attribute: String, value: String = "") {
+        webFormsData.add(name: "sa" + inputPlace, value: "\(attribute)|\(value)")
     }
-
-    func setWidth(_ inputPlace: String, _ width: Int) {
-        setWidth(inputPlace, "\(width)px")
+    
+    func setWidth(inputPlace: String, width: String) {
+        webFormsData.add(name: "sw" + inputPlace, value: width)
     }
-
-    func setHeight(_ inputPlace: String, _ height: String) {
-        webFormsData["sh\(inputPlace)"] = height
+    
+    func setWidth(inputPlace: String, width: Int) {
+        setWidth(inputPlace: inputPlace, width: "\(width)px")
     }
-
-    func setHeight(_ inputPlace: String, _ height: Int) {
-        setHeight(inputPlace, "\(height)px")
+    
+    func setHeight(inputPlace: String, height: String) {
+        webFormsData.add(name: "sh" + inputPlace, value: height)
     }
-
+    
+    func setHeight(inputPlace: String, height: Int) {
+        setHeight(inputPlace: inputPlace, height: "\(height)px")
+    }
+    
     // Insert
-    func insertId(_ inputPlace: String, _ id: String) {
-        webFormsData["ii\(inputPlace)"] = id
+    func insertId(inputPlace: String, id: String) {
+        webFormsData.add(name: "ii" + inputPlace, value: id)
     }
     
-    func insertName(_ inputPlace: String, _ name: String) {
-        webFormsData["in\(inputPlace)"] = name
+    func insertName(inputPlace: String, name: String) {
+        webFormsData.add(name: "in" + inputPlace, value: name)
     }
     
-    func insertValue(_ inputPlace: String, _ value: String) {
-        webFormsData["iv\(inputPlace)"] = value
+    func insertValue(inputPlace: String, value: String) {
+        webFormsData.add(name: "iv" + inputPlace, value: value)
     }
     
-    func insertClass(_ inputPlace: String, _ className: String) {
-        webFormsData["ic\(inputPlace)"] = className
+    func insertClass(inputPlace: String, className: String) {
+        webFormsData.add(name: "ic" + inputPlace, value: className)
     }
     
-    func insertStyle(_ inputPlace: String, _ style: String) {
-        webFormsData["is\(inputPlace)"] = style
+    func insertStyle(inputPlace: String, style: String) {
+        webFormsData.add(name: "is" + inputPlace, value: style)
     }
     
-    func insertOptionTag(_ inputPlace: String, text: String, value: String, selected: Bool = false) {
-        webFormsData["io\(inputPlace)"] = "\(value)|\(text)\(selected ? "|1" : "")"
+    func insertStyle(inputPlace: String, name: String, value: String) {
+        webFormsData.add(name: "is" + inputPlace, value: "\(name):\(value)")
     }
     
-    func insertCheckBoxTag(_ inputPlace: String, text: String, value: String, checked: Bool = false) {
-        webFormsData["ik\(inputPlace)"] = "\(value)|\(text)\(checked ? "|1" : "")"
+    func insertOptionTag(inputPlace: String, text: String, value: String, selected: Bool = false) {
+        let selectedValue = selected ? "|1" : ""
+        webFormsData.add(name: "io" + inputPlace, value: "\(value)|\(text)\(selectedValue)")
     }
     
-    func insertTitle(_ inputPlace: String, _ title: String) {
-        webFormsData["il\(inputPlace)"] = title
+    func insertCheckBoxTag(inputPlace: String, text: String, value: String, checked: Bool = false) {
+        let checkedValue = checked ? "|1" : ""
+        webFormsData.add(name: "ik" + inputPlace, value: "\(value)|\(text)\(checkedValue)")
     }
     
-    func insertText(_ inputPlace: String, _ text: String) {
-        webFormsData["it\(inputPlace)"] = text.replacingOccurrences(of: "\n", with: "$[ln];")
+    func insertTitle(inputPlace: String, title: String) {
+        webFormsData.add(name: "il" + inputPlace, value: title)
     }
     
-    func insertAttribute(_ inputPlace: String, _ attribute: String, _ value: String = "") {
-        webFormsData["ia\(inputPlace)"] = "\(attribute)\(value.isEmpty ? "" : "|\(value)")"
+    func insertText(inputPlace: String, text: String) {
+        let modifiedText = text.replacingOccurrences(of: "\n", with: "$[ln];")
+        webFormsData.add(name: "it" + inputPlace, value: modifiedText)
     }
-
+    
+    func insertAttribute(inputPlace: String, attribute: String, value: String = "") {
+        webFormsData.add(name: "ia" + inputPlace, value: "\(attribute)|\(value)")
+    }
+    
     // Delete
-    func deleteId(_ inputPlace: String) {
-        webFormsData["di\(inputPlace)"] = "1"
+    func deleteId(inputPlace: String) {
+        webFormsData.add(name: "di" + inputPlace, value: "1")
     }
     
-    func deleteName(_ inputPlace: String) {
-        webFormsData["dn\(inputPlace)"] = "1"
+    func deleteName(inputPlace: String) {
+        webFormsData.add(name: "dn" + inputPlace, value: "1")
     }
     
-    func deleteValue(_ inputPlace: String) {
-        webFormsData["dv\(inputPlace)"] = "1"
+    func deleteValue(inputPlace: String) {
+        webFormsData.add(name: "dv" + inputPlace, value: "1")
     }
     
-    func deleteClass(_ inputPlace: String, _ className: String) {
-        webFormsData["dc\(inputPlace)"] = className
+    func deleteClass(inputPlace: String, className: String) {
+        webFormsData.add(name: "dc" + inputPlace, value: className)
     }
     
-    func deleteStyle(_ inputPlace: String, _ styleName: String) {
-        webFormsData["ds\(inputPlace)"] = styleName
+    func deleteStyle(inputPlace: String, styleName: String) {
+        webFormsData.add(name: "ds" + inputPlace, value: styleName)
     }
     
-    func deleteOptionTag(_ inputPlace: String, _ value: String) {
-        webFormsData["do\(inputPlace)"] = value
+    func deleteOptionTag(inputPlace: String, value: String) {
+        webFormsData.add(name: "do" + inputPlace, value: value)
     }
     
-    func deleteCheckBoxTag(_ inputPlace: String, _ value: String) {
-        webFormsData["dk\(inputPlace)"] = value
+    func deleteAllOptionTag(inputPlace: String) {
+        webFormsData.add(name: "do" + inputPlace, value: "*")
     }
     
-    func deleteTitle(_ inputPlace: String) {
-        webFormsData["dl\(inputPlace)"] = "1"
+    func deleteCheckBoxTag(inputPlace: String, value: String) {
+        webFormsData.add(name: "dk" + inputPlace, value: value)
     }
     
-    func deleteText(_ inputPlace: String) {
-        webFormsData["dt\(inputPlace)"] = "1"
+    func deleteAllCheckBoxTag(inputPlace: String) {
+        webFormsData.add(name: "dk" + inputPlace, value: "*")
     }
     
-    func deleteAttribute(_ inputPlace: String, _ attribute: String) {
-        webFormsData["da\(inputPlace)"] = attribute
+    func deleteTitle(inputPlace: String) {
+        webFormsData.add(name: "dl" + inputPlace, value: "1")
     }
     
-    func delete(_ inputPlace: String) {
-        webFormsData["de\(inputPlace)"] = "1"
+    func deleteText(inputPlace: String) {
+        webFormsData.add(name: "dt" + inputPlace, value: "1")
     }
-
+    
+    func deleteAttribute(inputPlace: String, attribute: String) {
+        webFormsData.add(name: "da" + inputPlace, value: attribute)
+    }
+    
+    func delete(inputPlace: String) {
+        webFormsData.add(name: "de" + inputPlace, value: "1")
+    }
+    
+    func deleteParent(inputPlace: String) {
+        webFormsData.add(name: "dp" + inputPlace, value: "1")
+    }
+    
     // Other
-    func setBackgroundColor(_ inputPlace: String, _ color: String) {
-        webFormsData["bc\(inputPlace)"] = color
+    func setBackgroundColor(inputPlace: String, color: String) {
+        webFormsData.add(name: "bc" + inputPlace, value: color)
     }
     
-    func setTextColor(_ inputPlace: String, _ color: String) {
-        webFormsData["tc\(inputPlace)"] = color
+    func setTextColor(inputPlace: String, color: String) {
+        webFormsData.add(name: "tc" + inputPlace, value: color)
     }
     
-    func setFontName(_ inputPlace: String, _ name: String) {
-        webFormsData["fn\(inputPlace)"] = name
+    func setFontName(inputPlace: String, name: String) {
+        webFormsData.add(name: "fn" + inputPlace, value: name)
     }
     
-    func setFontSize(_ inputPlace: String, _ size: String) {
-        webFormsData["fs\(inputPlace)"] = size
+    func setFontSize(inputPlace: String, size: String) {
+        webFormsData.add(name: "fs" + inputPlace, value: size)
     }
     
-    func setFontSize(_ inputPlace: String, _ size: Int) {
-        setFontSize(inputPlace, "\(size)px")
+    func setFontSize(inputPlace: String, size: Int) {
+        webFormsData.add(name: "fs" + inputPlace, value: "\(size)px")
     }
     
-    func setFontBold(_ inputPlace: String, _ bold: Bool) {
-        webFormsData["fb\(inputPlace)"] = bold ? "1" : "0"
+    func setFontBold(inputPlace: String, bold: Bool) {
+        webFormsData.add(name: "fb" + inputPlace, value: bold ? "1" : "0")
     }
     
-    func setVisible(_ inputPlace: String, _ visible: Bool) {
-        webFormsData["vi\(inputPlace)"] = visible ? "1" : "0"
+    func setVisible(inputPlace: String, visible: Bool) {
+        webFormsData.add(name: "vi" + inputPlace, value: visible ? "1" : "0")
     }
     
-    func setTextAlign(_ inputPlace: String, _ align: String) {
-        webFormsData["ta\(inputPlace)"] = align
+    func setTextAlign(inputPlace: String, align: String) {
+        webFormsData.add(name: "ta" + inputPlace, value: align)
     }
     
-    func setReadOnly(_ inputPlace: String, _ readOnly: Bool) {
-        webFormsData["sr\(inputPlace)"] = readOnly ? "1" : "0"
+    func setReadOnly(inputPlace: String, readOnly: Bool) {
+        webFormsData.add(name: "sr" + inputPlace, value: readOnly ? "1" : "0")
     }
     
-    func setDisabled(_ inputPlace: String, _ disabled: Bool) {
-        webFormsData["sd\(inputPlace)"] = disabled ? "1" : "0"
+    func setDisabled(inputPlace: String, disabled: Bool) {
+        webFormsData.add(name: "sd" + inputPlace, value: disabled ? "1" : "0")
     }
     
-    func setMinLength(_ inputPlace: String, _ length: Int) {
-        webFormsData["mn\(inputPlace)"] = "\(length)"
+    func setFocus(inputPlace: String, focus: Bool) {
+        webFormsData.add(name: "sf" + inputPlace, value: focus ? "1" : "0")
     }
     
-    func setMaxLength(_ inputPlace: String, _ length: Int) {
-        webFormsData["mx\(inputPlace)"] = "\(length)"
+    func setMinLength(inputPlace: String, length: Int) {
+        webFormsData.add(name: "mn" + inputPlace, value: "\(length)")
     }
     
-    func setSelectedValue(_ inputPlace: String, _ value: String) {
-        webFormsData["ts\(inputPlace)"] = value
+    func setMaxLength(inputPlace: String, length: Int) {
+        webFormsData.add(name: "mx" + inputPlace, value: "\(length)")
     }
     
-    func setSelectedIndex(_ inputPlace: String, _ index: Int) {
-        webFormsData["ti\(inputPlace)"] = "\(index)"
+    func setSelectedValue(inputPlace: String, value: String) {
+        webFormsData.add(name: "ts" + inputPlace, value: value)
     }
     
-    func setCheckedValue(_ inputPlace: String, _ value: String, _ selected: Bool) {
-        webFormsData["ks\(inputPlace)"] = "\(value)|\(selected ? "1" : "0")"
+    func setSelectedIndex(inputPlace: String, index: Int) {
+        webFormsData.add(name: "ti" + inputPlace, value: "\(index)")
     }
     
-    func setCheckedIndex(_ inputPlace: String, _ index: Int, _ selected: Bool) {
-        webFormsData["ki\(inputPlace)"] = "\(index)|\(selected ? "1" : "0")"
+    func setCheckedValue(inputPlace: String, value: String, selected: Bool) {
+        webFormsData.add(name: "ks" + inputPlace, value: "\(value)|\(selected ? "1" : "0")")
     }
     
-    func callScript(_ scriptText: String) {
-        webFormsData["_"] = scriptText.replacingOccurrences(of: "\n", with: "$[ln];")
+    func setCheckedIndex(inputPlace: String, index: Int, selected: Bool) {
+        webFormsData.add(name: "ki" + inputPlace, value: "\(index)|\(selected ? "1" : "0")")
     }
     
-    func loadUrl(_ inputPlace: String, _ url: String) {
-        webFormsData["lu\(inputPlace)"] = url
+    func callScript(scriptText: String) {
+        let modifiedText = scriptText.replacingOccurrences(of: "\n", with: "$[ln];")
+        webFormsData.add(name: "_", value: modifiedText)
     }
-
+    
+    func loadUrl(inputPlace: String, url: String) {
+        webFormsData.add(name: "lu" + inputPlace, value: url)
+    }
+    
+    func changeUrl(url: String) {
+        webFormsData.add(name: "cu", value: url)
+    }
+    
+    func removeSessionCache(cacheKey: String) {
+        webFormsData.add(name: "rs", value: cacheKey)
+    }
+    
+    func removeAllSessionCache() {
+        webFormsData.add(name: "rs", value: "*")
+    }
+    
+    func removeCache(cacheKey: String) {
+        webFormsData.add(name: "rd", value: cacheKey)
+    }
+    
+    func removeAllCache() {
+        webFormsData.add(name: "rd", value: "*")
+    }
+    
+    func setSessionCache() {
+        webFormsData.add(name: "cs", value: "1")
+    }
+    
+    func setCache(second: Int) {
+        webFormsData.add(name: "cd", value: "\(second)")
+    }
+    
+    func setCache() {
+        webFormsData.add(name: "cd", value: "*")
+    }
+    
     // Increase
-    func increaseMinLength(_ inputPlace: String, _ value: Int) {
-        webFormsData["+n\(inputPlace)"] = "\(value)"
+    func increaseMinLength(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+n" + inputPlace, value: "\(value)")
     }
     
-    func increaseMaxLength(_ inputPlace: String, _ value: Int) {
-        webFormsData["+x\(inputPlace)"] = "\(value)"
+    func increaseMaxLength(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+x" + inputPlace, value: "\(value)")
     }
     
-    func increaseFontSize(_ inputPlace: String, _ value: Int) {
-        webFormsData["+f\(inputPlace)"] = "\(value)"
+    func increaseFontSize(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+f" + inputPlace, value: "\(value)")
     }
     
-    func increaseWidth(_ inputPlace: String, _ value: Int) {
-        webFormsData["+w\(inputPlace)"] = "\(value)"
+    func increaseWidth(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+w" + inputPlace, value: "\(value)")
     }
     
-    func increaseHeight(_ inputPlace: String, _ value: Int) {
-        webFormsData["+h\(inputPlace)"] = "\(value)"
+    func increaseHeight(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+h" + inputPlace, value: "\(value)")
     }
     
-    func increaseValue(_ inputPlace: String, _ value: Int) {
-        webFormsData["+v\(inputPlace)"] = "\(value)"
+    func increaseValue(inputPlace: String, value: Int) {
+        webFormsData.add(name: "+v" + inputPlace, value: "\(value)")
     }
-
+    
     // Decrease
-    func decreaseMinLength(_ inputPlace: String, _ value: Int) {
-        webFormsData["-n\(inputPlace)"] = "\(value)"
+    func decreaseMinLength(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-n" + inputPlace, value: "\(value)")
     }
     
-    func decreaseMaxLength(_ inputPlace: String, _ value: Int) {
-        webFormsData["-x\(inputPlace)"] = "\(value)"
+    func decreaseMaxLength(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-x" + inputPlace, value: "\(value)")
     }
     
-    func decreaseFontSize(_ inputPlace: String, _ value: Int) {
-        webFormsData["-f\(inputPlace)"] = "\(value)"
+    func decreaseFontSize(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-f" + inputPlace, value: "\(value)")
     }
     
-    func decreaseWidth(_ inputPlace: String, _ value: Int) {
-        webFormsData["-w\(inputPlace)"] = "\(value)"
+    func decreaseWidth(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-w" + inputPlace, value: "\(value)")
     }
     
-    func decreaseHeight(_ inputPlace: String, _ value: Int) {
-        webFormsData["-h\(inputPlace)"] = "\(value)"
+    func decreaseHeight(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-h" + inputPlace, value: "\(value)")
     }
     
-    func decreaseValue(_ inputPlace: String, _ value: Int) {
-        webFormsData["-v\(inputPlace)"] = "\(value)"
+    func decreaseValue(inputPlace: String, value: Int) {
+        webFormsData.add(name: "-v" + inputPlace, value: "\(value)")
     }
-
+    
+    // Event
+    func setPostEvent(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Ep" + inputPlace, value: htmlEvent)
+    }
+    
+    func setPostEventAdding(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Ep" + inputPlace, value: "\(htmlEvent)|+")
+    }
+    
+    func setPostEventTo(inputPlace: String, htmlEvent: String, outputPlace: String) {
+        webFormsData.add(name: "Ep" + inputPlace, value: "\(htmlEvent)|\(outputPlace)")
+    }
+    
+    func setPostEventListener(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "EP" + inputPlace, value: htmlEventListener)
+    }
+    
+    func setPostEventListenerAdding(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "EP" + inputPlace, value: "\(htmlEventListener)|+")
+    }
+    
+    func setPostEventListenerTo(inputPlace: String, htmlEventListener: String, outputPlace: String) {
+        webFormsData.add(name: "EP" + inputPlace, value: "\(htmlEventListener)|\(outputPlace)")
+    }
+    
+    func setGetEvent(inputPlace: String, htmlEvent: String, path: String? = nil) {
+        let pathValue = path ?? "#"
+        webFormsData.add(name: "Eg" + inputPlace, value: "\(htmlEvent)|\(pathValue)")
+    }
+    
+    func setGetEvent(inputPlace: String, htmlEvent: String, outputPlace: String, path: String? = nil) {
+        let pathValue = path ?? "#"
+        webFormsData.add(name: "Eg" + inputPlace, value: "\(htmlEvent)|\(pathValue)|\(outputPlace)")
+    }
+    
+    func setGetEventInForm(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Eg" + inputPlace, value: htmlEvent)
+    }
+    
+    func setGetEventInForm(inputPlace: String, htmlEvent: String, outputPlace: String) {
+        webFormsData.add(name: "Eg" + inputPlace, value: "\(htmlEvent)|\(outputPlace)")
+    }
+    
+    func setGetEventListener(inputPlace: String, htmlEventListener: String, path: String? = nil) {
+        let pathValue = path ?? "#"
+        webFormsData.add(name: "EG" + inputPlace, value: "\(htmlEventListener)|\(pathValue)")
+    }
+    
+    func setGetEventListener(inputPlace: String, htmlEventListener: String, outputPlace: String, path: String? = nil) {
+        let pathValue = path ?? "#"
+        webFormsData.add(name: "EG" + inputPlace, value: "\(htmlEventListener)|\(pathValue)|\(outputPlace)")
+    }
+    
+    func setGetEventInFormListener(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "EG" + inputPlace, value: htmlEventListener)
+    }
+    
+    func setGetEventInFormListener(inputPlace: String, htmlEventListener: String, outputPlace: String) {
+        webFormsData.add(name: "EG" + inputPlace, value: "\(htmlEventListener)|\(outputPlace)")
+    }
+    
+    func setTagEvent(inputPlace: String, htmlEvent: String, outputPlace: String) {
+        webFormsData.add(name: "Et" + inputPlace, value: "\(htmlEvent)|\(outputPlace)")
+    }
+    
+    func setTagEventListener(inputPlace: String, htmlEvent: String, outputPlace: String) {
+        webFormsData.add(name: "ET" + inputPlace, value: "\(htmlEvent)|\(outputPlace)")
+    }
+    
+    func removePostEvent(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Rp" + inputPlace, value: htmlEvent)
+    }
+    
+    func removeGetEvent(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Rg" + inputPlace, value: htmlEvent)
+    }
+    
+    func removeTagEvent(inputPlace: String, htmlEvent: String) {
+        webFormsData.add(name: "Rt" + inputPlace, value: htmlEvent)
+    }
+    
+    func removePostEventListener(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "RP" + inputPlace, value: htmlEventListener)
+    }
+    
+    func removeGetEventListener(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "RG" + inputPlace, value: htmlEventListener)
+    }
+    
+    func removeTagEventListener(inputPlace: String, htmlEventListener: String) {
+        webFormsData.add(name: "RT" + inputPlace, value: htmlEventListener)
+    }
+    
+    // Save
+    func saveId(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gi" + inputPlace, value: key)
+    }
+    
+    func saveName(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gn" + inputPlace, value: key)
+    }
+    
+    func saveValue(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gv" + inputPlace, value: key)
+    }
+    
+    func saveValueLength(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@ge" + inputPlace, value: key)
+    }
+    
+    func saveClass(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gc" + inputPlace, value: key)
+    }
+    
+    func saveStyle(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gs" + inputPlace, value: key)
+    }
+    
+    func saveTitle(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gl" + inputPlace, value: key)
+    }
+    
+    func saveText(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gt" + inputPlace, value: key)
+    }
+    
+    func saveTextLength(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gg" + inputPlace, value: key)
+    }
+    
+    func saveAttribute(inputPlace: String, attribute: String, key: String = ".") {
+        webFormsData.add(name: "@ga" + inputPlace, value: "\(key)|\(attribute)")
+    }
+    
+    func saveWidth(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gw" + inputPlace, value: key)
+    }
+    
+    func saveHeight(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gh" + inputPlace, value: key)
+    }
+    
+    func saveReadOnly(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gr" + inputPlace, value: key)
+    }
+    
+    func saveSelectedIndex(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@gx" + inputPlace, value: key)
+    }
+    
+    func saveTextAlign(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@ta" + inputPlace, value: key)
+    }
+    
+    func saveNodeLength(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@nl" + inputPlace, value: key)
+    }
+    
+    func saveVisible(inputPlace: String, key: String = ".") {
+        webFormsData.add(name: "@vi" + inputPlace, value: key)
+    }
+    
     // Pre Runner
-    func assignDelay(_ second: Float, index: Int = -1) {
-        guard let currentName = getNameByIndex(index) else { return }
-        webFormsData[changeName(currentName, with: ":\(second)", index: index)] = currentName
+    func assignDelay(second: Float, index: Int = -1) {
+        let currentName = webFormsData.getNameByIndex(index: index)
+        
+        if currentName.isEmpty {
+            return
+        }
+        
+        webFormsData.changeNameByIndex(index: index, name: ":\(second))\(currentName)")
     }
-
-    func assignDelayChange(_ second: Float, index: Int = -1) {
-        guard let currentName = getNameByIndex(index) else { return }
-        let updatedName = currentName.removeOuter(":", ")")
-        webFormsData[changeName(updatedName, with: ":\(second)", index: index)] = updatedName
+    
+    func assignDelayChange(second: Float, index: Int = -1) {
+        let currentName = webFormsData.getNameByIndex(index: index)
+        
+        if currentName.isEmpty {
+            return
+        }
+        
+        let newName = currentName.replacingOccurrences(of: ":", with: "").replacingOccurrences(of: ")", with: "")
+        webFormsData.changeNameByIndex(index: index, name: ":\(second))\(newName)")
     }
-
-    func assignInterval(_ second: Float, index: Int = -1) {
-        guard let currentName = getNameByIndex(index) else { return }
-        webFormsData[changeName(currentName, with: "(\(second)", index: index)] = currentName
+    
+    func assignInterval(second: Float, index: Int = -1) {
+        let currentName = webFormsData.getNameByIndex(index: index)
+        
+        if currentName.isEmpty {
+            return
+        }
+        
+        webFormsData.changeNameByIndex(index: index, name: "(\(second))\(currentName)")
     }
-
-    func assignIntervalChange(_ second: Float, index: Int = -1) {
-        guard let currentName = getNameByIndex(index) else { return }
-        let updatedName = currentName.removeOuter("(", ")")
-        webFormsData[changeName(updatedName, with: "(\(second)", index: index)] = updatedName
+    
+    func assignIntervalChange(second: Float, index: Int = -1) {
+        let currentName = webFormsData.getNameByIndex(index: index)
+        
+        if currentName.isEmpty {
+            return
+        }
+        
+        let newName = currentName.replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
+        webFormsData.changeNameByIndex(index: index, name: "(\(second))\(newName)")
     }
-
+    
+    // Index
+    func startIndex(name: String = "") {
+        webFormsData.add(name: "#", value: name)
+    }
+    
     // Get
     func getFormsActionData() -> String {
-        return webFormsData.map { "\($0.key)=\($0.value)" }.joined(separator: "\n")
+        var returnValue = ""
+        
+        for nv in webFormsData.getList() {
+            returnValue += "\n" + nv.name
+            
+            if !nv.value.isEmpty {
+                returnValue += "=" + nv.value
+            }
+        }
+        
+        return returnValue
     }
-
+    
     func response() -> String {
-        return "[web-forms]\(getFormsActionData())"
+        return "[web-forms]" + getFormsActionData()
     }
-
+    
+    // Overload
+    func response(context: HttpContext) -> String {
+        setHeaders(context: context)
+        return response()
+    }
+    
     func getFormsActionDataLineBreak() -> String {
-        let entries = webFormsData.map { "\($0.key)=\($0.value.replacingOccurrences(of: "\"", with: "$[dq];"))" }
-        let lastIndex = entries.count - 1
-        return entries.enumerated().map { $0.element + ($0.offset < lastIndex ? "$[sln];" : "") }.joined(separator: "")
+        var returnValue = ""
+        
+        let webFormsDataList = webFormsData.getList()
+        
+        var i = webFormsDataList.count
+        for nv in webFormsDataList {
+            returnValue += nv.name
+            
+            if !nv.value.isEmpty {
+                returnValue += "=" + nv.value.replacingOccurrences(of: "\"", with: "$[dq];")
+            }
+            
+            if i > 1 {
+                returnValue += "$[sln];"
+            }
+            i -= 1
+        }
+        
+        return returnValue
     }
-
+    
     // Export
     func exportToWebFormsTag(src: String? = nil) -> String {
-        return "<web-forms ac=\"\(getFormsActionDataLineBreak())\" \(src != nil ? "src=\"\(src!)\"" : "")></web-forms>"
+        let srcValue = src != nil ? " src=\"\(src!)\"" : ""
+        return "<web-forms ac=\"\(getFormsActionDataLineBreak())\"\(srcValue)></web-forms>"
     }
-
+    
     // Overload
     func exportToWebFormsTag(width: String, height: String, src: String? = nil) -> String {
-        return "<web-forms ac=\"\(getFormsActionDataLineBreak())\" width=\"\(width)\" height=\"\(height)\" \(src != nil ? "src=\"\(src!)\"" : "")></web-forms>"
+        let srcValue = src != nil ? " src=\"\(src!)\"" : ""
+        return "<web-forms ac=\"\(getFormsActionDataLineBreak())\" width=\"\(width)\" height=\"\(height)\"\(srcValue)></web-forms>"
     }
-
+    
     // Overload
     func exportToWebFormsTag(width: Int, height: Int, src: String? = nil) -> String {
         return exportToWebFormsTag(width: "\(width)px", height: "\(height)px", src: src)
     }
     
-    // Helper Methods
-    private func getNameByIndex(_ index: Int) -> String? {
-        // Implement logic to fetch name by index
-        // This method is a placeholder, logic needs to be defined upon full context
-        return nil
+    func doneToWebFormsTag(id: String? = nil) -> String {
+        let idValue = id != nil ? " id=\"\(id!)\" done=\"true\"" : ""
+        return "<web-forms ac=\"\(getFormsActionDataLineBreak())\"\(idValue)></web-forms>"
     }
     
-    private func changeName(_ currentName: String, with prefix: String, index: Int) -> String {
-        // Implement logic to change name depending on current name and index
-        // This method is a placeholder, logic needs to be defined upon full context
-        return currentName
+    func exportToNameValue() -> NameValueCollection {
+        return webFormsData
+    }
+    
+    func appendForm(form: WebForms) {
+        webFormsData.addList(form.exportToNameValue().getList())
+    }
+    
+    func setHeaders(context: HttpContext) {
+        context.response.headers.add(name: "Content-Type", value: "text/plain")
+    }
+    
+    func clean() {
+        webFormsData = NameValueCollection()
     }
 }
 
-struct InputPlace {
+class InputPlace {
     static func id(_ id: String) -> String {
         return id
     }
@@ -406,11 +733,11 @@ struct InputPlace {
         return "<\(tag)>\(index)"
     }
     
-    static func className(_ className: String) -> String {
+    static func `class`(_ className: String) -> String {
         return "{\(className)}"
     }
     
-    static func className(_ className: String, index: Int) -> String {
+    static func `class`(_ className: String, index: Int) -> String {
         return "{\(className)}\(index)"
     }
     
@@ -423,45 +750,382 @@ struct InputPlace {
     }
 }
 
+class OutputPlace: InputPlace {}
+
+class Fetch {
+    static func random(maxValue: Int) -> String {
+        return "@mr\(maxValue)"
+    }
+    
+    static func random(minValue: Int, maxValue: Int) -> String {
+        return "@mr\(maxValue),\(minValue)"
+    }
+    
+    static let dateYear = "@dy"
+    static let dateMonth = "@dm"
+    static let dateDay = "@dd"
+    static let dateHours = "@dh"
+    static let dateMinutes = "@di"
+    static let dateSeconds = "@ds"
+    static let dateMilliseconds = "@dl"
+    
+    static func cookie(key: String) -> String {
+        return "@co\(key)"
+    }
+    
+    static func session(key: String) -> String {
+        return "@cs\(key)"
+    }
+    
+    static func session(key: String, replaceValue: String) -> String {
+        return "@cs\(key),\(replaceValue)"
+    }
+    
+    static func sessionAndRemove(key: String) -> String {
+        return "@cl\(key)"
+    }
+    
+    static func sessionAndRemove(key: String, replaceValue: String) -> String {
+        return "@cl\(key),\(replaceValue)"
+    }
+    
+    static func saved(key: String = ".") -> String {
+        return "@cl\(key)"
+    }
+    
+    static func cache(key: String) -> String {
+        return "@cd\(key)"
+    }
+    
+    static func cache(key: String, replaceValue: String) -> String {
+        return "@cd\(key),\(replaceValue)"
+    }
+    
+    static func cacheAndRemove(key: String) -> String {
+        return "@ct\(key)"
+    }
+    
+    static func cacheAndRemove(key: String, replaceValue: String) -> String {
+        return "@ct\(key),\(replaceValue)"
+    }
+    
+    static func script(scriptText: String) -> String {
+        return "@_\(scriptText.replacingOccurrences(of: "\n", with: "$[ln];"))"
+    }
+}
+
+class HtmlEvent {
+    static let onAbort = "onabort"
+    static let onAfterPrint = "onafterprint"
+    static let onBeforePrint = "onbeforeprint"
+    static let onBeforeUnload = "onbeforeunload"
+    static let onBlur = "onblur"
+    static let onCanPlay = "oncanplay"
+    static let onCanPlayThrough = "oncanplaythrough"
+    static let onChange = "onchange"
+    static let onClick = "onclick"
+    static let onCopy = "oncopy"
+    static let onCut = "oncut"
+    static let onDoubleClick = "ondblclick"
+    static let onDrag = "ondrag"
+    static let onDragEnd = "ondragend"
+    static let onDragEnter = "ondragenter"
+    static let onDragLeave = "ondragleave"
+    static let onDragOver = "ondragover"
+    static let onDragStart = "ondragstart"
+    static let onDrop = "ondrop"
+    static let onDurationChange = "ondurationchange"
+    static let onEnded = "onended"
+    static let onError = "onerror"
+    static let onFocus = "onfocus"
+    static let onFocusin = "onfocusin"
+    static let onFocusOut = "onfocusout"
+    static let onHashChange = "onhashchange"
+    static let onInput = "oninput"
+    static let onInvalid = "oninvalid"
+    static let onKeyDown = "onkeydown"
+    static let onKeyPress = "onkeypress"
+    static let onKeyUp = "onkeyup"
+    static let onLoad = "onload"
+    static let onLoadedData = "onloadeddata"
+    static let onLoadedMetaData = "onloadedmetadata"
+    static let onLoadStart = "onloadstart"
+    static let onMouseDown = "onmousedown"
+    static let onMouseEnter = "onmouseenter"
+    static let onMouseLeave = "onmouseleave"
+    static let onMouseMove = "onmousemove"
+    static let onMouseOver = "onmouseover"
+    static let onMouseOut = "onmouseout"
+    static let onMouseUp = "onmouseup"
+    static let onOffline = "onoffline"
+    static let onOnline = "ononline"
+    static let onPageHide = "onpagehide"
+    static let onPageShow = "onpageshow"
+    static let onPaste = "onpaste"
+    static let onPause = "onpause"
+    static let onPlay = "onplay"
+    static let onPlaying = "onplaying"
+    static let onProgress = "onprogress"
+    static let onRateChange = "onratechange"
+    static let onResize = "onresize"
+    static let onReset = "onreset"
+    static let onScroll = "onscroll"
+    static let onSearch = "onsearch"
+    static let onSeeked = "onseeked"
+    static let onSeeking = "onseeking"
+    static let onSelect = "onselect"
+    static let onStalled = "onstalled"
+    static let onSubmit = "onsubmit"
+    static let onSuspend = "onsuspend"
+    static let onTimeUpdate = "ontimeupdate"
+    static let onToggle = "ontoggle"
+    static let onTouchCancel = "ontouchcancel"
+    static let onTouchend = "ontouchend"
+    static let onTouchMove = "ontouchmove"
+    static let onTouchStart = "ontouchstart"
+    static let onUnload = "onunload"
+    static let onVolumeChange = "onvolumechange"
+    static let onWaiting = "onwaiting"
+}
+
+class HtmlEventListener {
+    static let abort = "abort"
+    static let afterPrint = "afterprint"
+    static let beforePrint = "beforeprint"
+    static let beforeUnload = "beforeunload"
+    static let blur = "blur"
+    static let canPlay = "canplay"
+    static let canPlayThrough = "canplaythrough"
+    static let change = "change"
+    static let click = "click"
+    static let copy = "copy"
+    static let cut = "cut"
+    static let doubleClick = "dblclick"
+    static let drag = "drag"
+    static let dragEnd = "dragend"
+    static let dragEnter = "dragenter"
+    static let dragLeave = "dragleave"
+    static let dragOver = "dragover"
+    static let dragStart = "dragstart"
+    static let drop = "drop"
+    static let durationChange = "durationchange"
+    static let ended = "ended"
+    static let error = "error"
+    static let focus = "focus"
+    static let focusin = "focusin"
+    static let focusOut = "focusout"
+    static let hashChange = "hashchange"
+    static let input = "input"
+    static let invalid = "invalid"
+    static let keyDown = "keydown"
+    static let keyPress = "keypress"
+    static let keyUp = "keyup"
+    static let load = "load"
+    static let loadedData = "loadeddata"
+    static let loadedMetaData = "loadedmetadata"
+    static let loadStart = "loadstart"
+    static let mouseDown = "mousedown"
+    static let mouseEnter = "mouseenter"
+    static let mouseLeave = "mouseleave"
+    static let mouseMove = "mousemove"
+    static let mouseOver = "mouseover"
+    static let mouseOut = "mouseout"
+    static let mouseUp = "mouseup"
+    static let offline = "offline"
+    static let online = "online"
+    static let pageHide = "pagehide"
+    static let pageShow = "pageshow"
+    static let paste = "paste"
+    static let pause = "pause"
+    static let play = "play"
+    static let playing = "playing"
+    static let progress = "progress"
+    static let rateChange = "ratechange"
+    static let resize = "resize"
+    static let reset = "reset"
+    static let scroll = "scroll"
+    static let search = "search"
+    static let seeked = "seeked"
+    static let seeking = "seeking"
+    static let select = "select"
+    static let stalled = "stalled"
+    static let submit = "submit"
+    static let suspend = "suspend"
+    static let timeUpdate = "timeupdate"
+    static let toggle = "toggle"
+    static let touchCancel = "touchcancel"
+    static let touchend = "touchend"
+    static let touchMove = "touchmove"
+    static let touchStart = "touchstart"
+    static let unload = "unload"
+    static let volumeChange = "volumechange"
+    static let waiting = "waiting"
+    
+    static let animationEnd = "animationend"
+    static let animationIteration = "animationiteration"
+    static let animationStart = "animationstart"
+    static let contextMenu = "contextmenu"
+    static let fullScreenChange = "fullscreenchange"
+    static let fullScreenError = "fullscreenerror"
+    static let popState = "popstate"
+    static let transitionEnd = "transitionend"
+    static let storage = "storage"
+    static let wheel = "wheel"
+}
+
 extension String {
     func appendPlace(_ value: String) -> String {
-        if count < 1 {
+        if self.isEmpty {
             return value
         }
-        
-        var updatedText = self
-        
-        if updatedText[updatedText.startIndex] != ">" {
-            updatedText = ">" + updatedText
-        }
-        
-        return updatedText + "|" + value
+        return "\(self)|\(value)"
+    }
+    
+    func appendParent() -> String {
+        return "/\(self)"
     }
     
     func exportToWebFormsTag() -> String {
         return "<web-forms src=\"\(self)\"></web-forms>"
     }
     
-    // Overload
     func exportToWebFormsTag(width: Int, height: Int) -> String {
         return "<web-forms src=\"\(self)\" width=\"\(width)\" height=\"\(height)\"></web-forms>"
     }
     
-    func exportActionControlsToWebFormsTag(actionControls: String) -> String {
-        return "<web-forms ac=\"\(actionControls)\"></web-forms>"
+    func exportActionControlsToWebFormsTag() -> String {
+        return "<web-forms ac=\"\(self)\"></web-forms>"
     }
     
     func removeOuter(startString: String, endString: String) -> String {
-        guard let start = self.range(of: startString)?.lowerBound else {
+        guard let startRange = self.range(of: startString),
+              let endRange = self.range(of: endString, range: startRange.upperBound..<self.endIndex) else {
             return self
         }
         
-        guard let end = self.range(of: endString, range: start..<self.endIndex)?.upperBound else {
-            return self
+        let rangeToRemove = startRange.lowerBound..<endRange.upperBound
+        return self.replacingCharacters(in: rangeToRemove, with: "")
+    }
+}
+
+class NameValue {
+    var name: String
+    var value: String
+    
+    init(name: String, value: String) {
+        self.name = name
+        self.value = value
+    }
+}
+
+class NameValueCollection {
+    private var nameValueList: [NameValue] = []
+    
+    func add(name: String, value: String) {
+        nameValueList.append(NameValue(name: name, value: value))
+    }
+    
+    func set(name: String, value: String) {
+        if !exist(name: name) {
+            add(name: name, value: value)
+        } else {
+            changeValue(name: name, value: value)
         }
-        
-        var result = self
-        result.removeSubrange(start..<end)
-        return result
+    }
+    
+    func delete(name: String) {
+        nameValueList = nameValueList.filter { $0.name != name }
+    }
+    
+    func deleteByIndex(index: Int) {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        nameValueList.remove(at: tmpIndex)
+    }
+    
+    func empty() {
+        nameValueList = []
+    }
+    
+    func exist(name: String) -> Bool {
+        return nameValueList.contains { $0.name == name }
+    }
+    
+    func changeValue(name: String, value: String) {
+        if let index = nameValueList.firstIndex(where: { $0.name == name }) {
+            nameValueList[index].value = value
+        }
+    }
+    
+    func changeName(name: String, newName: String) {
+        if let index = nameValueList.firstIndex(where: { $0.name == name }) {
+            nameValueList[index].name = newName
+        }
+    }
+    
+    func changeValue(name: String, newName: String, value: String) {
+        if let index = nameValueList.firstIndex(where: { $0.name == name }) {
+            nameValueList[index].name = newName
+            nameValueList[index].value = value
+        }
+    }
+    
+    func changeValueByIndex(index: Int, value: String) {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        nameValueList[tmpIndex].value = value
+    }
+    
+    func changeNameByIndex(index: Int, name: String) {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        nameValueList[tmpIndex].name = name
+    }
+    
+    func changeNameValueByIndex(index: Int, name: String, value: String) {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        nameValueList[tmpIndex].name = name
+        nameValueList[tmpIndex].value = value
+    }
+    
+    func addList(_ list: [NameValue]) {
+        nameValueList.append(contentsOf: list)
+    }
+    
+    func getValue(name: String) -> String {
+        return nameValueList.first { $0.name == name }?.value ?? ""
+    }
+    
+    func getNameByIndex(index: Int) -> String {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        return nameValueList[tmpIndex].name
+    }
+    
+    func getValueByIndex(index: Int) -> String {
+        let tmpIndex = index >= 0 ? index : nameValueList.count + index
+        return nameValueList[tmpIndex].value
+    }
+    
+    func getList() -> [NameValue] {
+        return nameValueList
+    }
+}
+
+class HttpContext {
+    var response: HttpResponse
+    
+    init(response: HttpResponse) {
+        self.response = response
+    }
+}
+
+class HttpResponse {
+    var headers: HttpHeaders
+    
+    init(headers: HttpHeaders) {
+        self.headers = headers
+    }
+}
+
+class HttpHeaders {
+    func add(name: String, value: String) {
+        // Implementation for adding headers
     }
 }
