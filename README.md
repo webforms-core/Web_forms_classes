@@ -3,7 +3,89 @@
 
 WebForms Core technology was created by [Elanat](https://elanat.net). It is a two-way protocol between the WebForms class on the server side and the [web-forms.js](https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js) library on the client side, where processing is done on the client side and the server sends Action Control commands to [WebFormsJS](https://github.com/elanatframework/Web_forms).
 
-WebForms Core technology is fully supported on the core of the [CodeBehind Framework](https://github.com/elanatframework/Code_behind).
+By using WebForms Core technology, HTML tags are managed server-side, eliminating the need for front-end development.
+
+## WebForms Core Example
+
+To use WebForms Core technology, you need to get the [WebFormsJS](https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js) library and add it to the head section of your HTML page.
+
+**HTML page**
+```diff
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebForms Core Example</title>
++   <script type="text/javascript" src="/script/web-forms.js"></script>
+</head>
+<body>
+    <h1>Contact Us</h1>
+    <form action="/contact" method="post">
+        Name:<input type="text" name="name" required><br>
+        Email:<input type="email" name="email" required><br>
+        Message:<br><textarea name="message" rows="4" cols="50" required></textarea><br>        
+        <input type="submit" name="button" value="Submit">
+    </form>
+</body>
+</html>
+```
+
+On the server side, you also need to get the [WebForms class](https://github.com/elanatframework/Web_forms_classes) for the server programming language and implement it on your system.
+
+**C# example in CodeBehind framework***
+```csharp
+using CodeBehind;
+
+public partial class ContactController : CodeBehindController
+{
+    public void PageLoad(HttpContext context)
+    {
+        if (context.Request.Form["button"].Has())
+            Button_Click(context);
+    }
+
+    private void Button_Click(HttpContext context)
+    {
+        // Code for add contact to database
+        // ...
+
+        WebForms form = new WebForms();
+
+        string name = context.Request.Form["name"];
+
+        form.AddTag("<form>", "h3");
+        form.SetBackgroundColor("<h3>", "green");
+        form.SetText("<h3>", name + "! Your message was sent successfully.");
+        form.Delete("<h3>");
+        form.AssignDelay(3);
+        form.SetDisabled("(button)", true);
+
+        Write(form.Response());
+
+        IgnoreViewAndModel = true;
+    }
+}
+```
+
+In this example, after clicking the button, first an instance of the WebForms class is created. Then a new h3 tag is created and the submit text is successfully added in it and shown to the user for 3 seconds and then removed. The submit button is also disabled and finally the response is sent to the client using the `Response` method.
+
+**What is sent from the client to the server?**
+
+In WebForms Core technology, data is sent as if it were an HTML page form submission.
+```
+message=Please send your product price list to my email account.&email=adriano@gmail.com&name=Adriano&button=Submit
+```
+
+**What does the server respond to the client?**
+
+The server response is also based on the INI pattern.
+```
+[web-forms]
+sd(button)=1
+nt<form>=h3
+bc<h3>=green
+st<h3>=Adriano! Your message was sent successfully.
+:3)de<h3>=1
+```
 
 You can see how WebForms Core works in the link below:
 
