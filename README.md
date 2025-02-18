@@ -75,7 +75,7 @@ In this example, after clicking the button, first an instance of the WebForms cl
 
 In WebForms Core technology, data is sent as if it were an HTML page form submission.
 ```
-message=Please send your product price list to my email account.&email=adriano@gmail.com&name=Adriano&button=Submit
+message=Please send your product price list to my email account.&email=Adriano@gmail.com&name=Adriano&button=Submit
 ```
 
 **What does the server respond to the client?**
