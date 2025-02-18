@@ -69,7 +69,7 @@ public partial class ContactController : CodeBehindController
 The GIF image below shows how the above code works.
 ![WebForms Core example in web forms classes](https://github.com/user-attachments/assets/a4bc19eb-578b-42d0-b725-2ec28d16e3e5)
 
-In this example, after clicking the button, first an instance of the WebForms class is created. Then a new h3 tag is created and the submit text is successfully added in it and shown to the user for 3 seconds and then removed. The submit button is also disabled and finally the response is sent to the client using the `Response` method.
+In this example, after clicking the button, first an instance of the WebForms class is created. Then a new h3 tag is created and the submit text is successfully added in it and shown to the user for 3 seconds and then removed. The submit button is also be disabled and finally the response is sent to the client using the `Response` method.
 
 **What is sent from the client to the server?**
 
