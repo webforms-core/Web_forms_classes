@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_ENTRIES 1000
 #define MAX_KEY_LENGTH 100
@@ -102,7 +103,7 @@ void WebForms_AddStyleWithNameValue(WebForms* webForms, const char* inputPlace, 
     WebForms_AddStyle(webForms, inputPlace, combined);
 }
 
-void WebForms_AddOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int selected) {
+void WebForms_AddOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool selected) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, selected ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -110,7 +111,7 @@ void WebForms_AddOptionTag(WebForms* webForms, const char* inputPlace, const cha
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
 }
 
-void WebForms_AddCheckBoxTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int checked) {
+void WebForms_AddCheckBoxTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool checked) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, checked ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -213,7 +214,7 @@ void WebForms_SetStyleWithNameValue(WebForms* webForms, const char* inputPlace, 
     WebForms_SetStyle(webForms, inputPlace, combined);
 }
 
-void WebForms_SetOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int selected) {
+void WebForms_SetOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool selected) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, selected ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -221,13 +222,13 @@ void WebForms_SetOptionTag(WebForms* webForms, const char* inputPlace, const cha
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
 }
 
-void WebForms_SetChecked(WebForms* webForms, const char* inputPlace, int checked) {
+void WebForms_SetChecked(WebForms* webForms, const char* inputPlace, bool checked) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "sk%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, checked ? "1" : "0");
 }
 
-void WebForms_SetCheckBoxTagToList(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int checked) {
+void WebForms_SetCheckBoxTagToList(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool checked) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, checked ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -268,7 +269,7 @@ void WebForms_SetHeightString(WebForms* webForms, const char* inputPlace, const 
 }
 
 void WebForms_SetWidth(WebForms* webForms, const char* inputPlace, int width) {
-    char widthStr[20]; 
+    char widthStr[20];
     snprintf(widthStr, sizeof(widthStr), "%dpx", width);
     WebForms_SetWidthString(webForms, inputPlace, widthStr);
 }
@@ -316,7 +317,7 @@ void WebForms_InsertStyleWithNameValue(WebForms* webForms, const char* inputPlac
     WebForms_InsertStyle(webForms, inputPlace, combined);
 }
 
-void WebForms_InsertOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int selected) {
+void WebForms_InsertOptionTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool selected) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, selected ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -324,7 +325,7 @@ void WebForms_InsertOptionTag(WebForms* webForms, const char* inputPlace, const 
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
 }
 
-void WebForms_InsertCheckBoxTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, int checked) {
+void WebForms_InsertCheckBoxTag(WebForms* webForms, const char* inputPlace, const char* text, const char* value, bool checked) {
     char combined[MAX_VALUE_LENGTH];
     snprintf(combined, MAX_VALUE_LENGTH, "%s|%s%s", value, text, checked ? "|1" : "");
     char key[MAX_KEY_LENGTH];
@@ -468,13 +469,13 @@ void WebForms_SetFontSize(WebForms* webForms, const char* inputPlace, int size) 
     WebForms_SetFontSizeString(webForms, inputPlace, sizeStr);
 }
 
-void WebForms_SetFontBold(WebForms* webForms, const char* inputPlace, int bold) {
+void WebForms_SetFontBold(WebForms* webForms, const char* inputPlace, bool bold) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "fb%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, bold ? "1" : "0");
 }
 
-void WebForms_SetVisible(WebForms* webForms, const char* inputPlace, int visible) {
+void WebForms_SetVisible(WebForms* webForms, const char* inputPlace, bool visible) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "vi%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, visible ? "1" : "0");
@@ -486,19 +487,19 @@ void WebForms_SetTextAlign(WebForms* webForms, const char* inputPlace, const cha
     NameValueCollection_Add(&webForms->WebFormsData, key, align);
 }
 
-void WebForms_SetReadOnly(WebForms* webForms, const char* inputPlace, int readOnly) {
+void WebForms_SetReadOnly(WebForms* webForms, const char* inputPlace, bool readOnly) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "sr%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, readOnly ? "1" : "0");
 }
 
-void WebForms_SetDisabled(WebForms* webForms, const char* inputPlace, int disabled) {
+void WebForms_SetDisabled(WebForms* webForms, const char* inputPlace, bool disabled) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "sd%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, disabled ? "1" : "0");
 }
 
-void WebForms_SetFocus(WebForms* webForms, const char* inputPlace, int focus) {
+void WebForms_SetFocus(WebForms* webForms, const char* inputPlace, bool focus) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "sf%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, focus ? "1" : "0");
@@ -534,7 +535,7 @@ void WebForms_SetSelectedIndex(WebForms* webForms, const char* inputPlace, int i
     NameValueCollection_Add(&webForms->WebFormsData, key, value);
 }
 
-void WebForms_SetCheckedValue(WebForms* webForms, const char* inputPlace, const char* value, int selected) {
+void WebForms_SetCheckedValue(WebForms* webForms, const char* inputPlace, const char* value, bool selected) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "ks%s", inputPlace);
     char combined[MAX_VALUE_LENGTH];
@@ -542,7 +543,7 @@ void WebForms_SetCheckedValue(WebForms* webForms, const char* inputPlace, const 
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
 }
 
-void WebForms_SetCheckedIndex(WebForms* webForms, const char* inputPlace, int index, int selected) {
+void WebForms_SetCheckedIndex(WebForms* webForms, const char* inputPlace, int index, bool selected) {
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "ki%s", inputPlace);
     char combined[MAX_VALUE_LENGTH];
@@ -1453,6 +1454,7 @@ HtmlEvent createHtmlEvent() {
     };
     return event;
 }
+
 
 typedef struct {
     const char *Abort;
