@@ -13,7 +13,7 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 #include "WebForms.h"
 
 int main() {
-	// If is post method by submit form
+// If is post method by submit form
 	if (responseForm.hasKey("btn_SetBodyValue")) {
 		char name[20] = responseForm.getValue("txt_Name");
 		char backgroundColor[20] = responseForm.getValue("txt_BackgroundColor");
@@ -33,14 +33,14 @@ int main() {
 		printf("%s\n", WebForms_Response(&webForms));
 
 		WebForms_Clean(&webForms);
-		
+
 		return 0;
 	}
-	
+
 	// If is get method
 	printf("%s\n", backEndRender("view"));
 
-    return 0;
+	return 0;
 }
 
 ##End
