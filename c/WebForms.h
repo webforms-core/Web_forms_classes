@@ -139,7 +139,11 @@ void WebForms_AddTextToUp(WebForms* webForms, const char* inputPlace, const char
 
 void WebForms_AddAttribute(WebForms* webForms, const char* inputPlace, const char* attribute, const char* value) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", attribute, value);
+    if (value != NULL && value[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", attribute, value);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", attribute);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "aa%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
@@ -147,7 +151,11 @@ void WebForms_AddAttribute(WebForms* webForms, const char* inputPlace, const cha
 
 void WebForms_AddTag(WebForms* webForms, const char* inputPlace, const char* tagName, const char* id) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    if (id != NULL && id[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", tagName);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "nt%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
@@ -155,7 +163,11 @@ void WebForms_AddTag(WebForms* webForms, const char* inputPlace, const char* tag
 
 void WebForms_AddTagToUp(WebForms* webForms, const char* inputPlace, const char* tagName, const char* id) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    if (id != NULL && id[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", tagName);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "ut%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
@@ -163,7 +175,11 @@ void WebForms_AddTagToUp(WebForms* webForms, const char* inputPlace, const char*
 
 void WebForms_AddTagBefore(WebForms* webForms, const char* inputPlace, const char* tagName, const char* id) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    if (id != NULL && id[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", tagName);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "bt%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
@@ -171,7 +187,11 @@ void WebForms_AddTagBefore(WebForms* webForms, const char* inputPlace, const cha
 
 void WebForms_AddTagAfter(WebForms* webForms, const char* inputPlace, const char* tagName, const char* id) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    if (id != NULL && id[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", tagName, id);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", tagName);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "ft%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
@@ -347,7 +367,11 @@ void WebForms_InsertText(WebForms* webForms, const char* inputPlace, const char*
 
 void WebForms_InsertAttribute(WebForms* webForms, const char* inputPlace, const char* attribute, const char* value) {
     char combined[MAX_VALUE_LENGTH];
-    snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", attribute, value);
+    if (value != NULL && value[0] != '\0') {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s|%s", attribute, value);
+    } else {
+        snprintf(combined, MAX_VALUE_LENGTH, "%s", attribute);
+    }
     char key[MAX_KEY_LENGTH];
     snprintf(key, MAX_KEY_LENGTH, "ia%s", inputPlace);
     NameValueCollection_Add(&webForms->WebFormsData, key, combined);
