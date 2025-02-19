@@ -1143,80 +1143,58 @@ void WebForms_AppendForm(WebForms* webForms, WebForms* form) {
 #define MAX_STRING_LENGTH 256
 
 // Function declarations
-char* id(const char* Id);
-char* name(const char* Name);
-char* nameWithIndex(const char* Name, int Index);
-char* tag(const char* Tag);
-char* tagWithIndex(const char* Tag, int Index);
-char* classString(const char* Class);
-char* classWithIndex(const char* Class, int Index);
-char* query(const char* Query);
-char* queryAll(const char* Query);
-
-// Fetch function declarations
-char* random(int MaxValue);
-char* randomWithMin(int MinValue, int MaxValue);
-const char* dateYear();
-const char* dateMonth();
-const char* dateDay();
-const char* dateHours();
-const char* dateMinutes();
-const char* dateSeconds();
-const char* dateMilliseconds();
-char* cookie(const char* Key);
-char* session(const char* Key);
-char* sessionWithReplace(const char* Key, const char* ReplaceValue);
-char* sessionAndRemove(const char* Key);
-char* sessionAndRemoveWithReplace(const char* Key, const char* ReplaceValue);
-char* saved(const char* Key);
-char* cache(const char* Key);
-char* cacheWithReplace(const char* Key, const char* ReplaceValue);
-char* cacheAndRemove(const char* Key);
-char* cacheAndRemoveWithReplace(const char* Key, const char* ReplaceValue);
-char* script(const char* ScriptText);
+char* InputPlace_Id(const char* Id);
+char* InputPlace_Name(const char* Name);
+char* InputPlace_NameWithIndex(const char* Name, int Index);
+char* InputPlace_Tag(const char* Tag);
+char* InputPlace_TagWithIndex(const char* Tag, int Index);
+char* InputPlace_ClassString(const char* Class);
+char* InputPlace_ClassWithIndex(const char* Class, int Index);
+char* InputPlace_Query(const char* Query);
+char* InputPlace_QueryAll(const char* Query);
 
 // Function definitions
-char* id(const char* Id) {
+char* InputPlace_Id(const char* Id) {
     return strdup(Id);
 }
 
-char* name(const char* Name) {
+char* InputPlace_Name(const char* Name) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "(%s)", Name);
     return result;
 }
 
-char* nameWithIndex(const char* Name, int Index) {
+char* InputPlace_NameWithIndex(const char* Name, int Index) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "(%s)%d", Name, Index);
     return result;
 }
 
-char* tag(const char* Tag) {
+char* InputPlace_Tag(const char* Tag) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "<%s>", Tag);
     return result;
 }
 
-char* tagWithIndex(const char* Tag, int Index) {
+char* InputPlace_TagWithIndex(const char* Tag, int Index) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "<%s>%d", Tag, Index);
     return result;
 }
 
-char* classString(const char* Class) {
+char* InputPlace_Class(const char* Class) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "{%s}", Class);
     return result;
 }
 
-char* classWithIndex(const char* Class, int Index) {
+char* InputPlace_ClassWithIndex(const char* Class, int Index) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "{%s}%d", Class, Index);
     return result;
 }
 
-char* query(const char* Query) {
+char* InputPlace_Query(const char* Query) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "*%s", Query);
     // Replace '=' with '$[eq];' (simple implementation)
@@ -1228,95 +1206,117 @@ char* query(const char* Query) {
     return result;
 }
 
-char* queryAll(const char* Query) {
+char* InputPlace_QueryAll(const char* Query) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "[%s", Query);
 
     return result;
 }
 
+// Fetch function declarations
+char* Fetch_Random(int MaxValue);
+char* Fetch_RandomWithMin(int MinValue, int MaxValue);
+const char* Fetch_DateYear();
+const char* Fetch_DateMonth();
+const char* Fetch_DateDay();
+const char* Fetch_DateHours();
+const char* Fetch_DateMinutes();
+const char* Fetch_DateSeconds();
+const char* Fetch_DateMilliseconds();
+char* Fetch_Cookie(const char* Key);
+char* Fetch_session(const char* Key);
+char* Fetch_sessionWithReplace(const char* Key, const char* ReplaceValue);
+char* Fetch_sessionAndRemove(const char* Key);
+char* Fetch_sessionAndRemoveWithReplace(const char* Key, const char* ReplaceValue);
+char* Fetch_saved(const char* Key);
+char* Fetch_Cache(const char* Key);
+char* Fetch_CacheWithReplace(const char* Key, const char* ReplaceValue);
+char* Fetch_CacheAndRemove(const char* Key);
+char* Fetch_CacheAndRemoveWithReplace(const char* Key, const char* ReplaceValue);
+char* Fetch_script(const char* ScriptText);
+
 // Fetch function definitions
-char* random(int MaxValue) {
+char* Fetch_Random(int MaxValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@mr%d", MaxValue);
     return result;
 }
 
-char* randomWithMin(int MinValue, int MaxValue) {
+char* Fetch_RandomWithMin(int MinValue, int MaxValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@mr%d,%d", MaxValue, MinValue);
     return result;
 }
 
-const char* dateYear() { return "@dy"; }
-const char* dateMonth() { return "@dm"; }
-const char* dateDay() { return "@dd"; }
-const char* dateHours() { return "@dh"; }
-const char* dateMinutes() { return "@di"; }
-const char* dateSeconds() { return "@ds"; }
-const char* dateMilliseconds() { return "@dl"; }
+const char* Fetch_DateYear() { return "@dy"; }
+const char* Fetch_DateMonth() { return "@dm"; }
+const char* Fetch_DateDay() { return "@dd"; }
+const char* Fetch_DateHours() { return "@dh"; }
+const char* Fetch_DateMinutes() { return "@di"; }
+const char* Fetch_DateSeconds() { return "@ds"; }
+const char* Fetch_DateMilliseconds() { return "@dl"; }
 
-char* cookie(const char* Key) {
+char* Fetch_Cookie(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@co%s", Key);
     return result;
 }
 
-char* session(const char* Key) {
+char* Fetch_Session(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cs%s", Key);
     return result;
 }
 
-char* sessionWithReplace(const char* Key, const char* ReplaceValue) {
+char* Fetch_SessionWithReplace(const char* Key, const char* ReplaceValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cs%s,%s", Key, ReplaceValue);
     return result;
 }
 
-char* sessionAndRemove(const char* Key) {
+char* Fetch_SessionAndRemove(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cl%s", Key);
     return result;
 }
 
-char* sessionAndRemoveWithReplace(const char* Key, const char* ReplaceValue) {
+char* Fetch_SessionAndRemoveWithReplace(const char* Key, const char* ReplaceValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cl%s,%s", Key, ReplaceValue);
     return result;
 }
 
-char* saved(const char* Key) {
+char* Fetch_Saved(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cl%s", Key);
     return result;
 }
 
-char* cache(const char* Key) {
+char* Fetch_Cache(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cd%s", Key);
     return result;
 }
 
-char* cacheWithReplace(const char* Key, const char* ReplaceValue) {
+char* Fetch_CacheWithReplace(const char* Key, const char* ReplaceValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@cd%s,%s", Key, ReplaceValue);
     return result;
 }
 
-char* cacheAndRemove(const char* Key) {
+char* Fetch_CacheAndRemove(const char* Key) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@ct%s", Key);
     return result;
 }
 
-char* cacheAndRemoveWithReplace(const char* Key, const char* ReplaceValue) {
+char* Fetch_CacheAndRemoveWithReplace(const char* Key, const char* ReplaceValue) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@ct%s,%s", Key, ReplaceValue);
     return result;
 }
 
-char* script(const char* ScriptText) {
+char* Fetch_Script(const char* ScriptText) {
     char* result = (char*)malloc(MAX_STRING_LENGTH);
     snprintf(result, MAX_STRING_LENGTH, "@_%s", ScriptText);
     // Replace '\n' with '$[ln];' (simple implementation)
