@@ -86,21 +86,24 @@ public:
     }
 
     void ChangeValueByIndex(int index, const std::string& value) {
-        if (index >= 0 && index < data.size()) {
-            data[index].Value = value;
+        int idx = (index >= 0) ? index : data.size() + index;
+        if (idx >= 0 && idx < data.size()) {
+            data[idx].Value = value;
         }
     }
 
     void ChangeNameByIndex(int index, const std::string& newName) {
-        if (index >= 0 && index < data.size()) {
-            data[index].Name = newName;
+        int idx = (index >= 0) ? index : data.size() + index;
+        if (idx >= 0 && idx < data.size()) {
+            data[idx].Name = newName;
         }
     }
 
     void ChangeNameValueByIndex(int index, const std::string& newName, const std::string& value) {
-        if (index >= 0 && index < data.size()) {
-            data[index].Name = newName;
-            data[index].Value = value;
+        int idx = (index >= 0) ? index : data.size() + index;
+        if (idx >= 0 && idx < data.size()) {
+            data[idx].Name = newName;
+            data[idx].Value = value;
         }
     }
 
@@ -122,15 +125,17 @@ public:
     }
 
     std::string GetNameByIndex(int index) {
-        if (index >= 0 && index < data.size()) {
-            return data[index].Name;
+        int idx = (index >= 0) ? index : data.size() + index;
+        if (idx >= 0 && idx < data.size()) {
+            return data[idx].Name;
         }
         return "";
     }
 
     std::string GetValueByIndex(int index) {
-        if (index >= 0 && index < data.size()) {
-            return data[index].Value;
+        int idx = (index >= 0) ? index : data.size() + index;
+        if (idx >= 0 && idx < data.size()) {
+            return data[idx].Value;
         }
         return "";
     }
