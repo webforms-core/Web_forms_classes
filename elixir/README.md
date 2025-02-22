@@ -2,6 +2,8 @@
 
 To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
+Create a template file "default.html.eex" in the "templates/my" directory.
+
 View file
 ```html
 <!DOCTYPE html>
@@ -11,20 +13,18 @@ View file
   <script type="text/javascript" src="/script/web-forms.js"></script>
 </head>
 <body>
-  <form method="post" action="<%= Routes.form_path(@conn, :create) %>">
-
-    <label for="txt_Name">Your Name</label>
-    <input name="txt_Name" id="txt_Name" type="text" />
-    <br>
-    <label for="txt_FontSize">Set Font Size</label>
-    <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
-    <br>
-    <label for="txt_BackgroundColor">Set Background Color</label>
-    <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
-    <br>
-    <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
-
-  </form>
+    <form method="post" action="/" >
+        <label for="txt_Name">Your Name</label>
+        <input name="txt_Name" id="txt_Name" type="text" />
+        <br>
+        <label for="txt_FontSize">Set Font Size</label>
+        <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
+        <br>
+        <label for="txt_BackgroundColor">Set Background Color</label>
+        <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
+        <br>
+        <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
+    </form>
 </body>
 </html>
 ```
@@ -33,33 +33,45 @@ Also, create a Controller class file as follows.
 
 Controller class
 ```elixir
-defmodule MyAppWeb.FormController do
+defmodule MyAppWeb.MyController do
   use MyAppWeb, :controller
 
-  alias MyApp.WebForms
-
+  # GET request handler
   def index(conn, _params) do
-    render(conn, "index.html")
+    render(conn, "default.html")
   end
 
-  def create(conn, %{"txt_Name" => name, "txt_BackgroundColor" => background_color, "txt_FontSize" => font_size}) do
-    font_size = String.to_integer(font_size)
+  # POST request handler
+  def submit(conn, %{
+        "txt_Name" => name,
+        "txt_BackgroundColor" => background_color,
+        "txt_FontSize" => font_size,
+        "btn_SetBodyValue" => _button
+      }) do
 
-    form = %WebForms{}
-
-    form =
-      form
-      |> WebForms.set_font_size(InputPlace.tag("form"), font_size)
-      |> WebForms.set_background_color(InputPlace.tag("form"), background_color)
-      |> WebForms.set_disabled(InputPlace.name("btn_SetBodyValue"), true)
-      |> WebForms.add_tag(InputPlace.tag("form"), "h3")
-      |> WebForms.set_text(InputPlace.tag("h3"), "Welcome #{name}!")
+    form = WebForms.new()
+    form = WebForms.set_font_size(form, InputPlace.tag("form"), font_size)
+    form = WebForms.set_background_color(form, InputPlace.tag("form"), background_color)
+    form = WebForms.set_disabled(form, InputPlace.name("btn_SetBodyValue"), true)
+    form = WebForms.add_tag(form, InputPlace.tag("form"), "h3", nil)
+    form = WebForms.set_text(form, InputPlace.tag("h3"), "Welcome #{name}!")
 
     response = WebForms.response(form)
+    text(conn, response)
+  end
+end
+```
 
-    conn
-    |> put_flash(:info, response)
-    |> redirect(to: "/")
+Add routes for the controller in the Phoenix router.
+
+Router (router.ex)
+```elixir
+defmodule MyAppWeb.Router do
+  use MyAppWeb, :router
+
+  scope "/", MyAppWeb do
+    get "/", MyController, :index
+    post "/", MyController, :submit
   end
 end
 ```
