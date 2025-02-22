@@ -2,12 +2,10 @@
 
 To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
-```php
+```julia
 using HTTP
 
-# Assuming WebForms and InputPlace modules are already defined in the project
 include("WebForms.jl")
-include("InputPlace.jl")
 
 function handle_request(req::HTTP.Request)
     if HTTP.hasheader(req, "Content-Type") && occursin("application/x-www-form-urlencoded", req.headers["Content-Type"])
@@ -32,7 +30,6 @@ function handle_request(req::HTTP.Request)
         end
     end
 
-    # HTML form for the GET request
     html = """
     <!DOCTYPE html>
     <html>
@@ -60,7 +57,6 @@ function handle_request(req::HTTP.Request)
     return HTTP.Response(200, html)
 end
 
-# Start the HTTP server
 HTTP.serve(handle_request, "127.0.0.1", 8080)
 ```
 
