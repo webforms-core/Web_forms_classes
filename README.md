@@ -15,7 +15,7 @@ To use WebForms Core technology, you need to get the [WebFormsJS](https://github
 <html>
 <head>
     <title>WebForms Core Example</title>
-+   <script type="text/javascript" src="/script/web-forms.js"></script>
++   <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
     <h1>Contact Us</h1>
