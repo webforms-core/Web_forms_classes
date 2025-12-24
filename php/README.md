@@ -6,6 +6,9 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 <?php
 include 'WebForms.php';
 
+use WebFormsCore\WebForms;
+use WebFormsCore\InputPlace;
+
 if (!empty($_POST['btn_SetBodyValue']))
 {
     $Name = $_POST['txt_Name'];
@@ -29,7 +32,7 @@ if (!empty($_POST['btn_SetBodyValue']))
 <html>
 <head>
   <title>Using WebForms Core</title>
-  <script type="module" src="/script/web-forms.js"></script>
+  <script type="text/javascript" src="/script/web-forms.js"></script>
 </head>
 <body>
     <form method="post" action="/" >
