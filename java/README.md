@@ -76,7 +76,7 @@ public class MyController {
 }
 ```
 
-In the upper part of the View file, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
+In the Controller, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
 Please note that if the submit button is not clicked (initial request), the view page will be displayed completely for the requester.
 
 As you can see, the WebFormsJS script has been added in the header section of the View file above.
@@ -97,3 +97,4 @@ In addition to the Java programming language, you can use the WebForms classes l
 - Ceylon
 - Fantom
 - JPHP
+
