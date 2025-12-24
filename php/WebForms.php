@@ -1,6 +1,6 @@
 <?php
 
-// WebForms.php 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net) */
+// WebForms.php 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
 // Compatible with WebFormsJS version 2.0
 
 namespace WebFormsCore;
@@ -2926,4 +2926,5 @@ class ExtensionWebFormsMethods
         return str_replace("\n", "$[sln]", $text);
     }
 }
+
 
