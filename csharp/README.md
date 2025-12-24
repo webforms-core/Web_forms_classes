@@ -11,21 +11,28 @@ View file (Index.cshtml)
 @{
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebForms Core with Razor</title>
-    <script type="module" src="/static/script/web-forms.js"></script>
+    <title>Using WebForms Core</title>
+    <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
+    <form method="post" asp-page-handler="Submit">
 
-<h3>State Test (Razor + WebForms Core)</h3>
+        <label for="txt_Name">Your Name</label>
+        <input name="txt_Name" id="txt_Name" type="text" />
+        <br>
+        <label for="txt_FontSize">Set Font Size</label>
+        <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
+        <br>
+        <label for="txt_BackgroundColor">Set Background Color</label>
+        <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
+        <br>
+        <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
+    </form>
 
-<button id="Button1">Add State 1</button>
-<button id="Button2">Add State 2</button>
-
-@Html.Raw(ViewData["WebForms"] ?? "")
+    @Html.Raw(ViewData["WebForms"] ?? "")
 
 </body>
 </html>
@@ -41,51 +48,46 @@ using WebFormsCore;
 
 public class IndexModel : PageModel
 {
+    [BindProperty]
+    public string txt_Name { get; set; }
+
+    [BindProperty]
+    public int txt_FontSize { get; set; } = 16;
+
+    [BindProperty]
+    public string txt_BackgroundColor { get; set; }
+
+    [BindProperty]
+    public string btn_SetBodyValue { get; set; }
+
     public IActionResult OnGet()
     {
-        if (Request.Query.ContainsKey("add_state_1"))
-        {
-            return Button1_Click();
-        }
-
-        if (Request.Query.ContainsKey("add_state_2"))
-        {
-            return Button2_Click();
-        }
-
-        WebForms form = new WebForms();
-
-        form.SetGetEvent("Button1", HtmlEvent.OnClick, "?add_state_1");
-        form.SetGetEvent("Button2", HtmlEvent.OnClick, "?add_state_2");
-
-        ViewData["WebForms"] = form.ExportToHtmlComment();
-
         return Page();
     }
 
-    private IActionResult Button1_Click()
+    public IActionResult OnPostSubmit()
     {
-        WebForms form = new WebForms();
+        if (!string.IsNullOrEmpty(btn_SetBodyValue))
+        {
+            WebForms form = new WebForms();
 
-        form.AddState("#state1");
-        form.AddText("<h3>", "- New text after click 1");
+            form.SetFontSize("form", txt_FontSize);
+            form.SetBackgroundColor("form", txt_BackgroundColor);
+            form.SetDisabled("btn_SetBodyValue", true);
 
-        return Content(form.Response(), "text/html");
-    }
+            form.AddTag("form", "h3");
+            form.SetText("h3", "Welcome " + txt_Name + "!");
 
-    private IActionResult Button2_Click()
-    {
-        WebForms form = new WebForms();
+            return Content(form.Response(), "text/html");
+        }
 
-        form.AddState("#state2");
-        form.AddText("<h3>", "- New text after click 2");
-
-        return Content(form.Response(), "text/html");
+        return Page();
     }
 }
 ```
 
-The above code is a simple example of a state management system. By executing the route, the click event is first given to the buttons with the query route. If the buttons are clicked, we detect it in the Razor Page handler by checking the query and the methods associated with the click are executed. Each of the methods adds a state to the page; this makes the back and forward buttons in the browser, consistent with the new state.
+In the Controller, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
+Please note that if the submit button is not clicked (initial request), the view page will be displayed completely for the requester.
 
 As you can see, the WebFormsJS script has been added in the header section of the View file above.
 
