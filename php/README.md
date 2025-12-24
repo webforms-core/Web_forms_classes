@@ -64,4 +64,5 @@ Example:
 - include → includeText
 - break → breakIt
 - goTo → goToLine
+
 There may be several other methods.
