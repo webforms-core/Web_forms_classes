@@ -28,7 +28,6 @@ int main() {
 
 		form.AddTag(InputPlace::Tag("form"), "h3");
 		form.SetText(InputPlace::Tag("h3"), "Welcome " + name + "!");
-		form.AssignDelay(78);
 
 		std::cout << form.Response() << std::endl;
 		return 0;
@@ -76,3 +75,4 @@ As you can see, the WebFormsJS script has been added in the header section of th
 The latest version of the WebFormsJS script is available through the link below.
 
 https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
+
