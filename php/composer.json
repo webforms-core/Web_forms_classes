@@ -1,0 +1,7 @@
+{
+    "name": "Elanat/WebFormsCore",
+    "description": "WebForms.php 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)",
+    "require": {
+        "WebFormsJS": "=2.0",
+    }
+}
