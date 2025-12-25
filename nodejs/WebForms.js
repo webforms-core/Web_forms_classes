@@ -1,4 +1,4 @@
-// WebForms.php 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// WebForms.js 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
 // Compatible with WebFormsJS version 2.0
 
 class WebForms {
@@ -2432,3 +2432,4 @@ module.exports = {
     HtmlEventListener,
     ExtensionWebFormsMethods
 };
+
