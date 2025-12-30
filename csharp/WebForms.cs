@@ -376,7 +376,7 @@ namespace WebFormsCore
 
         // Service Worker
         // To Use Service Worker, You Need To Add The Elanat Dedicated Module (service-worker.js) On The Client Side
-        public void ServiceWorkerRegister(string Path = null, string ScobePath = null) => Add("wR", Path + "|" + ScobePath);
+        public void ServiceWorkerRegister(string Path = null, string ScopePath = null) => Add("wR", Path + "|" + ScopePath);
         public void ServiceWorkerPreCacheStatic(string[] PathList) => Add("wp",string.Join("|", PathList));
         public void ServiceWorkerDynamicCache(string Path, int Seconds = 0) => Add("wc", Path + (Seconds > 0 ? "|" + Seconds : ""));
         public void ServiceWorkerDeleteDynamicCache() => Add("wd");
@@ -1327,3 +1327,4 @@ namespace WebFormsCore
         }
     }
 }
+
