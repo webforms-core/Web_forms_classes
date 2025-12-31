@@ -2268,6 +2268,11 @@ class InputPlace
         return '(' . $name . ')' . $index;
     }
 
+    public static function allNames($name)
+    {
+        return '(' . $name . ')*';
+    }
+
     public static function tag($tag)
     {
         return '<' . $tag . '>';
@@ -2278,6 +2283,11 @@ class InputPlace
         return '<' . $tag . '>' . $index;
     }
 
+    public static function allTags($tag)
+    {
+        return '<' . $tag . '>*';
+    }
+
     public static function mediaClass($class)
     {
         return '{' . $class . '}';
@@ -2286,6 +2296,11 @@ class InputPlace
     public static function mediaClassWithIndex($class, $index)
     {
         return '{' . $class . '}' . $index;
+    }
+
+    public static function allClasses($class)
+    {
+        return '{' . $class . '}*';
     }
 
     public static function query($query)
@@ -2926,5 +2941,6 @@ class ExtensionWebFormsMethods
         return str_replace("\n", "$[sln]", $text);
     }
 }
+
 
 
