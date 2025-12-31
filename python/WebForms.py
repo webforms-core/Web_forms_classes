@@ -1440,33 +1440,39 @@ class InputPlace:
     UPPER = '-'
     HEAD = '^'
     SCREEN_ORIENTATION = '%'
-    
+
     @staticmethod
     def id(element_id: str) -> str:
         return element_id
-    
+
     @staticmethod
     def name(name: str, index: Optional[int] = None) -> str:
-        if index is not None:
-            return f'({name}){index}'
-        return f'({name})'
-    
+        return f'({name}){index}' if index is not None else f'({name})'
+
+    @staticmethod
+    def all_names(name: str) -> str:
+        return f'({name})*'
+
     @staticmethod
     def tag(tag_name: str, index: Optional[int] = None) -> str:
-        if index is not None:
-            return f'<{tag_name}>{index}'
-        return f'<{tag_name}>'
-    
+        return f'<{tag_name}>{index}' if index is not None else f'<{tag_name}>'
+
+    @staticmethod
+    def all_tags(tag_name: str) -> str:
+        return f'<{tag_name}>*'
+
     @staticmethod
     def css_class(class_name: str, index: Optional[int] = None) -> str:
-        if index is not None:
-            return f'{{{class_name}}}{index}'
-        return f'{{{class_name}}}'
-    
+        return f'{{{class_name}}}{index}' if index is not None else f'{{{class_name}}}'
+
+    @staticmethod
+    def all_classes(class_name: str) -> str:
+        return f'{{{class_name}}}*'
+
     @staticmethod
     def query(query_str: str) -> str:
         return "*" + query_str.replace("=", "$[eq];")
-    
+
     @staticmethod
     def query_all(query_str: str) -> str:
         return "[" + query_str.replace("=", "$[eq];")
@@ -2001,3 +2007,4 @@ def remove_outer(text: str, start_string: str, end_string: str) -> str:
 
 def line_break(text: str) -> str:
     return text.replace("\n", "$[sln]")
+
