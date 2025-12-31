@@ -1842,6 +1842,10 @@ class InputPlace {
         return `(${name})${index}`;
     }
 
+    static allNames(name) {
+        return `(${name})*`;
+    }
+
     static tag(tag) {
         return `<${tag}>`;
     }
@@ -1850,12 +1854,20 @@ class InputPlace {
         return `<${tag}>${index}`;
     }
 
+    static allTags(tag) {
+        return `<${tag}>*`;
+    }
+
     static className(className) {
         return `{${className}}`;
     }
 
     static classNameWithIndex(className, index) {
         return `{${className}}${index}`;
+    }
+
+    static allClasses(className) {
+        return `{${className}}*`;
     }
 
     static query(query) {
