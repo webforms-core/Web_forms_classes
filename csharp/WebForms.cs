@@ -908,10 +908,13 @@ namespace WebFormsCore
         public static string Id(string Id) => Id;
         public static string Name(string Name) => '(' + Name + ')';
         public static string Name(string Name, int Index) => '(' + Name + ')' + Index;
+        public static string AllNames(string Name) => "(" + Name + ")*";
         public static string Tag(string Tag) => '<' + Tag + '>';
         public static string Tag(string Tag, int Index) => '<' + Tag + '>' + Index;
+        public static string AllTags(string Tag) => "<" + Tag + ">*";
         public static string Class(string Class) => '{' + Class + '}';
         public static string Class(string Class, int Index) => '{' + Class + '}' + Index;
+        public static string AllClasses(string Class) => "{" + Class + "}*";
         public static string Query(string Query) => "*" + Query.Replace("=", "$[eq];");
         public static string QueryAll(string Query) => "[" + Query.Replace("=", "$[eq];");
     }
@@ -1327,4 +1330,5 @@ namespace WebFormsCore
         }
     }
 }
+
 
