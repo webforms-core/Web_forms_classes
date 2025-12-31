@@ -1858,15 +1858,15 @@ class InputPlace {
         return `<${tag}>*`;
     }
 
-    static className(className) {
+    static cssClass(className) {
         return `{${className}}`;
     }
 
-    static classNameWithIndex(className, index) {
+    static cssClassWithIndex(className, index) {
         return `{${className}}${index}`;
     }
 
-    static allClasses(className) {
+    static allCssClasses(className) {
         return `{${className}}*`;
     }
 
@@ -2444,5 +2444,6 @@ module.exports = {
     HtmlEventListener,
     ExtensionWebFormsMethods
 };
+
 
 
