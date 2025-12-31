@@ -1466,7 +1466,7 @@ class InputPlace:
         return f'{{{class_name}}}{index}' if index is not None else f'{{{class_name}}}'
 
     @staticmethod
-    def all_classes(class_name: str) -> str:
+    def all_css_classes(class_name: str) -> str:
         return f'{{{class_name}}}*'
 
     @staticmethod
@@ -2007,4 +2007,5 @@ def remove_outer(text: str, start_string: str, end_string: str) -> str:
 
 def line_break(text: str) -> str:
     return text.replace("\n", "$[sln]")
+
 
