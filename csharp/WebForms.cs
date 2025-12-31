@@ -1289,7 +1289,7 @@ namespace WebFormsCore
             return Text + "|" + Value;
         }
 
-        public static string AppendParrent(this string Text)
+        public static string AppendParent(this string Text)
         {
             return "/" + Text;
         }
@@ -1330,5 +1330,6 @@ namespace WebFormsCore
         }
     }
 }
+
 
 
