@@ -2288,17 +2288,17 @@ class InputPlace
         return '<' . $tag . '>*';
     }
 
-    public static function mediaClass($class)
+    public static function cssClass($class)
     {
         return '{' . $class . '}';
     }
 
-    public static function mediaClassWithIndex($class, $index)
+    public static function cssClassWithIndex($class, $index)
     {
         return '{' . $class . '}' . $index;
     }
 
-    public static function allClasses($class)
+    public static function allCssClasses($class)
     {
         return '{' . $class . '}*';
     }
@@ -2941,6 +2941,7 @@ class ExtensionWebFormsMethods
         return str_replace("\n", "$[sln]", $text);
     }
 }
+
 
 
 
