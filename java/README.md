@@ -8,7 +8,7 @@ View file (default.html)
 <html>
 <head>
   <title>Using WebForms Core</title>
-  <script type="text/javascript" src="/script/web-forms.js"></script>
+  <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
     <form method="post" action="/" >
@@ -97,4 +97,5 @@ In addition to the Java programming language, you can use the WebForms classes l
 - Ceylon
 - Fantom
 - JPHP
+
 
