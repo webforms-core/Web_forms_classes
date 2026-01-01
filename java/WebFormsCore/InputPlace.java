@@ -1,8 +1,17 @@
 package WebFormsCore;
 
-// Compatible with WebFormsJS version 1.6
+// WebForms.java 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// Compatible with WebFormsJS version 2.0
 
 public class InputPlace {
+    public static final String Window = "`";
+    public static final String Root = "~";
+    public static final String Current = "$";
+    public static final String Target = "!";
+    public static final String Upper = "-";
+    public static final String Head = "^";
+    public static final String ScreenOrientation = "%";
+
     public static String id(String id) {
         return id;
     }
@@ -15,6 +24,10 @@ public class InputPlace {
         return '(' + name + ')' + index;
     }
 
+    public static String allNames(String name) {
+        return "(" + name + ")*";
+    }
+
     public static String tag(String tag) {
         return '<' + tag + '>';
     }
@@ -23,12 +36,20 @@ public class InputPlace {
         return '<' + tag + '>' + index;
     }
 
-    public static String classString(String classStr) {
-        return '{' + classStr + '}';
+    public static String allTags(String tag) {
+        return "<" + tag + ">*";
     }
 
-    public static String classString(String classStr, int index) {
-        return '{' + classStr + '}' + index;
+    public static String cssClass(String className) {
+        return '{' + className + '}';
+    }
+
+    public static String cssClass(String className, int index) {
+        return '{' + className + '}' + index;
+    }
+
+    public static String allCssClasses(String className) {
+        return "{" + className + "}*";
     }
 
     public static String query(String query) {
