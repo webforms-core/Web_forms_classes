@@ -1,6 +1,7 @@
 package WebFormsCore;
 
-// Compatible with WebFormsJS version 1.6
+// WebForms.java 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// Compatible with WebFormsJS version 2.0
 
 public class HtmlEventListener {
     public static final String Abort = "abort";
@@ -68,12 +69,13 @@ public class HtmlEventListener {
     public static final String TimeUpdate = "timeupdate";
     public static final String Toggle = "toggle";
     public static final String TouchCancel = "touchcancel";
-    public static final String TouchEnd = "touchend";
+    public static final String Touchend = "touchend";
     public static final String TouchMove = "touchmove";
     public static final String TouchStart = "touchstart";
     public static final String Unload = "unload";
     public static final String VolumeChange = "volumechange";
     public static final String Waiting = "waiting";
+    public static final String Wheel = "wheel";
 
     public static final String AnimationEnd = "animationend";
     public static final String AnimationIteration = "animationiteration";
@@ -84,5 +86,8 @@ public class HtmlEventListener {
     public static final String PopState = "popstate";
     public static final String TransitionEnd = "transitionend";
     public static final String Storage = "storage";
-    public static final String Wheel = "wheel";
+
+    // Custom
+    public static final String ScrollBottom = "scrollbottom";
+    public static final String ElementReached = "elementreached";
 }
