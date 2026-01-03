@@ -71,12 +71,12 @@ public class IndexModel : PageModel
         {
             WebForms form = new WebForms();
 
-            form.SetFontSize("form", txt_FontSize);
-            form.SetBackgroundColor("form", txt_BackgroundColor);
-            form.SetDisabled("btn_SetBodyValue", true);
+            form.SetFontSize("<form>", txt_FontSize);
+            form.SetBackgroundColor("<form>", txt_BackgroundColor);
+            form.SetDisabled("(btn_SetBodyValue)", true);
 
-            form.AddTag("form", "h3");
-            form.SetText("h3", "Welcome " + txt_Name + "!");
+            form.AddTag("<form>", "h3");
+            form.SetText("<h3>", "Welcome " + txt_Name + "!");
 
             return Content(form.Response(), "text/html");
         }
@@ -94,4 +94,5 @@ As you can see, the WebFormsJS script has been added in the header section of th
 The latest version of the WebFormsJS script is available through the link below.
 
 https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
+
 
