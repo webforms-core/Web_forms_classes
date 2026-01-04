@@ -1,4 +1,4 @@
-// WebForms.go 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// webforms.go 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
 // Compatible with WebFormsJS version 2.0
 
 package webforms
@@ -3481,3 +3481,4 @@ func (nvc *NameValueCollection) Add(name, value string) {
 func (nvc *NameValueCollection) GetList() []NameValue {
 	return nvc.NameValueList
 }
+
