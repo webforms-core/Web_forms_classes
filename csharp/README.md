@@ -1,6 +1,6 @@
 ## How to work with WebForms Core in C# (Razor Pages (ASP.NET Core))
 
-To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
+To use WebForms Core, first install WFC package or copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
 Place the following view in the "Pages" directory in the project path.
 
@@ -94,5 +94,6 @@ As you can see, the WebFormsJS script has been added in the header section of th
 The latest version of the WebFormsJS script is available through the link below.
 
 https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
+
 
 
