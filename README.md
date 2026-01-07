@@ -96,11 +96,15 @@ st<h3>=Adriano! Your message was sent successfully.
 ## Installation via Package
 
 **C# (.NET) in NuGet**
+
+https://www.nuget.org/packages/WFC
 ```
 dotnet add package WFC
 ```
 
 **Python in PyPi**
+
+https://pypi.org/project/WFC/
 ```
 pip install WFC
 ```
