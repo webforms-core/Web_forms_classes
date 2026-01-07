@@ -1,6 +1,6 @@
 ## How to work with WebForms Core in Python (Flask framework)
 
-To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
+To use WebForms Core, first install WFC package or copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
 ```python
 from flask import Flask, request, render_template_string
