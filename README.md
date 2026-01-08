@@ -112,11 +112,15 @@ Project settings
 **Python in PyPi**
 
 https://pypi.org/project/WFC/
+
+CLI
 ```
 pip install WFC
 ```
 
 **Java in Maven Central**
+
+https://central.sonatype.com/artifact/net.elanat/WFC
 
 Project settings for Maven
 ```
