@@ -95,9 +95,7 @@ st<h3>=Adriano! Your message was sent successfully.
 
 ## Installation via Package
 
-**C# (.NET) in NuGet**
-
-https://www.nuget.org/packages/WFC
+**C# (.NET) in NuGet** (https://www.nuget.org/packages/WFC)
 
 CLI
 ```
@@ -109,18 +107,14 @@ Project settings
 <PackageReference Include="WFC" />
 ```
 
-**Python in PyPi**
-
-https://pypi.org/project/WFC/
+**Python in PyPi** (https://pypi.org/project/WFC/)
 
 CLI
 ```
 pip install WFC
 ```
 
-**Java in Maven Central**
-
-https://central.sonatype.com/artifact/net.elanat/WFC
+**Java in Maven Central** (https://central.sonatype.com/artifact/net.elanat/WFC)
 
 Project settings for Maven
 ```
