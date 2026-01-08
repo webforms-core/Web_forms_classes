@@ -98,8 +98,15 @@ st<h3>=Adriano! Your message was sent successfully.
 **C# (.NET) in NuGet**
 
 https://www.nuget.org/packages/WFC
+
+CLI
 ```
 dotnet add package WFC
+```
+
+Project settings
+```
+<PackageReference Include="WFC" />
 ```
 
 **Python in PyPi**
@@ -109,6 +116,23 @@ https://pypi.org/project/WFC/
 pip install WFC
 ```
 
+**Java in Maven Central**
+
+Project settings for Maven
+```
+<dependency>
+    <groupId>net.elanat</groupId>
+    <artifactId>WFC</artifactId>
+    <version>#.#.#</version>
+</dependency>
+```
+
+Project settings for Gradle
+```
+dependencies {
+    implementation "net.elanat:WFC:#.#.#"
+}
+```
 
 ## Other programming languages 
 - **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
