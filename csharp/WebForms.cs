@@ -687,7 +687,7 @@ namespace WebFormsCore
         public void ConsoleMessageAssert(string Text, string Condition) => Add("ma", Text.Replace('\n'.ToString(), "$[ln];") + "|" + Condition);
 
         // Enable
-        //Calling The EnableWebSocket Or EnableWebSocketOnce Or AddWebSocket Methods Will Cause Any Subsequent Requests (Under WebForms Core Technology) To Operate Under The WebSocket Protocol.
+        // Calling The EnableWebSocket Or EnableWebSocketOnce Or AddWebSocket Methods Will Cause Any Subsequent Requests (Under WebForms Core Technology) To Operate Under The WebSocket Protocol.
         public void EnableWebSocket(bool Enable = true) => Add("ew", Enable ? "1" : "0");
         public void EnableWebSocketOnce() => Add("ew", "$");
         public void AddWebSocket(string Path) => Add("aw" + Path);
@@ -1331,3 +1331,4 @@ namespace WebFormsCore
         }
     }
 }
+
