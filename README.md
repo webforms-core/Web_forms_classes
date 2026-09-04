@@ -56,7 +56,7 @@ public partial class ContactController : CodeBehindController
         form.SetBackgroundColor("<h3>", "green");
         form.SetText("<h3>", name + "! Your message was sent successfully.");
         form.Delete("<h3>");
-        form.AssignDelay(3);
+        form.AssignDelay(3000);
         form.SetDisabled("(button)", true);
 
         Write(form.Response());
@@ -87,7 +87,7 @@ sd(button)=1
 nt<form>=h3
 bc<h3>=green
 st<h3>=Adriano! Your message was sent successfully.
-:3)de<h3>=1
+:3000)de<h3>=1
 ```
 
 **Parent class:** WebForms classes in all programming languages ​​are built from the C# class. This class is the parent class of all WebForms classes.
