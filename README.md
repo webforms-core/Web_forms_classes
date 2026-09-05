@@ -98,7 +98,7 @@ st<h3>=Adriano! Your message was sent successfully.
 **C# (.NET) in NuGet** (https://www.nuget.org/packages/WFC)
 
 CLI
-```
+```bash
 dotnet add package WFC
 ```
 
@@ -110,8 +110,15 @@ Project settings
 **Python in PyPi** (https://pypi.org/project/WFC/)
 
 CLI
-```
+```bash
 pip install WFC
+```
+
+**PHP in Packagist** (https://packagist.org/packages/webforms-core/php)
+
+CLI
+```bash
+composer require webforms-core/php
 ```
 
 **Java in Maven Central** (https://central.sonatype.com/artifact/net.elanat/WFC)
