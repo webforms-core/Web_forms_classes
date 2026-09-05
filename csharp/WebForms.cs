@@ -1,4 +1,4 @@
-// WebForms.cs 2.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// WebForms.cs 2.1.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
 // Compatible with WebFormsJS version 2.1
 
 using System.Text;
@@ -144,7 +144,7 @@ namespace WebFormsCore
         public void SetMinLength(string InputPlace, string Length) => Add("mn" + InputPlace, Length);
         public void SetMinLength(string InputPlace, int Length) => SetMinLength(InputPlace, Length.ToString());
         public void SetMaxLength(string InputPlace, string Length) => Add("mx" + InputPlace, Length);
-        public void SetMaxLength(string InputPlace, int Length) => Add(InputPlace, Length.ToString());
+        public void SetMaxLength(string InputPlace, int Length) => SetMaxLength(InputPlace, Length.ToString());
         public void SetSelectedValue(string InputPlace, string Value) => Add("ts" + InputPlace, Value);
         public void SetSelectedIndex(string InputPlace, string Index) => Add("ti" + InputPlace, Index);
         public void SetSelectedIndex(string InputPlace, int Index) => SetSelectedIndex(InputPlace, Index.ToString());
