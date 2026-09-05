@@ -1280,10 +1280,10 @@ namespace WebFormsCore
         public static string Cache(string Key, string ReplaceValue) => "@cd" + Key + RS + ReplaceValue;
         public static string CacheThenRemove(string Key) => "@ct" + Key;
         public static string CacheLength(string Key = ".") => "@cG" + Key;
-        public static string SavedLine(string Key = ".", int Line = 0) => "@lL" + Key + "[" + Line;
-        public static string SavedLineConsume(string Key = ".") => "@lL" + Key;
+        public static string SaveLine(string Key = ".", int Line = 0) => "@lL" + Key + "[" + Line;
+        public static string SaveLineConsume(string Key = ".") => "@lL" + Key;
         // INIKey: Only Direct Key is Supported
-        public static string SavedINI(string Key, string INIKey) => "@lI" + Key + "[" + INIKey;
+        public static string SaveINI(string Key, string INIKey) => "@lI" + Key + "[" + INIKey;
         public static string CacheLine(string Key = ".", int Line = 0) => "@dL" + Key + "[" + Line;
         public static string CacheLineConsume(string Key = ".") => "@dL" + Key;
         // INIKey: Only Direct Key is Supported
