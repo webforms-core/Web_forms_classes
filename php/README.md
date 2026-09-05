@@ -61,18 +61,3 @@ As you can see, the WebFormsJS script has been added in the header section of th
 The latest version of the WebFormsJS script is available through the link below.
 
 https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
-
-Note: A small portion of the methods have been renamed due to conflicts with reserved words and standards.
-Example:
-- include → includeText
-- break → breakIt
-- goTo → goToLine
-- goTo → goToIndex
-
-There may be several other methods.
-
-All these changes are made to ensure:
-- No interference with PHP keywords
-- Compliance with PHP naming standards (camelCase)
-- Avoid ambiguity in method names
-- Compatibility with PHP language limitations
