@@ -1,1696 +1,1826 @@
 <?php
 
-// WebForms.php 2.0 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
-// Compatible with WebFormsJS version 2.0
+// WebForms.php 2.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// Compatible with WebFormsJS version 2.1
 
 namespace WebFormsCore;
 
 class WebForms
 {
-    private $webFormsData = '';
-    private $security;
+    private const GS = "\x1D";  // (char)29
+    private const US = "\x1F";  // (char)31
 
-    public function __construct()
-    {
-        $this->security = new Security();
-    }
+    private string $webFormsData = '';
 
-    private function add($name, $value = '')
+    private function add(string $Name, ?string $Value = null): void
     {
-        if (!empty($this->webFormsData)) {
+        if (strlen($this->webFormsData) > 0) {
             $this->webFormsData .= "\n";
         }
 
-        $this->webFormsData .= $name;
-        if ($value !== '') {
-            $this->webFormsData .= '=' . $value;
+        $this->webFormsData .= $Name;
+        if ($Value !== null) {
+            $this->webFormsData .= '=' . $Value;
         }
     }
 
-    private function getLineByIndex($index)
+    private function addToUp(string $name, ?string $value = null): void
     {
-        if (empty($this->webFormsData)) {
+        $line = $name . ($value !== null ? '=' . $value : '');
+        if (strlen($this->webFormsData) > 0) {
+            $line .= "\n";
+        }
+        $this->webFormsData = $line . $this->webFormsData;
+    }
+
+    private function getLineByIndex(int $Index): string
+    {
+        if (strlen($this->webFormsData) === 0) {
             return '';
         }
 
         $lines = explode("\n", $this->webFormsData);
 
-        if ($index < 0) {
-            $index = count($lines) + $index;
+        if ($Index < 0) {
+            $Index = count($lines) + $Index;
         }
 
-        if ($index < 0 || $index >= count($lines)) {
+        if ($Index < 0 || $Index >= count($lines)) {
             return '';
         }
 
-        return $lines[$index];
+        return $lines[$Index];
     }
 
-    private function updateLineByIndex($index, $name, $value = '')
+    private function updateLineByIndex(int $Index, string $Name, ?string $Value = null): void
     {
-        if (empty($this->webFormsData)) {
+        if (strlen($this->webFormsData) === 0) {
             return;
         }
 
         $lines = explode("\n", $this->webFormsData);
 
-        if ($index < 0) {
-            $index = count($lines) + $index;
+        if ($Index < 0) {
+            $Index = count($lines) + $Index;
         }
 
-        if ($index < 0 || $index >= count($lines)) {
+        if ($Index < 0 || $Index >= count($lines)) {
             return;
         }
 
-        $lines[$index] = $name . ($value !== '' ? '=' . $value : '');
+        $lines[$Index] = $Name . (($Value !== null && $Value !== '') ? '=' . $Value : '');
 
         $this->webFormsData = implode("\n", $lines);
     }
 
     // For Extension
-    public function addLine($name, $value)
+    public function addLine(string $Name, string $Value): void
     {
-        $this->add($name, $value);
+        $this->add($Name, $Value);
     }
 
     // Add
-    public function addId($inputPlace, $id)
+    // Creates the Data if it does not exist; otherwise, Appends the New Value to the Existing Value.
+    public function addId(string $InputPlace, string $Id): void
     {
-        $this->add("ai" . $inputPlace, $id);
+        $this->add('ai' . $InputPlace, $Id);
     }
 
-    public function addName($inputPlace, $name)
+    public function addName(string $InputPlace, string $Name): void
     {
-        $this->add("an" . $inputPlace, $name);
+        $this->add('an' . $InputPlace, $Name);
     }
 
-    public function addValue($inputPlace, $value)
+    public function addValue(string $InputPlace, string $Value): void
     {
-        $this->add("av" . $inputPlace, $value);
+        $this->add('av' . $InputPlace, $Value);
     }
 
-    public function addClass($inputPlace, $class)
+    public function addClass(string $InputPlace, string $Class): void
     {
-        $this->add("ac" . $inputPlace, $class);
+        $this->add('ac' . $InputPlace, $Class);
     }
 
-    public function addStyle($inputPlace, $style)
+    public function addStyle(string $InputPlace, string $Style): void
     {
-        $this->add("as" . $inputPlace, $style);
+        $this->add('as' . $InputPlace, $Style);
     }
 
-    public function addStyleWithNameValue($inputPlace, $name, $value)
+    public function addStyleNameValue(string $InputPlace, string $Name, string $Value): void
     {
-        $this->add("as" . $inputPlace, $name . ':' . $value);
+        $this->add('as' . $InputPlace, $Name . ':' . $Value);
     }
 
-    public function addOptionTag($inputPlace, $text, $value, $selected = false)
+    public function addOptionTag(string $InputPlace, string $Text, string $Value, bool $Selected = false): void
     {
-        $this->add("ao" . $inputPlace, $value . '|' . $text . ($selected ? '|1' : ''));
+        $this->add('ao' . $InputPlace, $Value . self::GS . $Text . ($Selected ? self::GS . '1' : ''));
     }
 
-    public function addCheckBoxTag($inputPlace, $text, $value, $checked = false)
+    public function addCheckBoxTag(string $InputPlace, string $Text, string $Value, bool $Checked = false): void
     {
-        $this->add("ak" . $inputPlace, $value . '|' . $text . ($checked ? '|1' : ''));
+        $this->add('ak' . $InputPlace, $Value . self::GS . $Text . ($Checked ? self::GS . '1' : ''));
     }
 
-    public function addTitle($inputPlace, $title)
+    public function addTitle(string $InputPlace, string $Title): void
     {
-        $this->add("al" . $inputPlace, $title);
+        $this->add('al' . $InputPlace, $Title);
     }
 
-    public function addLabel($inputPlace, $label)
+    public function addLabel(string $InputPlace, string $Label): void
     {
-        $this->add("aA" . $inputPlace, $label);
+        $this->add('aA' . $InputPlace, $Label);
     }
 
-    public function addText($inputPlace, $text)
+    public function addText(string $InputPlace, string $Text): void
     {
-        $this->add("at" . $inputPlace, str_replace("\n", "$[ln];", $text));
+        $this->add('at' . $InputPlace, str_replace("\n", '$[ln];', $Text));
     }
 
-    public function addTextToUp($inputPlace, $text)
+    public function addTextToUp(string $InputPlace, string $Text): void
     {
-        $this->add("pt" . $inputPlace, str_replace("\n", "$[ln];", $text));
+        $this->add('pt' . $InputPlace, str_replace("\n", '$[ln];', $Text));
     }
 
-    public function addAttribute($inputPlace, $attribute, $value = "", $splitter = "\0")
+    public function addAttribute(string $InputPlace, string $Attribute, string $Value = '', string $Splitter = ''): void
     {
-        $splitterStr = ($splitter != "\0") ? $splitter : "";
-        $this->add("aa" . $inputPlace, $attribute . '|' . $splitterStr . (!empty($value) ? '|' . $value : ''));
+        $this->add('aa' . $InputPlace, $Attribute . self::GS . ($Splitter !== '' ? $Splitter : '') . ($Value !== '' ? self::GS . $Value : ''));
     }
 
-    public function addTag($inputPlace, $tagName, $id = "")
+    public function addTag(string $InputPlace, string $TagName, string $Id = ''): void
     {
-        $this->add("nt" . $inputPlace, $tagName . (!empty($id) ? '|' . $id : ''));
+        $this->add('nt' . $InputPlace, $TagName . ($Id !== '' ? self::GS . $Id : ''));
     }
 
-    public function addTagToUp($inputPlace, $tagName, $id = "")
+    public function addTagToUp(string $InputPlace, string $TagName, string $Id = ''): void
     {
-        $this->add("ut" . $inputPlace, $tagName . (!empty($id) ? '|' . $id : ''));
+        $this->add('ut' . $InputPlace, $TagName . ($Id !== '' ? self::GS . $Id : ''));
     }
 
-    public function addTagBefore($inputPlace, $tagName, $id = "")
+    public function addTagBefore(string $InputPlace, string $TagName, string $Id = ''): void
     {
-        $this->add("bt" . $inputPlace, $tagName . (!empty($id) ? '|' . $id : ''));
+        $this->add('bt' . $InputPlace, $TagName . ($Id !== '' ? self::GS . $Id : ''));
     }
 
-    public function addTagAfter($inputPlace, $tagName, $id = "")
+    public function addTagAfter(string $InputPlace, string $TagName, string $Id = ''): void
     {
-        $this->add("ft" . $inputPlace, $tagName . (!empty($id) ? '|' . $id : ''));
+        $this->add('ft' . $InputPlace, $TagName . ($Id !== '' ? self::GS . $Id : ''));
     }
 
-    public function addHidden($inputPlace, $value, $id = "")
+    public function addHidden(string $InputPlace, string $Name, string $Value, string $Id = ''): void
     {
-        $this->add("ah" . $inputPlace, $value . (!empty($id) ? '|' . $id : ''));
+        $this->add('ah' . $InputPlace, $Name . self::GS . $Value . ($Id !== '' ? self::GS . $Id : ''));
     }
 
     // Set
-    public function setId($inputPlace, $id)
+    // Creates the Data if it does not exist; otherwise, Replaces the Existing Value with the New Value.
+    public function setId(string $InputPlace, string $Id): void
     {
-        $this->add("si" . $inputPlace, $id);
+        $this->add('si' . $InputPlace, $Id);
     }
 
-    public function setName($inputPlace, $name)
+    public function setName(string $InputPlace, string $Name): void
     {
-        $this->add("sn" . $inputPlace, $name);
+        $this->add('sn' . $InputPlace, $Name);
     }
 
-    public function setValue($inputPlace, $value)
+    public function setValue(string $InputPlace, string $Value): void
     {
-        $this->add("sv" . $inputPlace, $value);
+        $this->add('sv' . $InputPlace, $Value);
     }
 
-    public function setClass($inputPlace, $class)
+    public function setClass(string $InputPlace, string $Class): void
     {
-        $this->add("sc" . $inputPlace, $class);
+        $this->add('sc' . $InputPlace, $Class);
     }
 
-    public function setStyle($inputPlace, $style)
+    public function setStyle(string $InputPlace, string $Style): void
     {
-        $this->add("ss" . $inputPlace, $style);
+        $this->add('ss' . $InputPlace, $Style);
     }
 
-    public function setStyleWithNameValue($inputPlace, $name, $value)
+    public function setStyleNameValue(string $InputPlace, string $Name, string $Value): void
     {
-        $this->add("ss" . $inputPlace, $name . ':' . $value);
+        $this->add('ss' . $InputPlace, $Name . ':' . $Value);
     }
 
-    public function setOptionTag($inputPlace, $text, $value, $selected = false)
+    public function setOptionTag(string $InputPlace, string $Text, string $Value, bool $Selected = false): void
     {
-        $this->add("so" . $inputPlace, $value . '|' . $text . ($selected ? '|1' : ''));
+        $this->add('so' . $InputPlace, $Value . self::GS . $Text . ($Selected ? self::GS . '1' : ''));
     }
 
-    public function setChecked($inputPlace, $checked = false)
+    public function setChecked(string $InputPlace, bool $Checked = false): void
     {
-        $this->add("sk" . $inputPlace, $checked ? "1" : "0");
+        $this->add('sk' . $InputPlace, $Checked ? '1' : '0');
     }
 
-    public function setCheckBoxTag($inputPlace, $text, $value, $checked = false)
+    public function setCheckBoxTag(string $InputPlace, string $Text, string $Value, bool $Checked = false): void
     {
-        $this->add("sk" . $inputPlace, $value . '|' . $text . ($checked ? '|1' : ''));
+        $this->add('sk' . $InputPlace, $Value . self::GS . $Text . ($Checked ? self::GS . '1' : ''));
     }
 
-    public function setTitle($inputPlace, $title)
+    public function setTitle(string $InputPlace, string $Title): void
     {
-        $this->add("sl" . $inputPlace, $title);
+        $this->add('sl' . $InputPlace, $Title);
     }
 
-    public function setLabel($inputPlace, $label)
+    public function setLabel(string $InputPlace, string $Label): void
     {
-        $this->add("sA" . $inputPlace, $label);
+        $this->add('sA' . $InputPlace, $Label);
     }
 
-    public function setText($inputPlace, $text)
+    public function setText(string $InputPlace, string $Text): void
     {
-        $this->add("st" . $inputPlace, str_replace("\n", "$[ln];", $text));
+        $this->add('st' . $InputPlace, str_replace("\n", '$[ln];', $Text));
     }
 
-    public function setAttribute($inputPlace, $attribute, $value = "")
+    public function setAttribute(string $InputPlace, string $Attribute, string $Value = ''): void
     {
-        $this->add("sa" . $inputPlace, $attribute . '|' . (!empty($value) ? '|' . $value : ''));
+        $this->add('sa' . $InputPlace, $Attribute . self::GS . ($Value !== '' ? self::GS . $Value : ''));
     }
 
-    public function setWidth($inputPlace, $width)
+    public function setWidth(string $InputPlace, string $Width): void
     {
-        $this->add("sw" . $inputPlace, $width);
+        $this->add('sw' . $InputPlace, $Width);
     }
 
-    public function setHeight($inputPlace, $height)
+    public function setWidthPx(string $InputPlace, int $Width): void
     {
-        $this->add("sh" . $inputPlace, $height);
+        $this->setWidth($InputPlace, $Width . 'px');
     }
 
-    public function setBackgroundColor($inputPlace, $color)
+    public function setHeight(string $InputPlace, string $Height): void
     {
-        $this->add("bc" . $inputPlace, $color);
+        $this->add('sh' . $InputPlace, $Height);
     }
 
-    public function setTextColor($inputPlace, $color)
+    public function setHeightPx(string $InputPlace, int $Height): void
     {
-        $this->add("tc" . $inputPlace, $color);
+        $this->setHeight($InputPlace, $Height . 'px');
     }
 
-    public function setFontName($inputPlace, $name)
+    public function setBackgroundColor(string $InputPlace, string $Color): void
     {
-        $this->add("fn" . $inputPlace, $name);
+        $this->add('bc' . $InputPlace, $Color);
     }
 
-    public function setFontSize($inputPlace, $size)
+    public function setTextColor(string $InputPlace, string $Color): void
     {
-        $this->add("fs" . $inputPlace, $size);
+        $this->add('tc' . $InputPlace, $Color);
     }
 
-    public function setFontBold($inputPlace, $bold)
+    public function setFontName(string $InputPlace, string $Name): void
     {
-        $this->add("fb" . $inputPlace, $bold ? "1" : "0");
+        $this->add('fn' . $InputPlace, $Name);
     }
 
-    public function setVisible($inputPlace, $visible)
+    public function setFontSize(string $InputPlace, string $Size): void
     {
-        $this->add("vi" . $inputPlace, $visible ? "1" : "0");
+        $this->add('fs' . $InputPlace, $Size);
     }
 
-    public function setTextAlign($inputPlace, $align)
+    public function setFontSizePx(string $InputPlace, int $Size): void
     {
-        $this->add("ta" . $inputPlace, $align);
+        $this->add('fs' . $InputPlace, $Size . 'px');
     }
 
-    public function setReadOnly($inputPlace, $readOnly)
+    public function setFontBold(string $InputPlace, bool $Bold): void
     {
-        $this->add("sr" . $inputPlace, $readOnly ? "1" : "0");
+        $this->add('fb' . $InputPlace, $Bold ? '1' : '0');
     }
 
-    public function setDisabled($inputPlace, $disabled)
+    public function setVisible(string $InputPlace, bool $Visible): void
     {
-        $this->add("sd" . $inputPlace, $disabled ? "1" : "0");
+        $this->add('vi' . $InputPlace, $Visible ? '1' : '0');
     }
 
-    public function setFocus($inputPlace, $focus)
+    public function setTextAlign(string $InputPlace, string $Align): void
     {
-        $this->add("sf" . $inputPlace, $focus ? "1" : "0");
+        $this->add('ta' . $InputPlace, $Align);
     }
 
-    public function setMinLength($inputPlace, $length)
+    public function setReadOnly(string $InputPlace, bool $ReadOnly): void
     {
-        $this->add("mn" . $inputPlace, (string)$length);
+        $this->add('sr' . $InputPlace, $ReadOnly ? '1' : '0');
     }
 
-    public function setMaxLength($inputPlace, $length)
+    public function setDisabled(string $InputPlace, bool $Disabled): void
     {
-        $this->add("mx" . $inputPlace, (string)$length);
+        $this->add('sd' . $InputPlace, $Disabled ? '1' : '0');
     }
 
-    public function setSelectedValue($inputPlace, $value)
+    public function setFocus(string $InputPlace, bool $Focus): void
     {
-        $this->add("ts" . $inputPlace, $value);
+        $this->add('sf' . $InputPlace, $Focus ? '1' : '0');
     }
 
-    public function setSelectedIndex($inputPlace, $index)
+    public function setMinLength(string $InputPlace, string $Length): void
     {
-        $this->add("ti" . $inputPlace, (string)$index);
+        $this->add('mn' . $InputPlace, $Length);
     }
 
-    public function setCheckedValue($inputPlace, $value, $selected)
+    public function setMinLengthInt(string $InputPlace, int $Length): void
     {
-        $this->add("ks" . $inputPlace, $value . "|" . ($selected ? "1" : "0"));
+        $this->setMinLength($InputPlace, (string)$Length);
     }
 
-    public function setCheckedIndex($inputPlace, $index, $selected)
+    public function setMaxLength(string $InputPlace, string $Length): void
     {
-        $this->add("ki" . $inputPlace, $index . "|" . ($selected ? "1" : "0"));
+        $this->add('mx' . $InputPlace, $Length);
+    }
+
+	public function setMaxLengthInt(string $InputPlace, int $Length): void
+	{
+		$this->setMaxLength($InputPlace, (string)$Length);
+	}
+
+    public function setSelectedValue(string $InputPlace, string $Value): void
+    {
+        $this->add('ts' . $InputPlace, $Value);
+    }
+
+    public function setSelectedIndex(string $InputPlace, string $Index): void
+    {
+        $this->add('ti' . $InputPlace, $Index);
+    }
+
+    public function setSelectedIndexInt(string $InputPlace, int $Index): void
+    {
+        $this->setSelectedIndex($InputPlace, (string)$Index);
+    }
+
+    public function setCheckedValue(string $InputPlace, string $Value, bool $Checked): void
+    {
+        $this->add('ks' . $InputPlace, $Value . self::GS . ($Checked ? '1' : '0'));
+    }
+
+    public function setCheckedIndex(string $InputPlace, string $Index, bool $Checked): void
+    {
+        $this->add('ki' . $InputPlace, $Index . self::GS . ($Checked ? '1' : '0'));
+    }
+
+    public function setCheckedIndexInt(string $InputPlace, int $Index, bool $Checked): void
+    {
+        $this->setCheckedIndex($InputPlace, (string)$Index, $Checked);
     }
 
     // Insert
-    public function insertId($inputPlace, $id)
+    // Creates the Data only if it does not exist; otherwise, does nothing.
+    public function insertId(string $InputPlace, string $Id): void
     {
-        $this->add("ii" . $inputPlace, $id);
+        $this->add('ii' . $InputPlace, $Id);
     }
 
-    public function insertName($inputPlace, $name)
+    public function insertName(string $InputPlace, string $Name): void
     {
-        $this->add("in" . $inputPlace, $name);
+        $this->add('in' . $InputPlace, $Name);
     }
 
-    public function insertValue($inputPlace, $value)
+    public function insertValue(string $InputPlace, string $Value): void
     {
-        $this->add("iv" . $inputPlace, $value);
+        $this->add('iv' . $InputPlace, $Value);
     }
 
-    public function insertClass($inputPlace, $class)
+    public function insertClass(string $InputPlace, string $Class): void
     {
-        $this->add("ic" . $inputPlace, $class);
+        $this->add('ic' . $InputPlace, $Class);
     }
 
-    public function insertStyle($inputPlace, $style)
+    public function insertStyle(string $InputPlace, string $Style): void
     {
-        $this->add("is" . $inputPlace, $style);
+        $this->add('is' . $InputPlace, $Style);
     }
 
-    public function insertStyleWithNameValue($inputPlace, $name, $value)
+    public function insertStyleNameValue(string $InputPlace, string $Name, string $Value): void
     {
-        $this->add("is" . $inputPlace, $name . ':' . $value);
+        $this->add('is' . $InputPlace, $Name . ':' . $Value);
     }
 
-    public function insertOptionTag($inputPlace, $text, $value, $selected = false)
+    public function insertOptionTag(string $InputPlace, string $Text, string $Value, bool $Selected = false): void
     {
-        $this->add("io" . $inputPlace, $value . '|' . $text . ($selected ? '|1' : ''));
+        $this->add('io' . $InputPlace, $Value . self::GS . $Text . ($Selected ? self::GS . '1' : ''));
     }
 
-    public function insertCheckBoxTag($inputPlace, $text, $value, $checked = false)
+    public function insertCheckBoxTag(string $InputPlace, string $Text, string $Value, bool $Checked = false): void
     {
-        $this->add("ik" . $inputPlace, $value . '|' . $text . ($checked ? '|1' : ''));
+        $this->add('ik' . $InputPlace, $Value . self::GS . $Text . ($Checked ? self::GS . '1' : ''));
     }
 
-    public function insertTitle($inputPlace, $title)
+    public function insertTitle(string $InputPlace, string $Title): void
     {
-        $this->add("il" . $inputPlace, $title);
+        $this->add('il' . $InputPlace, $Title);
     }
 
-    public function insertLabel($inputPlace, $label)
+    public function insertLabel(string $InputPlace, string $Label): void
     {
-        $this->add("iA" . $inputPlace, $label);
+        $this->add('iA' . $InputPlace, $Label);
     }
 
-    public function insertText($inputPlace, $text)
+    public function insertText(string $InputPlace, string $Text): void
     {
-        $this->add("it" . $inputPlace, str_replace("\n", "$[ln];", $text));
+        $this->add('it' . $InputPlace, str_replace("\n", '$[ln];', $Text));
     }
 
-    public function insertAttribute($inputPlace, $attribute, $value = "", $splitter = "\0")
+    public function insertAttribute(string $InputPlace, string $Attribute, string $Value = '', string $Splitter = ''): void
     {
-        $splitterStr = ($splitter != "\0") ? $splitter : "";
-        $this->add("ia" . $inputPlace, $attribute . '|' . $splitterStr . (!empty($value) ? '|' . $value : ''));
+        $this->add('ia' . $InputPlace, $Attribute . self::GS . ($Splitter !== '' ? $Splitter : '') . ($Value !== '' ? self::GS . $Value : ''));
     }
 
     // Delete
-    public function deleteId($inputPlace)
+    public function deleteId(string $InputPlace): void
     {
-        $this->add("di" . $inputPlace);
+        $this->add('di' . $InputPlace);
     }
 
-    public function deleteName($inputPlace)
+    public function deleteName(string $InputPlace): void
     {
-        $this->add("dn" . $inputPlace);
+        $this->add('dn' . $InputPlace);
     }
 
-    public function deleteValue($inputPlace)
+    public function deleteValue(string $InputPlace): void
     {
-        $this->add("dv" . $inputPlace);
+        $this->add('dv' . $InputPlace);
     }
 
-    public function deleteClass($inputPlace, $className)
+    public function deleteClass(string $InputPlace, string $ClassName): void
     {
-        $this->add("dc" . $inputPlace, $className);
+        $this->add('dc' . $InputPlace, $ClassName);
     }
 
-    public function deleteStyle($inputPlace, $styleName)
+    public function deleteStyle(string $InputPlace, string $StyleName): void
     {
-        $this->add("ds" . $inputPlace, $styleName);
+        $this->add('ds' . $InputPlace, $StyleName);
     }
 
-    public function deleteOptionTag($inputPlace, $value)
+    public function deleteOptionTag(string $InputPlace, string $Value): void
     {
-        $this->add("do" . $inputPlace, $value);
+        $this->add('do' . $InputPlace, $Value);
     }
 
-    public function deleteAllOptionTag($inputPlace)
+    public function deleteAllOptionTag(string $InputPlace): void
     {
-        $this->add("do" . $inputPlace, "*");
+        $this->add('do' . $InputPlace, '*');
     }
 
-    public function deleteCheckBoxTag($inputPlace, $value)
+    public function deleteCheckBoxTag(string $InputPlace, string $Value): void
     {
-        $this->add("dk" . $inputPlace, $value);
+        $this->add('dk' . $InputPlace, $Value);
     }
 
-    public function deleteAllCheckBoxTag($inputPlace)
+    public function deleteAllCheckBoxTag(string $InputPlace): void
     {
-        $this->add("dk" . $inputPlace, "*");
+        $this->add('dk' . $InputPlace, '*');
     }
 
-    public function deleteTitle($inputPlace)
+    public function deleteTitle(string $InputPlace): void
     {
-        $this->add("dl" . $inputPlace);
+        $this->add('dl' . $InputPlace);
     }
 
-    public function deleteLabel($inputPlace)
+    public function deleteLabel(string $InputPlace): void
     {
-        $this->add("dA" . $inputPlace);
+        $this->add('dA' . $InputPlace);
     }
 
-    public function deleteText($inputPlace)
+    public function deleteText(string $InputPlace): void
     {
-        $this->add("dt" . $inputPlace);
+        $this->add('dt' . $InputPlace);
     }
 
-    public function deleteAttribute($inputPlace, $attribute)
+    public function deleteAttribute(string $InputPlace, string $Attribute): void
     {
-        $this->add("da" . $inputPlace, $attribute);
+        $this->add('da' . $InputPlace, $Attribute);
     }
 
-    public function delete($inputPlace)
+    public function delete(string $InputPlace): void
     {
-        $this->add("de" . $inputPlace);
+        $this->add('de' . $InputPlace);
     }
 
-    public function deleteParent($inputPlace)
+    public function deleteParent(string $InputPlace): void
     {
-        $this->add("dp" . $inputPlace);
+        $this->add('dp' . $InputPlace);
     }
 
     // Tag
-    public function swapTag($inputPlace, $outputPlace)
+    public function swapTag(string $InputPlace, string $OutputPlace): void
     {
-        $this->add("sp" . $inputPlace, $outputPlace);
+        $this->add('sp' . $InputPlace, $OutputPlace);
     }
 
-    public function setReflection($inputPlace, $tag)
+    public function setReflection(string $InputPlace, string $Tag): void
     {
-        $this->add("sR" . $inputPlace, $tag);
+        $this->add('sR' . $InputPlace, $Tag);
     }
 
-    public function setReflectionByOutputPlace($inputPlace, $outputPlace)
+    public function setReflectionByOutputPlace(string $InputPlace, string $OutputPlace): void
     {
-        $this->add("iR" . $inputPlace, $outputPlace);
+        $this->add('iR' . $InputPlace, $OutputPlace);
+    }
+
+    public function setMorph(string $InputPlace, string $Tag): void
+    {
+        $this->add('sM' . $InputPlace, $Tag);
+    }
+
+    public function setMorphByOutputPlace(string $InputPlace, string $OutputPlace): void
+    {
+        $this->add('iM' . $InputPlace, $OutputPlace);
     }
 
     // Browser
-    public function changeUrl($url)
+    public function changeUrl(string $Url): void
     {
-        $this->add("cu", $url);
+        $this->add('cu', $Url);
     }
 
-    public function setHeadTitle($title)
+    public function setHeadTitle(string $Title): void
     {
-        $this->add("ht", $title);
+        $this->add('ht', $Title);
     }
 
-    public function clipboardWriteText($text)
+    public function clipboardWriteText(string $Text): void
     {
-        $this->add("nw", $text);
+        $this->add('nw', $Text);
     }
 
-    public function scrollTo($x, $y)
+    public function scrollTo(string $X, string $Y): void
     {
-        $this->add("ws", $x . "|" . $y);
+        $this->add('ws', $X . self::GS . $Y);
     }
 
-    public function historyGo($steps)
+    public function scrollToInt(int $X, int $Y): void
     {
-        $this->add("wg", (string)$steps);
+        $this->scrollTo((string)$X, (string)$Y);
     }
 
-    public function reloadPage()
+    public function historyGo(string $Steps): void
     {
-        $this->add("lr");
+        $this->add('wg', $Steps);
     }
 
-    public function redirect($path)
+    public function historyGoInt(int $Steps): void
     {
-        $this->add("lh", $path);
+        $this->historyGo((string)$Steps);
+    }
+
+    public function reloadPage(): void
+    {
+        $this->add('lr');
+    }
+
+    public function redirect(string $Path): void
+    {
+        $this->add('lh', $Path);
     }
 
     // Increase
-    public function increaseMinLength($inputPlace, $value)
+    public function increaseMinLength(string $InputPlace, string $Value): void
     {
-        $this->add("+n" . $inputPlace, (string)$value);
+        $this->add('+n' . $InputPlace, $Value);
     }
 
-    public function increaseMaxLength($inputPlace, $value)
+    public function increaseMinLengthInt(string $InputPlace, int $Value): void
     {
-        $this->add("+x" . $inputPlace, (string)$value);
+        $this->increaseMinLength($InputPlace, (string)$Value);
     }
 
-    public function increaseFontSize($inputPlace, $value)
+    public function increaseMaxLength(string $InputPlace, string $Value): void
     {
-        $this->add("+f" . $inputPlace, (string)$value);
+        $this->add('+x' . $InputPlace, $Value);
     }
 
-    public function increaseWidth($inputPlace, $value)
+    public function increaseMaxLengthInt(string $InputPlace, int $Value): void
     {
-        $this->add("+w" . $inputPlace, (string)$value);
+        $this->increaseMaxLength($InputPlace, (string)$Value);
     }
 
-    public function increaseHeight($inputPlace, $value)
+    public function increaseFontSize(string $InputPlace, string $Value): void
     {
-        $this->add("+h" . $inputPlace, (string)$value);
+        $this->add('+f' . $InputPlace, $Value);
     }
 
-    public function increaseValue($inputPlace, $value)
+    public function increaseFontSizeInt(string $InputPlace, int $Value): void
     {
-        $this->add("+v" . $inputPlace, (string)$value);
+        $this->increaseFontSize($InputPlace, (string)$Value);
+    }
+
+    public function increaseWidth(string $InputPlace, string $Value): void
+    {
+        $this->add('+w' . $InputPlace, $Value);
+    }
+
+    public function increaseWidthInt(string $InputPlace, int $Value): void
+    {
+        $this->increaseWidth($InputPlace, (string)$Value);
+    }
+
+    public function increaseHeight(string $InputPlace, string $Value): void
+    {
+        $this->add('+h' . $InputPlace, $Value);
+    }
+
+    public function increaseHeightInt(string $InputPlace, int $Value): void
+    {
+        $this->increaseHeight($InputPlace, (string)$Value);
+    }
+
+    public function increaseValue(string $InputPlace, string $Value): void
+    {
+        $this->add('+v' . $InputPlace, $Value);
+    }
+
+    public function increaseValueInt(string $InputPlace, int $Value): void
+    {
+        $this->increaseValue($InputPlace, (string)$Value);
     }
 
     // Decrease
-    public function decreaseMinLength($inputPlace, $value)
+    public function decreaseMinLength(string $InputPlace, string $Value): void
     {
-        $this->add("-n" . $inputPlace, (string)$value);
+        $this->add('-n' . $InputPlace, $Value);
     }
 
-    public function decreaseMaxLength($inputPlace, $value)
+    public function decreaseMinLengthInt(string $InputPlace, int $Value): void
     {
-        $this->add("-x" . $inputPlace, (string)$value);
+        $this->decreaseMinLength($InputPlace, (string)$Value);
     }
 
-    public function decreaseFontSize($inputPlace, $value)
+    public function decreaseMaxLength(string $InputPlace, string $Value): void
     {
-        $this->add("-f" . $inputPlace, (string)$value);
+        $this->add('-x' . $InputPlace, $Value);
     }
 
-    public function decreaseWidth($inputPlace, $value)
+    public function decreaseMaxLengthInt(string $InputPlace, int $Value): void
     {
-        $this->add("-w" . $inputPlace, (string)$value);
+        $this->decreaseMaxLength($InputPlace, (string)$Value);
     }
 
-    public function decreaseHeight($inputPlace, $value)
+    public function decreaseFontSize(string $InputPlace, string $Value): void
     {
-        $this->add("-h" . $inputPlace, (string)$value);
+        $this->add('-f' . $InputPlace, $Value);
     }
 
-    public function decreaseValue($inputPlace, $value)
+    public function decreaseFontSizeInt(string $InputPlace, int $Value): void
     {
-        $this->add("-v" . $inputPlace, (string)$value);
+        $this->decreaseFontSize($InputPlace, (string)$Value);
     }
 
-    // Event - Trigger
-    public function triggerEvent($inputPlace, $htmlEventListener, $constructorName = null)
+    public function decreaseWidth(string $InputPlace, string $Value): void
     {
-        $this->add("TE" . $inputPlace, $htmlEventListener . (!empty($constructorName) ? "|" . $constructorName : ""));
+        $this->add('-w' . $InputPlace, $Value);
     }
 
-    // Event - Set
-    public function setPostEvent($inputPlace, $htmlEvent)
+    public function decreaseWidthInt(string $InputPlace, int $Value): void
     {
-        $this->add("Ep" . $inputPlace, $htmlEvent);
+        $this->decreaseWidth($InputPlace, (string)$Value);
     }
 
-    public function setPostEventView($inputPlace, $htmlEvent)
+    public function decreaseHeight(string $InputPlace, string $Value): void
     {
-        $this->add("Ep" . $inputPlace, $htmlEvent . "|+");
+        $this->add('-h' . $InputPlace, $Value);
     }
 
-    public function setPostEventTo($inputPlace, $htmlEvent, $outputPlace)
+    public function decreaseHeightInt(string $InputPlace, int $Value): void
     {
-        $this->add("Ep" . $inputPlace, $htmlEvent . "|" . $outputPlace);
+        $this->decreaseHeight($InputPlace, (string)$Value);
     }
 
-    public function setPostEventListener($inputPlace, $htmlEventListener)
+    public function decreaseValue(string $InputPlace, string $Value): void
     {
-        $this->add("EP" . $inputPlace, $htmlEventListener);
+        $this->add('-v' . $InputPlace, $Value);
     }
 
-    public function setPostEventListenerView($inputPlace, $htmlEventListener)
+    public function decreaseValueInt(string $InputPlace, int $Value): void
     {
-        $this->add("EP" . $inputPlace, $htmlEventListener . "|+");
+        $this->decreaseValue($InputPlace, (string)$Value);
     }
 
-    public function setPostEventListenerTo($inputPlace, $htmlEventListener, $outputPlace)
+    // Event
+    // ConstructorName: mouseevent, keyboardevent, uievent, focusevent, inputevent, event
+    // All Method in "Event" Section Only Support Dynamic Args Once. To Support Invoking Dynamic Arguments on a Momentary Basis, Use "EventListener" Section Methods.
+    public function triggerEvent(string $InputPlace, string $HtmlEventListener, ?string $ConstructorName = null): void
     {
-        $this->add("EP" . $inputPlace, $htmlEventListener . "|" . $outputPlace);
+        $this->add('TE' . $InputPlace, $HtmlEventListener . ($ConstructorName !== null ? self::GS . $ConstructorName : ''));
     }
 
-    public function setGetEvent($inputPlace, $htmlEvent, $path = null)
+    public function setPostEvent(string $InputPlace, string $HtmlEvent, ?string $OutputPlace = null): void
     {
-        $this->add("Eg" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setGetEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("Eg" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setGetEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EG" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setGetEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("EG" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setPatchEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("Ea" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setPatchEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("Ea" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setPatchEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EA" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setPatchEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("EA" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setDeleteEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("El" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setDeleteEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("El" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setDeleteEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EL" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setDeleteEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("EL" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setOptionsEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("Eo" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setOptionsEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("Eo" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setOptionsEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EO" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setOptionsEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("EO" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setTraceEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("Er" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setTraceEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("Er" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setTraceEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("ER" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setTraceEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("ER" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setConnectEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("Ec" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setConnectEventWithOutputPlace($inputPlace, $htmlEvent, $outputPlace, $path = null)
-    {
-        $this->add("Ec" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setConnectEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EC" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setConnectEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $outputPlace, $path = null)
-    {
-        $this->add("EC" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#") . "|" . $outputPlace);
-    }
-
-    public function setHeadEvent($inputPlace, $htmlEvent, $path = null)
-    {
-        $this->add("Eh" . $inputPlace, $htmlEvent . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setHeadEventListener($inputPlace, $htmlEventListener, $path = null)
-    {
-        $this->add("EH" . $inputPlace, $htmlEventListener . "|" . (!empty($path) ? $path : "#"));
-    }
-
-    public function setTagEvent($inputPlace, $htmlEvent, $outputPlace)
-    {
-        $this->add("Et" . $inputPlace, $htmlEvent . "|" . $outputPlace);
-    }
-
-    public function setTagEventListener($inputPlace, $htmlEventListener, $outputPlace)
-    {
-        $this->add("ET" . $inputPlace, $htmlEventListener . "|" . $outputPlace);
-    }
-
-    public function setCommentEvent($inputPlace, $htmlEvent, $index = null, $outputPlace = null)
-    {
-        $this->add("Eb" . $inputPlace, $htmlEvent . "|" . $index . "|" . $outputPlace);
-    }
-
-    public function setCommentEventListener($inputPlace, $htmlEventListener, $index = null, $outputPlace = null)
-    {
-        $this->add("EB" . $inputPlace, $htmlEventListener . "|" . $index . "|" . $outputPlace);
-    }
-
-    public function setWasmEvent($inputPlace, $htmlEvent, $wasmLanguage, $wasmUrl, $methodName, $args = null, $outputPlace = null)
-    {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = implode(",", $args);
+        if ($OutputPlace !== null) {
+            $this->add('Ep' . $InputPlace, $HtmlEvent . self::GS . $OutputPlace);
+        } else {
+            $this->add('Ep' . $InputPlace, $HtmlEvent);
         }
-        $this->add("Ey" . $inputPlace, $htmlEvent . "|" . $wasmLanguage . "|" . $wasmUrl . "|" . $methodName . "|" . $argsJoin . "|" . $outputPlace);
     }
 
-    public function setWasmEventListener($inputPlace, $htmlEventListener, $wasmLanguage, $wasmUrl, $methodName, $args = null, $outputPlace = null)
+    public function setPostEventAddView(string $InputPlace, string $HtmlEvent): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = implode(",", $args);
+        $this->add('Ep' . $InputPlace, $HtmlEvent . self::GS . '+');
+    }
+
+    public function setPostEventListener(string $InputPlace, string $HtmlEventListener, ?string $OutputPlace = null): void
+    {
+        if ($OutputPlace !== null) {
+            $this->add('EP' . $InputPlace, $HtmlEventListener . self::GS . $OutputPlace);
+        } else {
+            $this->add('EP' . $InputPlace, $HtmlEventListener);
         }
-        $this->add("EY" . $inputPlace, $htmlEventListener . "|" . $wasmLanguage . "|" . $wasmUrl . "|" . $methodName . "|" . $argsJoin . "|" . $outputPlace);
     }
 
-    public function setWebSocketEvent($inputPlace, $htmlEvent, $path)
+    public function setPostEventListenerAddView(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("Ew" . $inputPlace, $htmlEvent . "|" . $path);
+        $this->add('EP' . $InputPlace, $HtmlEventListener . self::GS . '+');
     }
 
-    public function setWebSocketEventListener($inputPlace, $htmlEventListener, $path)
+    public function setGetEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $this->add("EW" . $inputPlace, $htmlEventListener . "|" . $path);
-    }
-
-    public function setSSEEvent($inputPlace, $htmlEvent, $path, $shouldReconnect = true, $reconnectTryTimeout = 3000)
-    {
-        $this->add("Ee" . $inputPlace, $htmlEvent . "|" . $path . "|" . ($shouldReconnect ? "1" : "0") . "|" . $reconnectTryTimeout);
-    }
-
-    public function setSSEEventWithOutputPlace($inputPlace, $htmlEvent, $path, $outputPlace, $shouldReconnect = true, $reconnectTryTimeout = 3000)
-    {
-        $this->add("Ee" . $inputPlace, $htmlEvent . "|" . $path . "|" . ($shouldReconnect ? "1" : "0") . "|" . $reconnectTryTimeout . "|" . $outputPlace);
-    }
-
-    public function setSSEEventListener($inputPlace, $htmlEventListener, $path, $shouldReconnect = true, $reconnectTryTimeout = 3000)
-    {
-        $this->add("EE" . $inputPlace, $htmlEventListener . "|" . $path . "|" . ($shouldReconnect ? "1" : "0") . "|" . $reconnectTryTimeout);
-    }
-
-    public function setSSEEventListenerWithOutputPlace($inputPlace, $htmlEventListener, $path, $outputPlace, $shouldReconnect = true, $reconnectTryTimeout = 3000)
-    {
-        $this->add("EE" . $inputPlace, $htmlEventListener . "|" . $path . "|" . ($shouldReconnect ? "1" : "0") . "|" . $reconnectTryTimeout . "|" . $outputPlace);
-    }
-
-    public function setFrontEvent($inputPlace, $htmlEvent, $modulePath, $args = null, $outputPlace = null)
-    {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('Eg' . $InputPlace, $HtmlEvent . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('Eg' . $InputPlace, $HtmlEvent . self::GS . $path);
         }
-        $this->add("Ej" . $inputPlace, $htmlEvent . "|" . $modulePath . "|" . $outputPlace . $argsJoin);
     }
 
-    public function setFrontEventListener($inputPlace, $htmlEventListener, $modulePath, $args = null, $outputPlace = null)
+    public function setGetEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('EG' . $InputPlace, $HtmlEventListener . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('EG' . $InputPlace, $HtmlEventListener . self::GS . $path);
         }
-        $this->add("EJ" . $inputPlace, $htmlEventListener . "|" . $modulePath . "|" . $outputPlace . $argsJoin);
     }
 
-    public function setSendEvent($inputPlace, $htmlEvent, $data, $path = null, $method = "POST", $isMultiPart = false, $contentType = "text/plain", $outputPlace = null)
+    public function setPutEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $safeData = str_replace(["\n", "\"", "'"], ["$[ln];", "$[dq];", "$[sq];"], $data);
-        $this->add("En" . $inputPlace, $htmlEvent . "|" . $safeData . "|" . (!empty($path) ? $path : "#") . "|" . $method . "|" . ($isMultiPart ? "1" : "0") . "|" . $contentType . "|" . $outputPlace);
-    }
-
-    public function setSendEventListener($inputPlace, $htmlEventListener, $data, $path = null, $method = "POST", $isMultiPart = false, $contentType = "text/plain", $outputPlace = null)
-    {
-        $this->add("EN" . $inputPlace, $htmlEventListener . "|" . str_replace("\n", "$[ln];", $data) . "|" . (!empty($path) ? $path : "#") . "|" . $method . "|" . ($isMultiPart ? "1" : "0") . "|" . $contentType . "|" . $outputPlace);
-    }
-
-    public function setMasterPagesEvent($inputPlace, $htmlEvent, $outputPlace = null)
-    {
-        $this->add("Eu" . $inputPlace, $htmlEvent . "|" . $outputPlace);
-    }
-
-    public function setMasterPagesEventListener($inputPlace, $htmlEventListener, $outputPlace = null)
-    {
-        $this->add("EU" . $inputPlace, $htmlEventListener . "|" . $outputPlace);
-    }
-
-    public function setPreventDefaultEvent($inputPlace, $htmlEvent)
-    {
-        $this->add("Ed" . $inputPlace, $htmlEvent);
-    }
-
-    public function setPreventDefaultEventListener($inputPlace, $htmlEventListener)
-    {
-        $this->add("ED" . $inputPlace, $htmlEventListener);
-    }
-
-    public function setStopPropagationEvent($inputPlace, $htmlEvent)
-    {
-        $this->add("Es" . $inputPlace, $htmlEvent);
-    }
-
-    public function setStopPropagationEventListener($inputPlace, $htmlEventListener)
-    {
-        $this->add("ES" . $inputPlace, $htmlEventListener);
-    }
-
-    public function setMethodEvent($inputPlace, $htmlEvent, $methodName, $args = null)
-    {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('Et' . $InputPlace, $HtmlEvent . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('Et' . $InputPlace, $HtmlEvent . self::GS . $path);
         }
-        $this->add("Em" . $inputPlace, $htmlEvent . "|" . $methodName . $argsJoin);
     }
 
-    public function setMethodEventListener($inputPlace, $htmlEventListener, $methodName, $args = null)
+    public function setPutEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('ET' . $InputPlace, $HtmlEventListener . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('ET' . $InputPlace, $HtmlEventListener . self::GS . $path);
         }
-        $this->add("EM" . $inputPlace, $htmlEventListener . "|" . $methodName . $argsJoin);
     }
 
-    public function setModuleMethodEvent($inputPlace, $htmlEvent, $methodName, $args = null)
+    public function setPatchEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('Ea' . $InputPlace, $HtmlEvent . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('Ea' . $InputPlace, $HtmlEvent . self::GS . $path);
         }
-        $this->add("Ex" . $inputPlace, $htmlEvent . "|" . $methodName . $argsJoin);
     }
 
-    public function setModuleMethodEventListener($inputPlace, $htmlEventListener, $methodName, $args = null)
+    public function setPatchEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('EA' . $InputPlace, $HtmlEventListener . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('EA' . $InputPlace, $HtmlEventListener . self::GS . $path);
         }
-        $this->add("EX" . $inputPlace, $htmlEventListener . "|" . $methodName . $argsJoin);
     }
 
-    public function assignConfirmEvent($inputPlace, $htmlEvent, $text = "Are you sure you want to proceed?", $type = "none", $title = "Confirm", $okText = "OK", $cancelText = "Cancel")
+    public function setDeleteEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $textParam = ($text == "Are you sure you want to proceed?") ? "" : $text;
-        $typeParam = ($type == "none") ? "" : $type;
-        $titleParam = ($title == "Confirm") ? "" : $title;
-        $okTextParam = ($okText == "OK") ? "" : $okText;
-        $cancelTextParam = ($cancelText == "Cancel") ? "" : $cancelText;
-        $this->add("Ef" . $inputPlace, $htmlEvent . "|" . $textParam . "|" . $typeParam . "|" . $titleParam . "|" . $okTextParam . "|" . $cancelTextParam);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('El' . $InputPlace, $HtmlEvent . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('El' . $InputPlace, $HtmlEvent . self::GS . $path);
+        }
     }
 
-    // Event - Remove
-    public function removePostEvent($inputPlace, $htmlEvent)
+    public function setDeleteEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $this->add("Rp" . $inputPlace, $htmlEvent);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('EL' . $InputPlace, $HtmlEventListener . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('EL' . $InputPlace, $HtmlEventListener . self::GS . $path);
+        }
     }
 
-    public function removePostEventListener($inputPlace, $htmlEventListener)
+    public function setOptionsEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $this->add("RP" . $inputPlace, $htmlEventListener);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('Eo' . $InputPlace, $HtmlEvent . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('Eo' . $InputPlace, $HtmlEvent . self::GS . $path);
+        }
     }
 
-    public function removeGetEvent($inputPlace, $htmlEvent)
+    public function setOptionsEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null, ?string $OutputPlace = null): void
     {
-        $this->add("Rg" . $inputPlace, $htmlEvent);
+        $path = ($Path !== null) ? $Path : '#';
+        if ($OutputPlace !== null) {
+            $this->add('EO' . $InputPlace, $HtmlEventListener . self::GS . $path . self::GS . $OutputPlace);
+        } else {
+            $this->add('EO' . $InputPlace, $HtmlEventListener . self::GS . $path);
+        }
     }
 
-    public function removeGetEventListener($inputPlace, $htmlEventListener)
+    public function setHeadEvent(string $InputPlace, string $HtmlEvent, ?string $Path = null): void
     {
-        $this->add("RG" . $inputPlace, $htmlEventListener);
+        $this->add('Eh' . $InputPlace, $HtmlEvent . self::GS . (($Path !== null) ? $Path : '#'));
     }
 
-    public function removePatchEvent($inputPlace, $htmlEvent)
+    public function setHeadEventListener(string $InputPlace, string $HtmlEventListener, ?string $Path = null): void
     {
-        $this->add("Ra" . $inputPlace, $htmlEvent);
+        $this->add('EH' . $InputPlace, $HtmlEventListener . self::GS . (($Path !== null) ? $Path : '#'));
     }
 
-    public function removePatchEventListener($inputPlace, $htmlEventListener)
+    // IsMultiPart: If this value is true, the data will be sent based on the Form and with the "content" key.
+    public function setSendEvent(string $InputPlace, string $HtmlEvent, string $Data, ?string $Path = null, string $Method = 'POST', bool $IsMultiPart = false, string $ContentType = 'text/plain', ?string $OutputPlace = null): void
     {
-        $this->add("RA" . $inputPlace, $htmlEventListener);
+        $this->add('En' . $InputPlace, $HtmlEvent . self::GS . str_replace("\n", '$[ln];', str_replace('"', '$[dq];', str_replace("'", '$[sq];', $Data))) . self::GS . (($Path !== null) ? $Path : '#') . self::GS . $Method . self::GS . ($IsMultiPart ? '1' : '0') . self::GS . $ContentType . self::GS . $OutputPlace);
     }
 
-    public function removeDeleteEvent($inputPlace, $htmlEvent)
+    public function setSendEventListener(string $InputPlace, string $HtmlEventListener, string $Data, ?string $Path = null, string $Method = 'POST', bool $IsMultiPart = false, string $ContentType = 'text/plain', ?string $OutputPlace = null): void
     {
-        $this->add("Rl" . $inputPlace, $htmlEvent);
+        $this->add('EN' . $InputPlace, $HtmlEventListener . self::GS . str_replace("\n", '$[ln];', $Data) . self::GS . (($Path !== null) ? $Path : '#') . self::GS . $Method . self::GS . ($IsMultiPart ? '1' : '0') . self::GS . $ContentType . self::GS . $OutputPlace);
     }
 
-    public function removeDeleteEventListener($inputPlace, $htmlEventListener)
+    public function setCommentEvent(string $InputPlace, string $HtmlEvent, ?string $Index = null, ?string $OutputPlace = null): void
     {
-        $this->add("RL" . $inputPlace, $htmlEventListener);
+        $this->add('Eb' . $InputPlace, $HtmlEvent . self::GS . $Index . self::GS . $OutputPlace);
     }
 
-    public function removeHeadEvent($inputPlace, $htmlEvent)
+    public function setCommentEventInt(string $InputPlace, string $HtmlEvent, int $Index, ?string $OutputPlace = null): void
     {
-        $this->add("Rh" . $inputPlace, $htmlEvent);
+        $this->setCommentEvent($InputPlace, $HtmlEvent, (string)$Index, $OutputPlace);
     }
 
-    public function removeHeadEventListener($inputPlace, $htmlEventListener)
+    public function setCommentEventListener(string $InputPlace, string $HtmlEventListener, ?string $Index = null, ?string $OutputPlace = null): void
     {
-        $this->add("RH" . $inputPlace, $htmlEventListener);
+        $this->add('EB' . $InputPlace, $HtmlEventListener . self::GS . $Index . self::GS . $OutputPlace);
     }
 
-    public function removeOptionsEvent($inputPlace, $htmlEvent)
+    public function setCommentEventListenerInt(string $InputPlace, string $HtmlEventListener, int $Index, ?string $OutputPlace = null): void
     {
-        $this->add("Ro" . $inputPlace, $htmlEvent);
+        $this->setCommentEventListener($InputPlace, $HtmlEventListener, (string)$Index, $OutputPlace);
     }
 
-    public function removeOptionsEventListener($inputPlace, $htmlEventListener)
+	public function setWasmEvent(string $InputPlace, string $HtmlEvent, string $WasmLanguage, string $WasmUrl, string $MethodName, ?array $Args = null, ?string $OutputPlace = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Ey' . $InputPlace, $HtmlEvent . self::GS . $WasmLanguage . self::GS . $WasmUrl . self::GS . $MethodName . self::GS . $argsJoin . self::GS . $OutputPlace);
+	}
+
+	public function setWasmEventListener(string $InputPlace, string $HtmlEventListener, string $WasmLanguage, string $WasmUrl, string $MethodName, ?array $Args = null, ?string $OutputPlace = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('EY' . $InputPlace, $HtmlEventListener . self::GS . $WasmLanguage . self::GS . $WasmUrl . self::GS . $MethodName . self::GS . $argsJoin . self::GS . $OutputPlace);
+	}
+
+    public function setWebSocketEvent(string $InputPlace, string $HtmlEvent, string $Path): void
     {
-        $this->add("RO" . $inputPlace, $htmlEventListener);
+        $this->add('Ew' . $InputPlace, $HtmlEvent . self::GS . $Path);
     }
 
-    public function removeTraceEvent($inputPlace, $htmlEvent)
+    public function setWebSocketEventListener(string $InputPlace, string $HtmlEventListener, string $Path): void
     {
-        $this->add("Rr" . $inputPlace, $htmlEvent);
+        $this->add('EW' . $InputPlace, $HtmlEventListener . self::GS . $Path);
     }
 
-    public function removeTraceEventListener($inputPlace, $htmlEventListener)
+    public function setSSEEvent(string $InputPlace, string $HtmlEvent, string $Path, ?string $OutputPlace = null, bool $ShouldReconnect = true, int $ReconnectTryTimeout = 3000): void
     {
-        $this->add("RR" . $inputPlace, $htmlEventListener);
+        $value = $HtmlEvent . self::GS . $Path . self::GS . ($ShouldReconnect ? '1' : '0') . self::GS . (string)$ReconnectTryTimeout;
+        if ($OutputPlace !== null) {
+            $value .= self::GS . $OutputPlace;
+        }
+        $this->add('Ee' . $InputPlace, $value);
     }
 
-    public function removeConnectEvent($inputPlace, $htmlEvent)
+    public function setSSEEventListener(string $InputPlace, string $HtmlEventListener, string $Path, ?string $OutputPlace = null, bool $ShouldReconnect = true, int $ReconnectTryTimeout = 3000): void
     {
-        $this->add("Rc" . $inputPlace, $htmlEvent);
+        $value = $HtmlEventListener . self::GS . $Path . self::GS . ($ShouldReconnect ? '1' : '0') . self::GS . (string)$ReconnectTryTimeout;
+        if ($OutputPlace !== null) {
+            $value .= self::GS . $OutputPlace;
+        }
+        $this->add('EE' . $InputPlace, $value);
     }
 
-    public function removeConnectEventListener($inputPlace, $htmlEventListener)
+	public function setFrontEvent(string $InputPlace, string $HtmlEvent, string $ModulePath, ?array $Args = null, ?string $OutputPlace = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Ej' . $InputPlace, $HtmlEvent . self::GS . $ModulePath . self::GS . $OutputPlace . $argsJoin);
+	}
+
+	public function setFrontEventListener(string $InputPlace, string $HtmlEventListener, string $ModulePath, ?array $Args = null, ?string $OutputPlace = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('EJ' . $InputPlace, $HtmlEventListener . self::GS . $ModulePath . self::GS . $OutputPlace . $argsJoin);
+	}
+
+    public function setMasterPagesEvent(string $InputPlace, string $HtmlEvent, ?string $OutputPlace = null): void
     {
-        $this->add("RC" . $inputPlace, $htmlEventListener);
+        $this->add('Eu' . $InputPlace, $HtmlEvent . self::GS . $OutputPlace);
     }
 
-    public function removeTagEvent($inputPlace, $htmlEvent)
+    public function setMasterPagesEventListener(string $InputPlace, string $HtmlEventListener, ?string $OutputPlace = null): void
     {
-        $this->add("Rt" . $inputPlace, $htmlEvent);
+        $this->add('EU' . $InputPlace, $HtmlEventListener . self::GS . $OutputPlace);
     }
 
-    public function removeTagEventListener($inputPlace, $htmlEventListener)
+    public function setPreventDefaultEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("RT" . $inputPlace, $htmlEventListener);
+        $this->add('Ed' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeCommentEvent($inputPlace, $htmlEvent)
+    public function setPreventDefaultEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("Rb" . $inputPlace, $htmlEvent);
+        $this->add('ED' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeCommentEventListener($inputPlace, $htmlEventListener)
+    public function setStopPropagationEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("RB" . $inputPlace, $htmlEventListener);
+        $this->add('Es' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeWasmEvent($inputPlace, $htmlEvent)
+    public function setStopPropagationEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("Ry" . $inputPlace, $htmlEvent);
+        $this->add('ES' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeWasmEventListener($inputPlace, $htmlEventListener)
+	public function setMethodEvent(string $InputPlace, string $HtmlEvent, string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Em' . $InputPlace, $HtmlEvent . self::GS . $MethodName . $argsJoin);
+	}
+
+	public function setMethodEventListener(string $InputPlace, string $HtmlEventListener, string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('EM' . $InputPlace, $HtmlEventListener . self::GS . $MethodName . $argsJoin);
+	}
+
+	public function setModuleMethodEvent(string $InputPlace, string $HtmlEvent, string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Ex' . $InputPlace, $HtmlEvent . self::GS . $MethodName . $argsJoin);
+	}
+
+	public function setModuleMethodEventListener(string $InputPlace, string $HtmlEventListener, string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('EX' . $InputPlace, $HtmlEventListener . self::GS . $MethodName . $argsJoin);
+	}
+
+    public function assignConfirmEvent(string $InputPlace, string $HtmlEvent, string $Text = 'Are you sure you want to proceed?', string $Type = 'none', string $Title = 'Confirm', string $OkText = 'OK', string $CancelText = 'Cancel'): void
     {
-        $this->add("RY" . $inputPlace, $htmlEventListener);
+        $this->add('Ef' . $InputPlace, $HtmlEvent . self::GS . ($Text === 'Are you sure you want to proceed?' ? '' : $Text) . self::GS . ($Type === 'none' ? '' : $Type) . self::GS . ($Title === 'Confirm' ? '' : $Title) . self::GS . ($OkText === 'OK' ? '' : $OkText) . self::GS . ($CancelText === 'Cancel' ? '' : $CancelText));
     }
 
-    public function removeWebSocketEvent($inputPlace, $htmlEvent)
+    public function removePostEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rw" . $inputPlace, $htmlEvent);
+        $this->add('Rp' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeWebSocketEventListener($inputPlace, $htmlEventListener)
+    public function removePostEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RW" . $inputPlace, $htmlEventListener);
+        $this->add('RP' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeSSEEvent($inputPlace, $htmlEvent)
+    public function removeGetEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Re" . $inputPlace, $htmlEvent);
+        $this->add('Rg' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeSSEEventListener($inputPlace, $htmlEventListener)
+    public function removeGetEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RE" . $inputPlace, $htmlEventListener);
+        $this->add('RG' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeFrontEvent($inputPlace, $htmlEvent)
+    public function removePutEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rj" . $inputPlace, $htmlEvent);
+        $this->add('Rt' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeFrontEventListener($inputPlace, $htmlEventListener)
+    public function removePutEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RJ" . $inputPlace, $htmlEventListener);
+        $this->add('RT' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeSendEvent($inputPlace, $htmlEvent)
+    public function removePatchEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rn" . $inputPlace, $htmlEvent);
+        $this->add('Ra' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeSendEventListener($inputPlace, $htmlEventListener)
+    public function removePatchEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RN" . $inputPlace, $htmlEventListener);
+        $this->add('RA' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removePreventDefaultEvent($inputPlace, $htmlEvent)
+    public function removeDeleteEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rd" . $inputPlace, $htmlEvent);
+        $this->add('Rl' . $InputPlace, $HtmlEvent);
     }
 
-    public function removePreventDefaultEventListener($inputPlace, $htmlEventListener)
+    public function removeDeleteEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RD" . $inputPlace, $htmlEventListener);
+        $this->add('RL' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeMasterPagesEvent($inputPlace, $htmlEvent)
+    public function removeOptionsEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Ru" . $inputPlace, $htmlEvent);
+        $this->add('Ro' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeMasterPagesEventListener($inputPlace, $htmlEventListener)
+    public function removeOptionsEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RU" . $inputPlace, $htmlEventListener);
+        $this->add('RO' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeStopPropagationEvent($inputPlace, $htmlEvent)
+    public function removeHeadEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rs" . $inputPlace, $htmlEvent);
+        $this->add('Rh' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeStopPropagationEventListener($inputPlace, $htmlEventListener)
+    public function removeHeadEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RS" . $inputPlace, $htmlEventListener);
+        $this->add('RH' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeMethodEvent($inputPlace, $htmlEvent, $methodName)
+    public function removeSendEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rm" . $inputPlace, $htmlEvent . "|" . $methodName);
+        $this->add('Rn' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeMethodEventListener($inputPlace, $htmlEventListener, $methodName)
+    public function removeSendEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RM" . $inputPlace, $htmlEventListener . "|" . $methodName);
+        $this->add('RN' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeModuleMethodEvent($inputPlace, $htmlEvent, $methodName)
+    public function removeCommentEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rx" . $inputPlace, $htmlEvent . "|" . $methodName);
+        $this->add('Rb' . $InputPlace, $HtmlEvent);
     }
 
-    public function removeModuleMethodEventListener($inputPlace, $htmlEventListener, $methodName)
+    public function removeCommentEventListener(string $InputPlace, string $HtmlEventListener): void
     {
-        $this->add("RX" . $inputPlace, $htmlEventListener . "|" . $methodName);
+        $this->add('RB' . $InputPlace, $HtmlEventListener);
     }
 
-    public function removeConfirmEvent($inputPlace, $htmlEvent)
+    public function removeWasmEvent(string $InputPlace, string $HtmlEvent): void
     {
-        $this->add("Rf" . $inputPlace, $htmlEvent);
+        $this->add('Ry' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeWasmEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RY' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeWebSocketEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Rw' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeWebSocketEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RW' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeSSEEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Re' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeSSEEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RE' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeFrontEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Rj' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeFrontEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RJ' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removePreventDefaultEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Rd' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removePreventDefaultEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RD' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeMasterPagesEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Ru' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeMasterPagesEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RU' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeStopPropagationEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Rs' . $InputPlace, $HtmlEvent);
+    }
+
+    public function removeStopPropagationEventListener(string $InputPlace, string $HtmlEventListener): void
+    {
+        $this->add('RS' . $InputPlace, $HtmlEventListener);
+    }
+
+    public function removeMethodEvent(string $InputPlace, string $HtmlEvent, string $MethodName): void
+    {
+        $this->add('Rm' . $InputPlace, $HtmlEvent . self::GS . $MethodName);
+    }
+
+    public function removeMethodEventListener(string $InputPlace, string $HtmlEventListener, string $MethodName): void
+    {
+        $this->add('RM' . $InputPlace, $HtmlEventListener . self::GS . $MethodName);
+    }
+
+    public function removeModuleMethodEvent(string $InputPlace, string $HtmlEvent, string $MethodName): void
+    {
+        $this->add('Rx' . $InputPlace, $HtmlEvent . self::GS . $MethodName);
+    }
+
+    public function removeModuleMethodEventListener(string $InputPlace, string $HtmlEventListener, string $MethodName): void
+    {
+        $this->add('RX' . $InputPlace, $HtmlEventListener . self::GS . $MethodName);
+    }
+
+    public function removeConfirmEvent(string $InputPlace, string $HtmlEvent): void
+    {
+        $this->add('Rf' . $InputPlace, $HtmlEvent);
     }
 
     // Custom Event
-    public function createCustomDOMEvent($inputPlace, $eventName, $watch, $key, $compare, $value, $range, $immediate = false, $delay = 0)
+    // This Method Is Compatible With EventListener And May Not Be Compatible With Events Written As Attributes In Some Browsers.
+    // Watch: attribute, style, text, children, value
+    // Compare: greater, less, equal, notequal, includes, startswith, endswith, matches, changed, inrange, lengthgreater, lengthless, lengthequal
+    // Range: Only Use For Compare With inrange Value. Split By Comma ","
+    // Key: Only Use For Watch With attribute And style Value
+    public function createCustomDOMEvent(string $InputPlace, string $EventName, string $Watch, string $Key, string $Compare, string $Value, string $Range, bool $Immediate = false, string $Delay = '0'): void
     {
-        $this->add("eC" . $inputPlace, $eventName . "|" . $watch . "|" . $key . "|" . $compare . "|" . $value . "|" . $range . "|" . ($immediate ? "1" : "0") . "|" . $delay);
+        $this->add('eC' . $InputPlace, $EventName . self::GS . $Watch . self::GS . $Key . self::GS . $Compare . self::GS . $Value . self::GS . $Range . self::GS . ($Immediate ? '1' : '0') . self::GS . $Delay);
     }
 
-    public function enableScrollBottomEvent($enable = true)
+    public function createCustomDOMEventDelayInt(string $InputPlace, string $EventName, string $Watch, string $Key, string $Compare, string $Value, string $Range, bool $Immediate, int $Delay): void
     {
-        $this->add("eb", $enable ? "1" : "0");
+        $this->createCustomDOMEvent($InputPlace, $EventName, $Watch, $Key, $Compare, $Value, $Range, $Immediate, (string)$Delay);
     }
 
-    public function enableReachedElementEvent($inputPlace, $once, $enable = true)
+    public function enableScrollBottomEvent(bool $Enable = true): void
     {
-        $this->add("er" . $inputPlace, ($once ? "1" : "0") . "|" . ($enable ? "1" : "0"));
+        $this->add('eb', $Enable ? '1' : '0');
+    }
+
+    public function enableReachedElementEvent(string $InputPlace, bool $Once, bool $Enable = true): void
+    {
+        $this->add('er' . $InputPlace, ($Once ? '1' : '0') . self::GS . ($Enable ? '1' : '0'));
     }
 
     // Module
-    public function loadModule($modulePath, $methods)
+    public function loadModule(string $ModulePath, ?array $Methods = null): void
     {
-        $methodsStr = (count($methods) > 0) ? "|" . implode("|", $methods) : "";
-        $this->add("Ml", $modulePath . $methodsStr);
+        if ($Methods === null) {
+            $Methods = [];
+        }
+        $this->add('Ml', $ModulePath . (count($Methods) > 0 ? self::GS . '[' . implode(self::US, $Methods) : ''));
     }
 
-    public function unloadModule($modulePath)
+    public function unloadModule(string $ModulePath): void
     {
-        $this->add("Mu", $modulePath);
+        $this->add('Mu', $ModulePath);
     }
 
-    public function deleteModuleMethod($methodName)
+    public function deleteModuleMethod(string $MethodName): void
     {
-        $this->add("Md", $methodName);
+        $this->add('Md', $MethodName);
     }
 
     // Unit Testing
-    public function assertEqual($inputPlace, $tag)
+    // InputPlace Is Actual, Expected Is Tag/OutputPlace
+    public function assertEqual(string $InputPlace, string $Tag): void
     {
-        $this->add("At" . $inputPlace, str_replace("\n", "$[ln];", $tag));
+        $this->add('At' . $InputPlace, str_replace("\n", '$[ln];', $Tag));
     }
 
-    public function assertEqualByOutputPlace($inputPlace, $outputPlace)
+    public function assertEqualByOutputPlace(string $InputPlace, string $OutputPlace): void
     {
-        $this->add("Ao" . $inputPlace, $outputPlace);
+        $this->add('Ao' . $InputPlace, $OutputPlace);
+    }
+
+    // Debug
+    public function createDebugger(bool $Pause = false): void
+    {
+        $this->add('Dc', $Pause ? '1' : '0');
     }
 
     // Service Worker
-    public function serviceWorkerRegister($path = null, $scopePath = null)
+    // To Use Service Worker, You Need To Add The Elanat Dedicated Module (service-worker.js) On The Client Side
+    public function serviceWorkerRegister(?string $Path = null, ?string $ScopePath = null): void
     {
-        $this->add("wR", $path . "|" . $scopePath);
+        $this->add('wR', $Path . self::GS . $ScopePath);
     }
 
-    public function serviceWorkerPreCacheStatic($pathList)
+    public function serviceWorkerPreCacheStatic(array $PathList): void
     {
-        $this->add("wp", implode("|", $pathList));
+        $this->add('wp', implode(self::GS, $PathList));
     }
 
-    public function serviceWorkerDynamicCache($path, $seconds = 0)
+    public function serviceWorkerDynamicCache(string $Path, ?string $Seconds = null): void
     {
-        $this->add("wc", $path . ($seconds > 0 ? "|" . $seconds : ""));
+        $this->add('wc', $Path . ($Seconds !== null && $Seconds !== '' ? self::GS . $Seconds : ''));
     }
 
-    public function serviceWorkerDeleteDynamicCache($path = null)
+    public function serviceWorkerDynamicCacheInt(string $Path, int $Seconds): void
     {
-        $this->add("wd", $path);
+        $this->serviceWorkerDynamicCache($Path, $Seconds > 0 ? (string)$Seconds : '');
     }
 
-    public function serviceWorkerDynamicCacheTTLUpdate($path, $seconds = 0)
+	public function serviceWorkerDeleteDynamicCache(?string $Path = null): void
+	{
+		$this->add('wd', $Path ?? '');
+	}
+
+    public function serviceWorkerDynamicCacheTTLUpdate(string $Path, ?string $Seconds = null): void
     {
-        $this->add("wt", $path . ($seconds > 0 ? "|" . $seconds : ""));
+        $this->add('wt', $Path . ($Seconds !== null && $Seconds !== '' ? self::GS . $Seconds : ''));
     }
 
-    public function serviceWorkerRouteSet($path, $type, $cacheDynamic = false)
+    public function serviceWorkerDynamicCacheTTLUpdateInt(string $Path, int $Seconds): void
     {
-        $this->add("wr", $path . "|" . $type . ($cacheDynamic ? "|1" : ""));
+        $this->serviceWorkerDynamicCacheTTLUpdate($Path, $Seconds > 0 ? (string)$Seconds : '');
     }
 
-    public function serviceWorkerRouteAlias($path, $to)
+    // Path: Support Wildcard Automatically And Also Support Regex If Use "re:" Before Pattern
+    // Type: Type Is Cache Strategy. cachefirst, networkfirst, cacheonly, networkonly, stalerevalidate (Fast From Cache, Updates Simultaneously From The Network)
+    // CacheDynamic: If True, Any Successful Network Response For That Route Will Be Stored In The Dynamic Cache
+    public function serviceWorkerRouteSet(string $Path, string $Type, bool $CacheDynamic = false): void
     {
-        $this->add("wa", $path . "|" . $to);
+        $this->add('wr', $Path . self::GS . $Type . ($CacheDynamic ? self::GS . '1' : ''));
     }
 
-    public function serviceWorkerDeleteRouteAlias($path = null)
+    public function serviceWorkerRouteAlias(string $Path, string $To): void
     {
-        $this->add("wC", $path);
+        $this->add('wa', $Path . self::GS . $To);
     }
 
-    public function serviceWorkerDeleteRoute($path = null)
-    {
-        $this->add("wD", $path);
-    }
+	public function serviceWorkerDeleteRouteAlias(?string $Path = null): void
+	{
+		$this->add('wC', $Path ?? '');
+	}
+
+    // Delete All Route And Alias
+	public function serviceWorkerDeleteRoute(?string $Path = null): void
+	{
+		$this->add('wD', $Path ?? '');
+	}
 
     // SSE
-    public function disconnectSSE($path = null)
-    {
-        $this->add("Ds", $path);
-    }
+	public function disconnectSSE(?string $Path = null): void
+	{
+		$this->add('Ds', $Path ?? '');
+	}
 
-    public function disconnectAllSSE()
+    public function disconnectAllSSE(): void
     {
-        $this->add("Ds");
+        $this->add('Ds');
     }
 
     // State
-    public function addState($path = null, $title = null)
+    public function addState(?string $Path = null, ?string $Title = null): void
     {
-        $this->add("AS", $path . "|" . $title);
+        $this->add('AS', $Path . self::GS . $Title);
     }
 
-    public function deleteState($path = null)
+    public function saveState(?string $Path = null, ?string $Title = null): void
     {
-        $this->add("DS", $path);
+        $this->add('As', $Path . self::GS . $Title);
     }
 
-    public function deleteAllState()
+    public function loadState(string $Path): void
     {
-        $this->add("DS", "*");
+        $this->add('ls', $Path);
+    }
+
+	public function deleteState(?string $Path = null): void
+	{
+		$this->add('DS', $Path ?? '');
+	}
+
+    public function deleteAllState(): void
+    {
+        $this->add('DS', '*');
     }
 
     // Cookie
-    public function setCookie($key, $value, $seconds, $path = null)
+    public function setCookie(string $Key, string $Value, string $Seconds, ?string $Path = null): void
     {
-        $this->add("sC", $key . "|" . $value . "|" . $seconds . (!empty($path) ? "|" . $path : ""));
+        $this->add('sC', $Key . self::GS . $Value . self::GS . $Seconds . ($Path !== null ? self::GS . $Path : ''));
     }
 
-    // Save/Session Cache
-    public function saveId($inputPlace, $key = ".")
+    public function setCookieInt(string $Key, string $Value, int $Seconds, ?string $Path = null): void
     {
-        $this->add("@gi" . $inputPlace, $key);
+        $this->setCookie($Key, $Value, (string)$Seconds, $Path);
     }
 
-    public function saveName($inputPlace, $key = ".")
+    // Save (Session Cache)
+    public function saveId(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gn" . $inputPlace, $key);
+        $this->add('@gi' . $InputPlace, $Key);
     }
 
-    public function saveValue($inputPlace, $key = ".")
+    public function saveName(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gv" . $inputPlace, $key);
+        $this->add('@gn' . $InputPlace, $Key);
     }
 
-    public function saveValueLength($inputPlace, $key = ".")
+    public function saveValue(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ge" . $inputPlace, $key);
+        $this->add('@gv' . $InputPlace, $Key);
     }
 
-    public function saveClass($inputPlace, $key = ".")
+    public function saveValueLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gc" . $inputPlace, $key);
+        $this->add('@ge' . $InputPlace, $Key);
     }
 
-    public function saveStyle($inputPlace, $key = ".")
+    public function saveClass(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gs" . $inputPlace, $key);
+        $this->add('@gc' . $InputPlace, $Key);
     }
 
-    public function saveTitle($inputPlace, $key = ".")
+    public function saveStyle(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gl" . $inputPlace, $key);
+        $this->add('@gs' . $InputPlace, $Key);
     }
 
-    public function saveLabel($inputPlace, $key = ".")
+    public function saveTitle(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gA" . $inputPlace, $key);
+        $this->add('@gl' . $InputPlace, $Key);
     }
 
-    public function saveText($inputPlace, $key = ".")
+    public function saveLabel(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gt" . $inputPlace, $key);
+        $this->add('@gA' . $InputPlace, $Key);
     }
 
-    public function saveOuterText($inputPlace, $key = ".")
+    public function saveText(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@go" . $inputPlace, $key);
+        $this->add('@gt' . $InputPlace, $Key);
     }
 
-    public function saveTextLength($inputPlace, $key = ".")
+    public function saveOuterText(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gg" . $inputPlace, $key);
+        $this->add('@go' . $InputPlace, $Key);
     }
 
-    public function saveAttribute($inputPlace, $attribute, $key = ".")
+    public function saveTextLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ga" . $inputPlace, $key . '|' . $attribute);
+        $this->add('@gg' . $InputPlace, $Key);
     }
 
-    public function saveWidth($inputPlace, $key = ".")
+    public function saveAttribute(string $InputPlace, string $Attribute, string $Key = '.'): void
     {
-        $this->add("@gw" . $inputPlace, $key);
+        $this->add('@ga' . $InputPlace, $Key . self::GS . $Attribute);
     }
 
-    public function saveHeight($inputPlace, $key = ".")
+    public function saveWidth(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gh" . $inputPlace, $key);
+        $this->add('@gw' . $InputPlace, $Key);
     }
 
-    public function saveReadOnly($inputPlace, $key = ".")
+    public function saveHeight(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gr" . $inputPlace, $key);
+        $this->add('@gh' . $InputPlace, $Key);
     }
 
-    public function saveSelectedIndex($inputPlace, $key = ".")
+    public function saveReadOnly(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gx" . $inputPlace, $key);
+        $this->add('@gr' . $InputPlace, $Key);
     }
 
-    public function saveTextAlign($inputPlace, $key = ".")
+    public function saveSelectedIndex(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gT" . $inputPlace, $key);
+        $this->add('@gx' . $InputPlace, $Key);
     }
 
-    public function saveNodeLength($inputPlace, $key = ".")
+    public function saveTextAlign(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gL" . $inputPlace, $key);
+        $this->add('@gT' . $InputPlace, $Key);
     }
 
-    public function saveVisible($inputPlace, $key = ".")
+    public function saveNodeLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gV" . $inputPlace, $key);
+        $this->add('@gL' . $InputPlace, $Key);
     }
 
-    public function saveUrl($url, $fetchScript = false, $key = ".")
+    public function saveVisible(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@gu", $key . "|" . $url . ($fetchScript ? "|1" : ""));
+        $this->add('@gV' . $InputPlace, $Key);
     }
 
-    public function saveIndex($inputPlace, $key = ".")
+    public function saveUrl(string $Url, bool $FetchScript = false, string $Key = '.'): void
     {
-        $this->add("@gI" . $inputPlace, $key);
+        $this->add('@gu', $Key . self::GS . $Url . ($FetchScript ? self::GS . '1' : ''));
     }
 
-    public function removeSessionCache($cacheKey)
+    public function saveIndex(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("rs", $cacheKey);
+        $this->add('@gI' . $InputPlace, $Key);
     }
 
-    public function removeAllSessionCache()
+    public function removeSave(string $CacheKey): void
     {
-        $this->add("rs", "*");
+        $this->add('rs', $CacheKey);
     }
 
-    public function setSessionCache()
+    public function removeAllSave(): void
     {
-        $this->add("cs", "*");
+        $this->add('rs', '*');
     }
 
-    public function addSessionCacheValue($cacheKey, $value)
+    // Calling the SetSave Method Causes Action Control Requests Triggered by Events Using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send Event, to be Temporarily Saved on the Active Page, so the Request will not be Sent to the Server Again.
+    public function setSave(): void
     {
-        $this->add("SA", $cacheKey . "|" . str_replace("\n", "$[ln];", $value));
+        $this->add('cs', '*');
     }
 
-    public function insertSessionCacheValue($cacheKey, $value)
+    public function addSaveValue(string $CacheKey, string $Value): void
     {
-        $this->add("SI", $cacheKey . "|" . str_replace("\n", "$[ln];", $value));
+        $this->add('SA', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function insertSaveValue(string $CacheKey, string $Value): void
+    {
+        $this->add('SI', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function appendSaveValue(string $CacheKey, string $Value): void
+    {
+        $this->add('SP', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function replaceSaveValue(string $CacheKey, string $SearchValue, string $Value): void
+    {
+        $this->add('SR', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value) . self::GS . str_replace("\n", '$[ln];', $SearchValue));
     }
 
     // Cache
-    public function cacheId($inputPlace, $key = ".")
+    public function cacheId(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ci" . $inputPlace, $key);
+        $this->add('@ci' . $InputPlace, $Key);
     }
 
-    public function cacheName($inputPlace, $key = ".")
+    public function cacheName(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cn" . $inputPlace, $key);
+        $this->add('@cn' . $InputPlace, $Key);
     }
 
-    public function cacheValue($inputPlace, $key = ".")
+    public function cacheValue(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cv" . $inputPlace, $key);
+        $this->add('@cv' . $InputPlace, $Key);
     }
 
-    public function cacheValueLength($inputPlace, $key = ".")
+    public function cacheValueLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ce" . $inputPlace, $key);
+        $this->add('@ce' . $InputPlace, $Key);
     }
 
-    public function cacheClass($inputPlace, $key = ".")
+    public function cacheClass(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cc" . $inputPlace, $key);
+        $this->add('@cc' . $InputPlace, $Key);
     }
 
-    public function cacheStyle($inputPlace, $key = ".")
+    public function cacheStyle(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cs" . $inputPlace, $key);
+        $this->add('@cs' . $InputPlace, $Key);
     }
 
-    public function cacheTitle($inputPlace, $key = ".")
+    public function cacheTitle(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cl" . $inputPlace, $key);
+        $this->add('@cl' . $InputPlace, $Key);
     }
 
-    public function cacheLabel($inputPlace, $key = ".")
+    public function cacheLabel(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cA" . $inputPlace, $key);
+        $this->add('@cA' . $InputPlace, $Key);
     }
 
-    public function cacheText($inputPlace, $key = ".")
+    public function cacheText(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ct" . $inputPlace, $key);
+        $this->add('@ct' . $InputPlace, $Key);
     }
 
-    public function cacheOuterText($inputPlace, $key = ".")
+    public function cacheOuterText(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@co" . $inputPlace, $key);
+        $this->add('@co' . $InputPlace, $Key);
     }
 
-    public function cacheTextLength($inputPlace, $key = ".")
+    public function cacheTextLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cg" . $inputPlace, $key);
+        $this->add('@cg' . $InputPlace, $Key);
     }
 
-    public function cacheAttribute($inputPlace, $attribute, $key = ".")
+    public function cacheAttribute(string $InputPlace, string $Attribute, string $Key = '.'): void
     {
-        $this->add("@ca" . $inputPlace, $key . '|' . $attribute);
+        $this->add('@ca' . $InputPlace, $Key . self::GS . $Attribute);
     }
 
-    public function cacheWidth($inputPlace, $key = ".")
+    public function cacheWidth(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cw" . $inputPlace, $key);
+        $this->add('@cw' . $InputPlace, $Key);
     }
 
-    public function cacheHeight($inputPlace, $key = ".")
+    public function cacheHeight(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@ch" . $inputPlace, $key);
+        $this->add('@ch' . $InputPlace, $Key);
     }
 
-    public function cacheReadOnly($inputPlace, $key = ".")
+    public function cacheReadOnly(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cr" . $inputPlace, $key);
+        $this->add('@cr' . $InputPlace, $Key);
     }
 
-    public function cacheSelectedIndex($inputPlace, $key = ".")
+    public function cacheSelectedIndex(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cx" . $inputPlace, $key);
+        $this->add('@cx' . $InputPlace, $Key);
     }
 
-    public function cacheTextAlign($inputPlace, $key = ".")
+    public function cacheTextAlign(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cT" . $inputPlace, $key);
+        $this->add('@cT' . $InputPlace, $Key);
     }
 
-    public function cacheNodeLength($inputPlace, $key = ".")
+    public function cacheNodeLength(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cL" . $inputPlace, $key);
+        $this->add('@cL' . $InputPlace, $Key);
     }
 
-    public function cacheVisible($inputPlace, $key = ".")
+    public function cacheVisible(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cV" . $inputPlace, $key);
+        $this->add('@cV' . $InputPlace, $Key);
     }
 
-    public function cacheUrl($url, $fetchScript = false, $key = ".")
+    public function cacheUrl(string $Url, bool $FetchScript = false, string $Key = '.'): void
     {
-        $this->add("@cu", $key . "|" . $url . ($fetchScript ? "|1" : ""));
+        $this->add('@cu', $Key . self::GS . $Url . ($FetchScript ? self::GS . '1' : ''));
     }
 
-    public function cacheIndex($inputPlace, $key = ".")
+    public function cacheIndex(string $InputPlace, string $Key = '.'): void
     {
-        $this->add("@cI" . $inputPlace, $key);
+        $this->add('@cI' . $InputPlace, $Key);
     }
 
-    public function removeCache($cacheKey)
+    public function removeCache(string $CacheKey): void
     {
-        $this->add("rd", $cacheKey);
+        $this->add('rd', $CacheKey);
     }
 
-    public function removeAllCache()
+    public function removeAllCache(): void
     {
-        $this->add("rd", "*");
+        $this->add('rd', '*');
     }
 
-    public function setCache($second)
+    // Calling the SetCache Method Causes Action Control Requests Triggered by events using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send event, to be Cached, so the Request will not be Sent to the Server Again.
+    public function setCache(string $Second): void
     {
-        $this->add("cd", (string)$second);
+        $this->add('cd', $Second);
     }
 
-    public function setCacheNoTime()
+    public function setCacheInt(int $Second): void
     {
-        $this->add("cd", "*");
+        $this->setCache((string)$Second);
     }
 
-    public function addCacheValue($cacheKey, $value)
+    public function setCacheNoTime(): void
     {
-        $this->add("CA", $cacheKey . "|" . str_replace("\n", "$[ln];", $value));
+        $this->add('cd', '*');
     }
 
-    public function insertCacheValue($cacheKey, $value)
+    public function addCacheValue(string $CacheKey, string $Value): void
     {
-        $this->add("CI", $cacheKey . "|" . str_replace("\n", "$[ln];", $value));
+        $this->add('CA', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function insertCacheValue(string $CacheKey, string $Value): void
+    {
+        $this->add('CI', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function appendCacheValue(string $CacheKey, string $Value): void
+    {
+        $this->add('CP', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value));
+    }
+
+    public function replaceCacheValue(string $CacheKey, string $SearchValue, string $Value): void
+    {
+        $this->add('CR', $CacheKey . self::GS . str_replace("\n", '$[ln];', $Value) . self::GS . str_replace("\n", '$[ln];', $SearchValue));
     }
 
     // Call
-    public function loadUrl($inputPlace, $url)
+    public function loadUrl(string $InputPlace, string $Url): void
     {
-        $this->add("lu" . $inputPlace, $url);
+        $this->add('lu' . $InputPlace, $Url);
     }
 
-    public function runActionControls($actionControls, $index = null, $withoutWebFormsSection = false, $useCurrentEvent = true)
+    public function runActionControls(string $ActionControls, bool $WithoutWebFormsSection = true, ?string $Index = null, bool $UseCurrentEvent = true): void
     {
-        $this->add("lA", ($useCurrentEvent ? "1" : "0") . "|" . ($withoutWebFormsSection ? "1" : "0") . "|" . $index . "|" . $actionControls);
+        $this->add('lA', ($UseCurrentEvent ? '1' : '0') . self::GS . ($WithoutWebFormsSection ? '1' : '0') . self::GS . $Index . self::GS . $ActionControls);
     }
 
-    public function callScript($scriptText)
+    public function callScript(string $ScriptText): void
     {
-        $this->add("_", str_replace("\n", "$[ln];", $scriptText));
+        $this->add('_', str_replace("\n", '$[ln];', $ScriptText));
     }
 
-    public function callMethod($methodName, $args = null)
+	public function callMethod(string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('lm', $MethodName . $argsJoin);
+	}
+
+	public function callModuleMethod(string $MethodName, ?array $Args = null): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('lM', $MethodName . $argsJoin);
+	}
+
+    public function callPostBack(string $FormInputPlace, ?string $OutputPlace = null): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
+        $this->add('Lp', '1' . self::GS . $FormInputPlace . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
+    }
+
+    public function callCommentBack(?string $Index = null, ?string $InputPlace = null, bool $UseCurrentEvent = true): void
+    {
+        $this->add('LC', ($UseCurrentEvent ? '1' : '0') . self::GS . $Index . self::GS . $InputPlace);
+    }
+
+    public function callCommentBackInt(int $Index, ?string $InputPlace = null, bool $UseCurrentEvent = true): void
+    {
+        $this->callCommentBack((string)$Index, $InputPlace, $UseCurrentEvent);
+    }
+
+	public function callWasmBack(string $WasmLanguage, string $WasmUrl, string $MethodName, ?array $Args = null, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Ly', ($UseCurrentEvent ? '1' : '0') . self::GS . $WasmLanguage . self::GS . $WasmUrl . self::GS . $MethodName . self::GS . $argsJoin . self::GS . $OutputPlace);
+	}
+
+    public function callWebSocketBack(string $Path, bool $UseCurrentEvent = true): void
+    {
+        $this->add('Lw', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path);
+    }
+
+    public function callSSEBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true, bool $ShouldReconnect = true, string $ReconnectTryTimeout = '3000'): void
+    {
+        $value = ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . self::GS . ($ShouldReconnect ? '1' : '0') . self::GS . $ReconnectTryTimeout;
+        if ($OutputPlace !== null) {
+            $value .= self::GS . $OutputPlace;
         }
-        $this->add("lm", $methodName . $argsJoin);
+        $this->add('Ls', $value);
     }
 
-    public function callModuleMethod($methodName, $args = null)
+    public function callSSEBackInt(string $Path, ?string $OutputPlace, bool $UseCurrentEvent, bool $ShouldReconnect, int $ReconnectTryTimeout): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
-        }
-        $this->add("lM", $methodName . $argsJoin);
+        $this->callSSEBack($Path, $OutputPlace, $UseCurrentEvent, $ShouldReconnect, (string)$ReconnectTryTimeout);
     }
 
-    public function callPostBack($formInputPlace, $outputPlace = null)
+	public function callFront(string $ModulePath, ?array $Args = null, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
+	{
+		$argsJoin = '';
+		if ($Args !== null && count($Args) > 0) {
+			$argsJoin = self::GS . '[' . implode(self::US, array_map('strval', $Args));
+		}
+		$this->add('Lj', ($UseCurrentEvent ? '1' : '0') . self::GS . $ModulePath . self::GS . $OutputPlace . $argsJoin);
+	}
+
+    public function callGetBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $this->add("Lp", "1" . "|" . $formInputPlace . (!empty($outputPlace) ? "|" . $outputPlace : ""));
+        $this->add('Lg', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
-    public function callTagBack($outputPlace = null, $useCurrentEvent = true)
+    public function callPutBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $this->add("Lt", ($useCurrentEvent ? "1" : "0") . (!empty($outputPlace) ? "|" . $outputPlace : ""));
+        $this->add('Lt', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
-    public function callCommentBack($index = null, $outputPlace = null, $useCurrentEvent = true)
+    public function callPatchBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $this->add("LC", ($useCurrentEvent ? "1" : "0") . "|" . $index . "|" . $outputPlace);
+        $this->add('LP', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
-    public function callWasmBack($wasmLanguage, $wasmUrl, $methodName, $args = null, $outputPlace = null, $useCurrentEvent = true)
+    public function callDeleteBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = implode(",", $args);
-        }
-        $this->add("Ly", ($useCurrentEvent ? "1" : "0") . "|" . $wasmLanguage . "|" . $wasmUrl . "|" . $methodName . "|" . $argsJoin . "|" . $outputPlace);
+        $this->add('Ld', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
-    public function callWebSocketBack($path, $useCurrentEvent = true)
+    public function callHeadBack(string $Path, bool $UseCurrentEvent = true): void
     {
-        $this->add("Lw", ($useCurrentEvent ? "1" : "0") . "|" . $path);
+        $this->add('Lh', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path);
     }
 
-    public function callSSEBack($path, $outputPlace = null, $useCurrentEvent = true, $shouldReconnect = true, $reconnectTryTimeout = 3000)
+    public function callOptionsBack(string $Path, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $this->add("Ls", ($useCurrentEvent ? "1" : "0") . "|" . $path . "|" . ($shouldReconnect ? "1" : "0") . "|" . $reconnectTryTimeout . (!empty($outputPlace) ? "|" . $outputPlace : ""));
+        $this->add('Lo', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
-    public function callFront($modulePath, $args = null, $outputPlace = null, $useCurrentEvent = true)
+    public function callSendBack(string $Path, string $Method, bool $IsMultiPart, string $ContentType, string $Data, ?string $OutputPlace = null, bool $UseCurrentEvent = true): void
     {
-        $argsJoin = "";
-        if ($args !== null && count($args) > 0) {
-            $argsJoin = "|" . implode("|", $args);
-        }
-        $this->add("Lj", ($useCurrentEvent ? "1" : "0") . "|" . $modulePath . "|" . $outputPlace . $argsJoin);
-    }
-
-    public function callGetBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Lg", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callPutBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Lu", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callPatchBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("LP", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callDeleteBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Ld", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callHeadBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Lh", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callOptionsBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Lo", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callTraceBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("LT", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callConnectBack($path, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("Lc", ($useCurrentEvent ? "1" : "0") . "|" . $path . (!empty($outputPlace) ? "|" . $outputPlace : ""));
-    }
-
-    public function callSendBack($path, $method, $isMultiPart, $contentType, $data, $outputPlace = null, $useCurrentEvent = true)
-    {
-        $this->add("LS", ($useCurrentEvent ? "1" : "0") . "|" . $path . "|" . $method . "|" . ($isMultiPart ? "1" : "0") . "|" . $contentType . "|" . str_replace(["\\n", "|"], ["$[ln];", "$[vb];"], $data) . (!empty($outputPlace) ? "|" . $outputPlace : ""));
+        $this->add('LS', ($UseCurrentEvent ? '1' : '0') . self::GS . $Path . self::GS . $Method . self::GS . ($IsMultiPart ? '1' : '0') . self::GS . $ContentType . self::GS . str_replace("\n", '$[ln];', $Data) . ($OutputPlace !== null ? self::GS . $OutputPlace : ''));
     }
 
     // Update
-    public function increase($inputPlace, $value)
+    public function increase(string $InputPlace, float $Value): void
     {
-        $this->add("gt" . $inputPlace, "i|" . $value);
+        $this->add('gt' . $InputPlace, 'i' . self::GS . (string)$Value);
     }
 
-    public function decrease($inputPlace, $value)
+    public function decrease(string $InputPlace, float $Value): void
     {
-        $this->add("gt" . $inputPlace, "i|" . ($value * -1));
+        $this->add('gt' . $InputPlace, 'i' . self::GS . (string)($Value * -1));
     }
 
-    public function replace($inputPlace, $value, $newValue, $alsoStartTag = false, $deep = false)
+    // If You Don't Use Deep Mode, any Tags Inside the Current Tag Will Simply Be Treated as Strings. Deep Mode Does not Remove Inner Elements.
+    public function replace(string $InputPlace, string $Value, string $NewValue, bool $AlsoStartTag = false, bool $Deep = true): void
     {
-        if (!empty($value) && $value[0] == '@') {
-            $value = substr($value, 1);
-            $value = "$[at];" . $value;
-        }
-
-        if (!empty($newValue) && $newValue[0] == '@') {
-            $newValue = substr($newValue, 1);
-            $newValue = "$[at];" . $newValue;
-        }
-
-        $this->add("gt" . $inputPlace, "r|" . $value . "|" . $newValue . "|" . ($alsoStartTag ? "1" : "0") . "|" . ($deep ? "1" : "0"));
+        $this->add('gt' . $InputPlace, 'r' . self::GS . $Value . self::GS . $NewValue . self::GS . ($AlsoStartTag ? '1' : '0') . self::GS . ($Deep ? '1' : '0'));
     }
 
-    public function replaceStartTag($inputPlace, $value, $newValue)
+    // HTML Converts Attribute Names to Lowercase, so they Need to Be Written in Lowercase.
+    public function replaceStartTag(string $InputPlace, string $Value, string $NewValue): void
     {
-        if (!empty($value) && $value[0] == '@') {
-            $value = substr($value, 1);
-            $value = "$[at];" . $value;
-        }
-
-        if (!empty($newValue) && $newValue[0] == '@') {
-            $newValue = substr($newValue, 1);
-            $newValue = "$[at];" . $newValue;
-        }
-
-        $this->add("gt" . $inputPlace, "s|" . $value . "|" . $newValue);
+        $this->add('gt' . $InputPlace, 's' . self::GS . $Value . self::GS . $NewValue);
     }
 
     // Pre Runner
-    public function assignDelay($miliSecond, $index = -1)
+    public function assignDelay(int $MiliSecond, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
         $parts = explode('=', $currentLine, 2);
-        $newName = ":" . $miliSecond . ")" . $parts[0];
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = ':' . (string)$MiliSecond . ')' . $parts[0];
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
-    public function assignDelayChange($miliSecond, $index = -1)
+    public function assignDelayChange(int $MiliSecond, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
@@ -1702,30 +1832,30 @@ class WebForms
             $currentName = substr($currentName, $closingBracket + 1);
         }
 
-        $newName = ":" . $miliSecond . ")" . $currentName;
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = ':' . (string)$MiliSecond . ')' . $currentName;
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
-    public function assignInterval($miliSecond, $id = null, $index = -1)
+    public function assignInterval(int $MiliSecond, ?string $Id = null, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
         $parts = explode('=', $currentLine, 2);
-        $newName = "(" . $miliSecond . (!empty($id) ? "|" . $id : "") . ")" . $parts[0];
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = '(' . (string)$MiliSecond . ($Id !== null ? '|' . $Id : '') . ')' . $parts[0];
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
-    public function assignIntervalChange($miliSecond, $id = null, $index = -1)
+    public function assignIntervalChange(int $MiliSecond, ?string $Id = null, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
@@ -1737,35 +1867,35 @@ class WebForms
             $currentName = substr($currentName, $closingBracket + 1);
         }
 
-        $newName = "(" . $miliSecond . (!empty($id) ? "|" . $id : "") . ")" . $currentName;
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = '(' . (string)$MiliSecond . ($Id !== null ? '|' . $Id : '') . ')' . $currentName;
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
-    public function deleteInterval($id)
+    public function deleteInterval(string $Id): void
     {
-        $this->add("Di", $id);
+        $this->add('Di', $Id);
     }
 
-    public function assignRepeat($count, $index = -1)
+    public function assignRepeat(int $Count, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
         $parts = explode('=', $currentLine, 2);
-        $newName = "," . $count . ")" . $parts[0];
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = ',' . (string)$Count . ')' . $parts[0];
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
-    public function assignRepeatChange($count, $index = -1)
+    public function assignRepeatChange(int $Count, int $Index = -1): void
     {
-        $currentLine = $this->getLineByIndex($index);
-        if (empty($currentLine)) {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
             return;
         }
 
@@ -1777,1171 +1907,1499 @@ class WebForms
             $currentName = substr($currentName, $closingBracket + 1);
         }
 
-        $newName = "," . $count . ")" . $currentName;
-        $newValue = count($parts) > 1 ? $parts[1] : "";
+        $newName = ',' . (string)$Count . ')' . $currentName;
+        $newValue = count($parts) > 1 ? $parts[1] : '';
 
-        $this->updateLineByIndex($index, $newName, $newValue);
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
     // Index
-    public function startIndex($name = "")
+    public function startIndex(?string $Name = null): void
     {
-        $this->add("#", $name);
+        if ($Name !== null) {
+            $this->add('#', $Name);
+        } else {
+            $this->add('#', '');
+        }
     }
 
-    public function goToLine($line, $repeat = 1)
+    // This Index Is Automatically Run After Changing The Browser History (Back And Forward Buttons)
+    public function startState(): void
     {
-        $this->add("&", $line . "|" . $repeat);
+        $this->startIndex('$');
     }
 
-    public function goToIndex($index, $repeat = 1)
+    public function goTo(string $Line, string $Repeat): void
     {
-        $this->add("&", "#" . $index . "|" . $repeat);
+        $this->add('&', $Line . self::GS . $Repeat);
+    }
+
+    public function goToInt(int $Line, int $Repeat = 1): void
+    {
+        $this->goTo((string)$Line, (string)$Repeat);
+    }
+
+    public function goToIndex(string $Index, int $Repeat = 1): void
+    {
+        $this->add('&', '#' . $Index . self::GS . (string)$Repeat);
     }
 
     // Start
-    public function startTransientDOM($inputPlace)
+    public function startTransientDOM(string $InputPlace): void
     {
-        $this->add("td", $inputPlace);
+        $this->add('td', $InputPlace);
     }
 
-    public function endTransientDOM()
+    public function endTransientDOM(): void
     {
-        $this->add("td", ";");
+        $this->add('td', ';');
     }
 
     // Message
-    public function alert($text, $type = "none", $title = "Alert", $okText = "OK")
+    // Type: warning, problem, help, success, none
+    public function alert(string $Text, string $Type = 'none', string $Title = 'Alert', string $OkText = 'OK'): void
     {
-        $typeParam = ($type == "none") ? "" : $type;
-        $titleParam = ($title == "Alert") ? "" : $title;
-        $okTextParam = ($okText == "OK") ? "" : $okText;
-        $this->add("Al", $text . "|" . $typeParam . "|" . $titleParam . "|" . $okTextParam);
+        $this->add('Al', $Text . self::GS . ($Type === 'none' ? '' : $Type) . self::GS . ($Title === 'Alert' ? '' : $Title) . self::GS . ($OkText === 'OK' ? '' : $OkText));
     }
 
-    public function message($text, $type = "none", $duration = 0)
+    public function message(string $Text, string $Type = 'none', string $Duration = '0'): void
     {
-        $typeParam = ($type == "none") ? "" : $type;
-        $durationParam = ($duration == 0) ? "" : $duration;
-        $this->add("me", $text . "|" . $typeParam . "|" . $durationParam);
+        $this->add('me', $Text . self::GS . ($Type === 'none' ? '' : $Type) . self::GS . ($Duration === '0' ? '' : $Duration));
     }
 
-    public function consoleMessage($text, $type = "log")
+    public function messageInt(string $Text, string $Type, int $Duration): void
     {
-        $typeParam = ($type == "log") ? "" : $type;
-        $this->add("mc", str_replace("\n", "$[ln];", $text) . $typeParam);
+        $this->message($Text, $Type, (string)$Duration);
     }
 
-    public function consoleMessageAssert($text, $condition)
+    public function messageDurationInt(string $Text, int $Duration): void
     {
-        $this->add("ma", str_replace("\n", "$[ln];", $text) . "|" . $condition);
+        $this->message($Text, '', (string)$Duration);
+    }
+
+    // Type: log, info, warn, error, debug, trace, group, groupend, table
+    public function consoleMessage(string $Text, string $Type = 'log'): void
+    {
+        $this->add('mc', str_replace("\n", '$[ln];', $Text) . ($Type === 'log' ? '' : self::GS . $Type));
+    }
+
+    public function consoleMessageAssert(string $Text, string $Condition): void
+    {
+        $this->add('ma', str_replace("\n", '$[ln];', $Text) . self::GS . $Condition);
     }
 
     // Enable
-    public function enableWebSocket($enable = true)
+    //Calling The EnableWebSocket Or EnableWebSocketOnce Or AddWebSocket Methods Will Cause Any Subsequent Requests (Under WebForms Core Technology) To Operate Under The WebSocket Protocol.
+    public function enableWebSocket(bool $Enable = true): void
     {
-        $this->add("ew", $enable ? "1" : "0");
+        $this->add('ew', $Enable ? '1' : '0');
     }
 
-    public function enableWebSocketOnce()
+    public function enableWebSocketOnce(): void
     {
-        $this->add("ew", "$");
+        $this->add('ew', '$');
     }
 
-    public function addWebSocket($path)
+    public function addWebSocket(string $Path): void
     {
-        $this->add("aw" . $path);
+        $this->add('aw' . $Path);
+    }
+
+    // Disconnected WebSocket
+    public function deleteWebSocket(string $Path): void
+    {
+        $this->add('dw' . $Path);
     }
 
     // Use
-    public function useWebSocket($inputPlace)
+    // InputPlace Using Only For form Element
+    public function useWebSocket(string $InputPlace): void
     {
-        $this->add("uw" . $inputPlace);
+        $this->add('uw' . $InputPlace);
     }
 
-    public function useOnlyChangeUpdate($inputPlace)
+    public function useOnlyChangeUpdate(string $InputPlace): void
     {
-        $this->add("uo" . $inputPlace);
+        $this->add('uo' . $InputPlace);
     }
 
-    // Condition
-    public function confirmIsTrueAccept($text = "Are you sure you want to proceed?", $type = "none", $title = "Confirm", $okText = "OK", $cancelText = "Cancel", $interval = 100)
+    // Condition And Loop
+    // Condition And Loop Supports Brackets and Then
+    // Type: warning, problem, help, success, none
+    // Interval: Value 0 is Await (if is not True, all Next Action Controls Waiting for it), Value -1 is Sync Check Once (is Support Bracket or Next Action Control), Value > 0 is Async and is Wait Based on Time Repetition Until it Becomes True (Is Support Bracket or Next Action Control, but is not Support Else).
+    // Nested Conditions and Nested Loops are Possible.
+    public function confirmIsTrueAccept(string $Text = 'Are you sure you want to proceed?', string $Type = 'none', string $Title = 'Confirm', string $OkText = 'OK', string $CancelText = 'Cancel', int $Interval = 100): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $textParam = ($text == "Are you sure you want to proceed?") ? "" : $text;
-        $typeParam = ($type == "none") ? "" : $type;
-        $titleParam = ($title == "Confirm") ? "" : $title;
-        $okTextParam = ($okText == "OK") ? "" : $okText;
-        $cancelTextParam = ($cancelText == "Cancel") ? "" : $cancelText;
-        $this->add($prefix . "ct", $textParam . "|" . $typeParam . "|" . $titleParam . "|" . $okTextParam . "|" . $cancelTextParam);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'ct', ($Text === 'Are you sure you want to proceed?' ? '' : $Text) . self::GS . ($Type === 'none' ? '' : $Type) . self::GS . ($Title === 'Confirm' ? '' : $Title) . self::GS . ($OkText === 'OK' ? '' : $OkText) . self::GS . ($CancelText === 'Cancel' ? '' : $CancelText));
+        return $this;
     }
 
-    public function confirmIsFalseAccept($text = "Are you sure you want to proceed?", $type = "none", $title = "Confirm", $okText = "OK", $cancelText = "Cancel", $interval = 100)
+    public function confirmIsFalseAccept(string $Text = 'Are you sure you want to proceed?', string $Type = 'none', string $Title = 'Confirm', string $OkText = 'OK', string $CancelText = 'Cancel', int $Interval = 100): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $textParam = ($text == "Are you sure you want to proceed?") ? "" : $text;
-        $typeParam = ($type == "none") ? "" : $type;
-        $titleParam = ($title == "Confirm") ? "" : $title;
-        $okTextParam = ($okText == "OK") ? "" : $okText;
-        $cancelTextParam = ($cancelText == "Cancel") ? "" : $cancelText;
-        $this->add($prefix . "cf", $textParam . "|" . $typeParam . "|" . $titleParam . "|" . $okTextParam . "|" . $cancelTextParam);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'cf', ($Text === 'Are you sure you want to proceed?' ? '' : $Text) . self::GS . ($Type === 'none' ? '' : $Type) . self::GS . ($Title === 'Confirm' ? '' : $Title) . self::GS . ($OkText === 'OK' ? '' : $OkText) . self::GS . ($CancelText === 'Cancel' ? '' : $CancelText));
+        return $this;
     }
 
-    public function isGreaterThan($firstValue, $secondValue, $interval = -1)
+    public function isGreaterThan(string $FirstValue, string $SecondValue, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "gt", $firstValue . "|" . $secondValue);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'gt', $FirstValue . self::GS . $SecondValue);
+        return $this;
     }
 
-    public function isLessThan($firstValue, $secondValue, $interval = -1)
+    public function isLessThan(string $FirstValue, string $SecondValue, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "lt", $firstValue . "|" . $secondValue);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'lt', $FirstValue . self::GS . $SecondValue);
+        return $this;
     }
 
-    public function isEqualTo($firstValue, $secondValue, $interval = -1)
+    public function isEqualTo(string $FirstValue, string $SecondValue, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "et", $firstValue . "|" . $secondValue);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'et', $FirstValue . self::GS . $SecondValue);
+        return $this;
     }
 
-    public function isNotEqualTo($firstValue, $secondValue, $interval = -1)
+    public function isNotEqualTo(string $FirstValue, string $SecondValue, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "Nt", $firstValue . "|" . $secondValue);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'Nt', $FirstValue . self::GS . $SecondValue);
+        return $this;
     }
 
-    public function exist($value, $interval = -1)
+    public function exist(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "ex", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'ex', $Value);
+        return $this;
     }
 
-    public function notExist($value, $interval = -1)
+    public function notExist(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "nx", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'nx', $Value);
+        return $this;
     }
 
-    public function isTrue($value, $interval = -1)
+    public function isTrue(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "tr", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'tr', $Value);
+        return $this;
     }
 
-    public function isFalse($value, $interval = -1)
+    public function isFalse(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "fa", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'fa', $Value);
+        return $this;
     }
 
-    public function isMatchMedia($value, $interval = -1)
+    public function isMatchMedia(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "mm", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'mm', $Value);
+        return $this;
     }
 
-    public function isNotMatchMedia($value, $interval = -1)
+    public function isNotMatchMedia(string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "nm", $value);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'nm', $Value);
+        return $this;
     }
 
-    public function includeText($text, $value, $interval = -1)
+    public function include(string $Text, string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "In", $value . "|" . $text);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'In', $Value . self::GS . $Text);
+        return $this;
     }
 
-    public function notInclude($text, $value, $interval = -1)
+    public function notInclude(string $Text, string $Value, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "Nn", $value . "|" . $text);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'Nn', $Value . self::GS . $Text);
+        return $this;
     }
 
-    public function elementExists($inputPlace, $interval = -1)
+    public function elementExists(string $InputPlace, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "eE", $inputPlace);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'eE', $InputPlace);
+        return $this;
     }
 
-    public function elementNotExists($inputPlace, $interval = -1)
+    public function elementNotExists(string $InputPlace, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "nE", $inputPlace);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'nE', $InputPlace);
+        return $this;
     }
 
-    public function isRegexMatch($value, $pattern, $interval = -1)
+    public function isRegexMatch(string $Value, string $Pattern, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "re", $value . "|" . $pattern);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 're', $Value . self::GS . $Pattern);
+        return $this;
     }
 
-    public function isRegexNotMatch($value, $pattern, $interval = -1)
+    public function isRegexNotMatch(string $Value, string $Pattern, int $Interval = -1): WebForms
     {
-        $prefix = ($interval >= 0) ? "{(" . $interval . ")" : "{";
-        $this->add($prefix . "rn", $value . "|" . $pattern);
+        $this->add((($Interval >= 0) ? '{(' . (string)$Interval . ')' : '{') . 'rn', $Value . self::GS . $Pattern);
+        return $this;
     }
 
-    public function breakIt()
+    // In: Everything Becomes A JSON List.
+    // Key: Creates A Temporary Data In The Browser IndexedDB.
+    // Key + "i" Creates A Temporary Data To Maintain The Loop Counter In The Browser IndexedDB.
+    public function forEach(string $Path, string $In, string $Key = '.'): WebForms
     {
-        $this->add(";");
+        $this->add('{fe', $Path . self::GS . $In . self::GS . $Key);
+        return $this;
     }
 
-    public function startBracket()
+    public function break(): void
     {
-        $this->add("{");
+        $this->add(';');
     }
 
-    public function endBracket()
+    public function else(): WebForms
     {
-        $this->add("}");
+        $this->add('}e');
+        return $this;
+    }
+
+    public function startBracket(): void
+    {
+        $this->add('{');
+    }
+
+    public function endBracket(): void
+    {
+        $this->add('}');
+    }
+
+    // Used Then In Condition And Loop Methods
+    public function then(?WebForms $newForm): WebForms
+    {
+        if ($newForm === null) {
+            return $this;
+        }
+
+        $data = $newForm->getWebFormsData();
+
+        if ($data !== '') {
+            if (strpos($data, "\n") !== false) {
+                $newForm->addToUp('{');
+                $newForm->add('}');
+            }
+        }
+
+        $this->appendForm($newForm);
+        return $this;
+    }
+
+    public function thenClosure(callable $configure): WebForms
+    {
+        $newForm = new WebForms();
+        $configure($newForm);
+
+        $data = $newForm->getWebFormsData();
+
+        if ($data !== '') {
+            if (strpos($data, "\n") !== false) {
+                $newForm->addToUp('{');
+                $newForm->add('}');
+            }
+        }
+
+        $this->appendForm($newForm);
+        return $this;
+    }
+
+    public function repeat(WebForms $newForm, int $repeat): WebForms
+    {
+        if ($newForm === null) {
+            return $this;
+        }
+
+        $bodyData = $newForm->getWebFormsData();
+
+        if ($bodyData === '') {
+            return $this;
+        }
+
+        $startLine = -count(explode("\n", $bodyData));
+
+        $this->appendForm($newForm);
+        $this->goToInt($startLine, $repeat - 1);
+
+        return $this;
+    }
+
+    public function repeatWithIndex(WebForms $newForm, int $repeat, string $index): WebForms
+    {
+        if ($newForm === null) {
+            return $this;
+        }
+
+        $this->goToIndex($index);
+        $this->startIndex($index);
+
+        $bodyData = $newForm->getWebFormsData();
+
+        if ($bodyData === '') {
+            return $this;
+        }
+
+        $this->appendForm($newForm);
+
+        if ($index === '') {
+            $indexNumber = -1;
+            foreach (explode("\n", $this->getWebFormsData()) as $x) {
+                if (strpos($x, '#') === 0) {
+                    $indexNumber++;
+                }
+            }
+            $this->goToInt($indexNumber, $repeat - 1);
+        } else {
+            $this->goToIndex($index, $repeat - 1);
+        }
+
+        return $this;
+    }
+
+    public function repeatClosure(callable $configure, int $repeat): WebForms
+    {
+        $newForm = new WebForms();
+        $configure($newForm);
+        return $this->repeat($newForm, $repeat);
+    }
+
+    public function repeatClosureWithIndex(callable $configure, int $repeat, string $index): WebForms
+    {
+        $newForm = new WebForms();
+        $configure($newForm);
+        return $this->repeatWithIndex($newForm, $repeat, $index);
     }
 
     // Async
-    public function async()
+    // It Supports Brackets and Then
+    public function async(): WebForms
     {
-        $this->add("{(a)");
+        $this->add('{(a)');
+        return $this;
     }
 
-    public function delay($miliSecond)
+    public function delay(string $MiliSecond): void
     {
-        $this->add("De", (string)$miliSecond);
+        $this->add('De', $MiliSecond);
+    }
+
+    public function delayInt(int $MiliSecond): void
+    {
+        $this->delay((string)$MiliSecond);
+    }
+
+    // Option
+    public function changeOption(string $Name, string $Value): void
+    {
+        $this->add('co', $Name . self::GS . $Value);
+    }
+
+    public function resetOption(?string $Name = null): void
+    {
+        if ($Name !== null) {
+            $this->add('ro', $Name);
+        } else {
+            $this->add('ro');
+        }
     }
 
     // Format Storage
-    public function createFormatStorage($key, $data)
+    public function createFormatStorage(string $Key, string $Data): void
     {
-        $this->add(".C", $key . "|" . $data);
+        $this->add('.C', $Key . self::GS . $Data);
     }
 
-    public function deleteFormatStorage($key)
+    public function deleteFormatStorage(string $Key): void
     {
-        $this->add(".D", $key);
+        $this->add('.D', $Key);
     }
 
-    public function addJSON($key, $path, $value)
+    public function addJSON(string $Key, string $Path, string $Value): void
     {
-        $this->add(".a", $key . "|j|" . $value . "|" . $path);
+        $this->add('.a', $Key . self::GS . 'j' . self::GS . $Value . self::GS . $Path);
     }
 
-    public function addXML($key, $path, $name, $value = null)
+    // Name: For Support Attribute, Set Double At Sign (@@) Before Name.
+    public function addXML(string $Key, string $Path, string $Name, ?string $Value = null): void
     {
-        if (!empty($name) && $name[0] == '@') {
-            $name = substr($name, 1);
-            $name = "$[at];" . $name;
-        }
-        $this->add(".a", $key . "|x|" . str_replace("@", "$[at];", $name) . "|" . $value . "|" . $path);
+        $this->add('.a', $Key . self::GS . 'x' . self::GS . $Name . self::GS . $Value . self::GS . $Path);
     }
 
-    public function addINI($key, $path, $value, $isINILike = false)
+    public function addINI(string $Key, string $Path, string $Value, bool $IsINILike = false): void
     {
-        $this->add(".a", $key . "|i|" . ($isINILike ? "1" : "0") . "|" . $value . "|" . $path);
+        $this->add('.a', $Key . self::GS . 'i' . self::GS . ($IsINILike ? '1' : '0') . self::GS . $Value . self::GS . $Path);
     }
 
-    public function addTextLine($key, $line, $text)
+    public function addTextLine(string $Key, string $Line, string $Text): void
     {
-        $this->add(".a", $key . "|t|" . $text . "|" . $line);
+        $this->add('.a', $Key . self::GS . 't' . self::GS . $Text . self::GS . $Line);
     }
 
-    public function addVariable($key, $value)
+    public function addTextLineInt(string $Key, int $Line, string $Text): void
     {
-        $this->add(".a", $key . "|v|" . $value);
+        $this->addTextLine($Key, (string)$Line, $Text);
     }
 
-    public function updateJSON($key, $path, $value)
+    public function addVariable(string $Key, string $Value): void
     {
-        $this->add(".u", $key . "|j|" . $value . "|" . $path);
+        $this->add('.a', $Key . self::GS . 'v' . self::GS . $Value);
     }
 
-    public function updateXML($key, $path, $value)
+    public function updateJSON(string $Key, string $Path, string $Value): void
     {
-        $this->add(".u", $key . "|x|" . $value . "|" . $path);
+        $this->add('.u', $Key . self::GS . 'j' . self::GS . $Value . self::GS . $Path);
     }
 
-    public function updateINI($key, $path, $value, $isINILike = false)
+    public function updateXML(string $Key, string $Path, string $Value): void
     {
-        $this->add(".u", $key . "|i|" . ($isINILike ? "1" : "0") . "|" . $value . "|" . $path);
+        $this->add('.u', $Key . self::GS . 'x' . self::GS . $Value . self::GS . $Path);
     }
 
-    public function updateTexLine($key, $line, $text)
+    public function updateINI(string $Key, string $Path, string $Value, bool $IsINILike = false): void
     {
-        $this->add(".u", $key . "|t|" . $text . "|" . $line);
+        $this->add('.u', $Key . self::GS . 'i' . self::GS . ($IsINILike ? '1' : '0') . self::GS . $Value . self::GS . $Path);
     }
 
-    public function updateVariable($key, $value)
+    public function updateTexLine(string $Key, string $Line, string $Text): void
     {
-        $this->add(".u", $key . "|v|" . $value);
+        $this->add('.u', $Key . self::GS . 't' . self::GS . $Text . self::GS . $Line);
     }
 
-    public function increaseVariable($key, $value)
+    public function updateTexLineInt(string $Key, int $Line, string $Text): void
     {
-        $this->add(".i", $key . "|v|" . $value);
+        $this->updateTexLine($Key, (string)$Line, $Text);
     }
 
-    public function decreaseVariable($key, $value)
+    public function updateVariable(string $Key, string $Value): void
     {
-        $this->increaseVariable($key, $value * -1);
+        $this->add('.u', $Key . self::GS . 'v' . self::GS . $Value);
     }
 
-    public function deleteJSON($key, $path)
+    public function increaceVariable(string $Key, string $Value): void
     {
-        $this->add(".d", $key . "|j|" . $path);
+        $this->add('.i', $Key . self::GS . 'v' . self::GS . $Value);
     }
 
-    public function deleteXML($key, $path)
+    public function increaceVariableInt(string $Key, int $Value): void
     {
-        $this->add(".d", $key . "|x|" . $path);
+        $this->increaceVariable($Key, (string)$Value);
     }
 
-    public function deleteINI($key, $path, $isINILike = false)
+    public function decreaseVariable(string $Key, int $Value): void
     {
-        $this->add(".d", $key . "|i|" . ($isINILike ? "1" : "0") . "|" . $path);
+        $this->increaceVariable($Key, (string)($Value * -1));
     }
 
-    public function deleteTextLine($key, $line)
+    public function deleteJSON(string $Key, string $Path): void
     {
-        $this->add(".d", $key . "|t|" . $line);
+        $this->add('.d', $Key . self::GS . 'j' . self::GS . $Path);
     }
 
-    public function deleteVariable($key)
+    public function deleteXML(string $Key, string $Path): void
     {
-        $this->add(".d", $key . "|v");
+        $this->add('.d', $Key . self::GS . 'x' . self::GS . $Path);
+    }
+
+    public function deleteINI(string $Key, string $Path, bool $IsINILike = false): void
+    {
+        $this->add('.d', $Key . self::GS . 'i' . self::GS . ($IsINILike ? '1' : '0') . self::GS . $Path);
+    }
+
+    public function deleteTextLine(string $Key, string $Line): void
+    {
+        $this->add('.d', $Key . self::GS . 't' . self::GS . $Line);
+    }
+
+    public function deleteTextLineInt(string $Key, int $Line): void
+    {
+        $this->deleteTextLine($Key, (string)$Line);
+    }
+
+    public function deleteVariable(string $Key): void
+    {
+        $this->add('.d', $Key . self::GS . 'v');
+    }
+
+    // Template Engine
+    // Pattern Example: {{value}}, ((value)), *value*, $value;
+    public function bindJSONToTemplate(string $InputPlace, string $JSONText, string $Path, string $Pattern, bool $AlsoStartTag = true): void
+    {
+        $this->add('Tj' . $InputPlace, $JSONText . self::GS . $Path . self::GS . $Pattern . self::GS . ($AlsoStartTag ? '1' : '0'));
+    }
+
+    // Because XML Elements Are Lowercased, Placeholders Must Use Lowercase Names.
+    public function bindXMLToTemplate(string $InputPlace, string $XMLText, string $Path, string $Pattern, bool $AlsoStartTag = true): void
+    {
+        $this->add('Tx' . $InputPlace, $XMLText . self::GS . $Path . self::GS . $Pattern . self::GS . ($AlsoStartTag ? '1' : '0'));
+    }
+
+    public function bindINIToTemplate(string $InputPlace, string $INIText, string $Path, string $Pattern, bool $AlsoStartTag = true): void
+    {
+        $this->add('Ti' . $InputPlace, $INIText . self::GS . $Path . self::GS . $Pattern . self::GS . ($AlsoStartTag ? '1' : '0'));
     }
 
     // Inject
-    public function inject($value)
+    // Need Add @: to First of String
+    public function inject(string $Value): string
     {
-        return "$[" . $value . "];";
+        return '$[' . $Value . '];';
+    }
+
+    // Action Control
+    public function replaceActionControl(string $SearchValue, string $Value, bool $AddingToUp = false): void
+    {
+        if ($AddingToUp) {
+            $this->addToUp('rE', $SearchValue . self::GS . $Value);
+        } else {
+            $this->add('rE', $SearchValue . self::GS . $Value);
+        }
+    }
+
+    public function assignReplace(string $SearchValue, string $Value, int $Index = -1): void
+    {
+        $currentLine = $this->getLineByIndex($Index);
+        if ($currentLine === '') {
+            return;
+        }
+
+        $parts = explode('=', $currentLine, 2);
+        $newName = ';' . $SearchValue . self::GS . $Value . self::GS . $parts[0];
+        $newValue = count($parts) > 1 ? $parts[1] : '';
+
+        $this->updateLineByIndex($Index, $newName, $newValue);
     }
 
     // Hash And Checksum
-    public function setHash()
+    public function setHash(): void
     {
-        $this->add("SH");
+        $this->add('SH');
     }
 
-    public function setChecksum()
+    public function setChecksum(): void
     {
-        $this->add("CS");
+        $this->add('CS');
     }
 
-    public function checksumCalculation($text)
+    public function checksumCalculation(string $Text): string
     {
         $sum = 0;
         $mod = 65536;
         $shift = 5;
 
-        for ($i = 0; $i < strlen($text); $i++) {
-            $c = ord($text[$i]);
-            $sum = (($sum << $shift) | ($sum >> (16 - $shift))) ^ $c;
+        for ($i = 0; $i < strlen($Text); $i++) {
+            $charCode = ord($Text[$i]);
+            $sum = (($sum << $shift) | ($sum >> (16 - $shift))) ^ $charCode;
             $sum %= $mod;
         }
 
         return (string)$sum;
     }
 
-    public function getChecksum()
+    public function getChecksum(): string
     {
-        return $this->checksumCalculation($this->getFormsActionData());
+        return $this->checksumCalculation($this->getWebFormsData());
     }
 
     // Get
-    public function getFormsActionData()
+    public function getFormsActionData(): string
     {
+        if (strlen($this->webFormsData) === 0) {
+            return '';
+        }
+
         return $this->webFormsData;
     }
 
-    public function response()
+    public function response(): string
     {
         return "[web-forms]\n" . $this->getFormsActionData();
     }
 
-    public function getFormsActionDataLineBreak()
+    public function getFormsActionDataLineBreak(): string
     {
-        if (empty($this->webFormsData)) {
-            return "";
+        if (strlen($this->webFormsData) === 0) {
+            return '';
         }
 
-        $processedData = str_replace("\"", "$[dq];", $this->webFormsData);
-        return str_replace("\n", "$[sln];", $processedData);
+        $data = $this->webFormsData;
+        $processedData = str_replace('"', '$[dq];', $data);
+        return str_replace("\n", '$[sln];', $processedData);
     }
 
     // Export
-    public function exportToWebFormsTag($src = null)
+    public function exportToHtmlComment(bool $AddLine = false): string
     {
-        return "<web-forms ac=\"" . $this->getFormsActionDataLineBreak() . "\"" . (!empty($src) ? " src=\"" . $src . "\"" : "") . "></web-forms>";
+        $response = str_replace('--', '$[dd];', $this->response());
+        if (substr($response, -1) === '-') {
+            $response = substr($response, 0, -1) . '$[da];';
+        }
+
+        return ($AddLine ? "\n" : '') . '<!--' . $response . '-->';
     }
 
-    public function exportToLineBreak($src = null)
+    // Using it for SSE Response
+    public function exportToLineBreak(?string $src = null): string
     {
-        return "[web-forms]$[sln];" . $this->getFormsActionDataLineBreak();
+        return '[web-forms]$[sln];' . $this->getFormsActionDataLineBreak();
     }
 
-    public function exportToWebFormsTagWithDimensions($width, $height, $src = null)
-    {
-        return "<web-forms ac=\"" . $this->getFormsActionDataLineBreak() . "\" width=\"" . $width . "\" height=\"" . $height . "\"" . (!empty($src) ? " src=\"" . $src . "\"" : "") . "></web-forms>";
-    }
-
-    public function exportToWebFormsTagWithDimensionsInt($width, $height, $src = null)
-    {
-        return $this->exportToWebFormsTagWithDimensions($width . "px", $height . "px", $src);
-    }
-
-    public function doneToWebFormsTag($id = null)
-    {
-        return "<web-forms ac=\"" . $this->getFormsActionDataLineBreak() . "\"" . (!empty($id) ? " id=\"" . $id . "\" done=\"true\"" : "") . "></web-forms>";
-    }
-
-    public function exportToHtmlComment($addLine = false)
-    {
-        return ($addLine ? "\n" : "") . "<!--" . $this->response() . "-->";
-    }
-
-    public function getWebFormsData()
+    public function getWebFormsData(): string
     {
         return $this->webFormsData;
     }
 
-    public function appendForm($form)
+    public function appendForm(?WebForms $form): void
     {
-        if ($form == null) return;
+        if ($form === null) {
+            return;
+        }
 
         $otherData = $form->getWebFormsData();
-        if (!empty($otherData)) {
-            if (!empty($this->webFormsData)) {
+        if ($otherData !== '') {
+            if (strlen($this->webFormsData) > 0) {
                 $this->webFormsData .= "\n";
             }
             $this->webFormsData .= $otherData;
         }
     }
 
-    public function clean()
+    public function clean(): void
     {
         $this->webFormsData = '';
     }
 }
 
+
+// Security class
 class Security
 {
-    public function safeValue($value)
+    public function safeValue(string $Value): string
     {
-        if (empty($value)) {
-            return $value;
+        if (strlen($Value) < 1) {
+            return $Value;
         }
 
-        if ($value[0] == '@') {
-            $value = substr($value, 1);
-            $value = "$[at];" . $value;
+        if ($Value[0] === '@') {
+            $Value = '@' . $Value;
         }
 
-        $value = str_replace("\n", "$[ln];", $value);
-        $value = str_replace("|", "$[vb];", $value);
-        $value = str_replace(",@", "$[co];@", $value);
+        $Value = str_replace("\n", '$[ln];', $Value);
+        $Value = str_replace(',@', '$[co];@', $Value);
+        $Value = str_replace("\x1C", '', $Value); // char 28
+        $Value = str_replace("\x1D", '', $Value); // char 29
+        $Value = str_replace("\x1E", '', $Value); // char 30
+        $Value = str_replace("\x1F", '', $Value); // char 31
 
-        return $value;
+        return $Value;
     }
 }
 
+// WebForms Place Criteria (WPC) DSL
 class InputPlace
 {
-    const Window = "`";
-    const Root = "~";
-    const Current = "$";
-    const Target = "!";
-    const Upper = "-";
-    const Head = "^";
-    const ScreenOrientation = "%";
+    public const Document = ',';
+    public const Window = '`';
+    // When Calling TransientDOM, Using Root will Result in the Selection of the Transient Tag.
+    public const Root = '~';
+    public const HTML = '.';
+    public const Head = '^';
+    public const ScreenOrientation = '%';
+    public const All = '*';
+    public const Parent = '/';
+    public const Current = '$';
+    public const Target = '!';
+    public const Upper = '-';
 
-    public static function id($id)
+    public static function id(string $Id): string
     {
-        return $id;
+        return $Id;
     }
 
-    public static function name($name)
+    public static function name(string $Name): string
     {
-        return '(' . $name . ')';
+        return '(' . $Name . ')';
     }
 
-    public static function nameWithIndex($name, $index)
+    public static function nameIndex(string $Name, int $Index): string
     {
-        return '(' . $name . ')' . $index;
+        return '(' . $Name . ')' . (string)$Index;
     }
 
-    public static function allNames($name)
+    public static function allNames(string $Name): string
     {
-        return '(' . $name . ')*';
+        return '(' . $Name . ')*';
     }
 
-    public static function tag($tag)
+    public static function tag(string $Tag): string
     {
-        return '<' . $tag . '>';
+        return '<' . $Tag . '>';
     }
 
-    public static function tagWithIndex($tag, $index)
+    public static function tagIndex(string $Tag, int $Index): string
     {
-        return '<' . $tag . '>' . $index;
+        return '<' . $Tag . '>' . (string)$Index;
     }
 
-    public static function allTags($tag)
+    public static function allTags(string $Tag): string
     {
-        return '<' . $tag . '>*';
+        return '<' . $Tag . '>*';
     }
 
-    public static function cssClass($class)
+    public static function child(): string
     {
-        return '{' . $class . '}';
+        return '<>';
     }
 
-    public static function cssClassWithIndex($class, $index)
+    public static function childIndex(int $Index): string
     {
-        return '{' . $class . '}' . $index;
+        return '<>' . (string)$Index;
     }
 
-    public static function allCssClasses($class)
+    public static function allChild(): string
     {
-        return '{' . $class . '}*';
+        return '<>*';
     }
 
-    public static function query($query)
+    public static function class(string $Class): string
     {
-        return "*" . str_replace("=", "$[eq];", $query);
+        return '{' . $Class . '}';
     }
 
-    public static function queryAll($query)
+    public static function classIndex(string $Class, int $Index): string
     {
-        return "[" . str_replace("=", "$[eq];", $query);
+        return '{' . $Class . '}' . (string)$Index;
+    }
+
+    public static function allClasses(string $Class): string
+    {
+        return '{' . $Class . '}*';
+    }
+
+    public static function attribute(string $Name): string
+    {
+        return '"' . $Name . '"';
+    }
+
+    public static function attributeIndex(string $Name, int $Index): string
+    {
+        return '"' . $Name . '"' . (string)$Index;
+    }
+
+    public static function allAttributes(string $Name): string
+    {
+        return '"' . $Name . '"*';
+    }
+
+    // Operator: '^', '$', '*', '~'
+    public static function attributeValue(string $Name, string $Value, string $Operator = ''): string
+    {
+        $op = $Operator !== '' ? substr($Operator, 0, 1) : '';
+        return '"' . $Name . $op . "'" . $Value . '"';
+    }
+
+    public static function attributeValueIndex(string $Name, string $Value, int $Index, string $Operator = ''): string
+    {
+        $op = $Operator !== '' ? substr($Operator, 0, 1) : '';
+        return '"' . $Name . $op . "'" . $Value . '"' . (string)$Index;
+    }
+
+    public static function allAttributesValue(string $Name, string $Value, string $Operator = ''): string
+    {
+        $op = $Operator !== '' ? substr($Operator, 0, 1) : '';
+        return '"' . $Name . $op . "'" . $Value . '"*';
+    }
+
+    public static function query(string $Query): string
+    {
+        return '*' . str_replace(['=', '|', '?'], ['$[eq];', '$[vb];', '$[qu];'], $Query);
+    }
+
+    public static function queryAll(string $Query): string
+    {
+        return '[' . str_replace(['=', '|', '?'], ['$[eq];', '$[vb];', '$[qu];'], $Query);
     }
 }
 
-class OutputPlace extends InputPlace
-{
-    // Inherits all methods from InputPlace
-}
+class OutputPlace extends InputPlace { }
 
+// Do not Add any Data Before or After it
 class Fetch
 {
+    private const RS = "\x1E"; // (char)30
+    private const US = "\x1F"; // (char)31
+
     // Method
-    public static function random($maxValue)
+    public static function random(int $MaxValue): string
     {
-        return "@mr" . $maxValue;
+        return '@mr' . (string)$MaxValue;
     }
 
-    public static function randomRange($minValue, $maxValue)
+    public static function randomMinMax(int $MinValue, int $MaxValue): string
     {
-        return "@mr" . $maxValue . "," . $minValue;
+        return '@mr' . (string)$MaxValue . self::RS . (string)$MinValue;
     }
 
-    public static function spaceToChar($text, $character = "-")
+    public static function spaceToChar(string $Text, string $Character = '-'): string
     {
-        return "@sc" . $character . "," . $text;
+        return '@sc' . $Character . self::RS . $Text;
     }
 
-    public static function encodeURI($text)
+    public static function encodeURI(string $Text): string
     {
-        return "@ue" . $text;
+        return '@ue' . $Text;
     }
 
-    public static function decodeURI($text)
+    public static function decodeURI(string $Text): string
     {
-        return "@ud" . $text;
+        return '@ud' . $Text;
     }
 
-    public static function method($methodName, $args = null)
+    public static function method(string $MethodName, ?array $Args = null): string
     {
-        $returnValue = "@cm" . $methodName;
-
-        if ($args !== null && count($args) > 0) {
-            $returnValue .= "," . implode(",", $args);
+        $returnValue = '@cm' . $MethodName;
+        if ($Args !== null && count($Args) > 0) {
+            // array_map('strval', $Args) دقیقاً معادل ToString() روی تمام آیتم‌ها در C# است
+            $returnValue .= self::RS . implode(self::US, array_map('strval', $Args));
         }
-
         return $returnValue;
     }
 
-    public static function moduleMethod($methodName, $args = null)
+    public static function moduleMethod(string $MethodName, ?array $Args = null): string
     {
-        $returnValue = "@cM" . $methodName;
-
-        if ($args !== null && count($args) > 0) {
-            $returnValue .= "," . implode(",", $args);
+        $returnValue = '@cM' . $MethodName;
+        if ($Args !== null && count($Args) > 0) {
+            $returnValue .= self::RS . implode(self::US, array_map('strval', $Args));
         }
-
         return $returnValue;
     }
 
-    public static function wasmMethod($wasmLanguage, $wasmUrl, $methodName, $args = null, $key = ".")
+    // MethodName: The Method Name May Need to Include the Class Name, Separated by a Period. Example: MyClassName.MyMethodName
+    public static function wasmMethod(string $WasmLanguage, string $WasmUrl, string $MethodName, ?array $Args = null, string $Key = '.'): string
     {
-        $returnValue = "@wA" . $wasmLanguage . "," . $wasmUrl . "," . $methodName;
-
-        if ($args !== null && count($args) > 0) {
-            $returnValue .= "," . implode(",", $args);
+        $returnValue = '@wA' . $WasmLanguage . self::RS . $WasmUrl . self::RS . $MethodName;
+        if ($Args !== null && count($Args) > 0) {
+            $returnValue .= self::RS . implode(self::US, array_map('strval', $Args));
         }
-
         return $returnValue;
     }
 
-    public static function script($scriptText)
+    public static function script(string $ScriptText): string
     {
-        return "@_" . str_replace("\n", "$[ln];", $scriptText);
+        return '@_' . str_replace("\n", '$[ln];', $ScriptText);
     }
 
-    public static function loadUrl($url, $fetchScript = false)
+    public static function loadUrl(string $Url, bool $FetchScript = false): string
     {
-        return "@lu" . $url . ($fetchScript ? ",1" : "");
+        return '@lu' . $Url . ($FetchScript ? self::RS . '1' : '');
     }
 
-    public static function loadHtml($url, $fetchInputPlace, $fetchScript = false)
+    public static function loadHtml(string $Url, string $FetchInputPlace = '', bool $FetchScript = false): string
     {
-        return "@lh" . $url . "," . ($fetchScript ? "1" : "0") . (!empty($fetchInputPlace) ? "," . $fetchInputPlace : "");
+        return '@lh' . $Url . self::RS . ($FetchScript ? '1' : '0') . ($FetchInputPlace !== '' ? self::RS . $FetchInputPlace : '');
     }
 
-    public static function loadLine($url, $line)
+    public static function loadLine(string $Url, int $Line): string
     {
-        return "@ll" . $url . "," . $line;
+        return '@ll' . $Url . self::RS . (string)$Line;
     }
 
-    public static function loadINI($url, $name, $isINILike = false)
+    public static function loadINI(string $Url, string $Name, bool $IsINILike = false): string
     {
-        return "@li" . $url . "," . $name . ($isINILike ? ",1" : "");
+        return '@li' . $Url . self::RS . $Name . ($IsINILike ? self::RS . '1' : '');
     }
 
-    public static function loadJSON($url, $name)
+    // Name: Name Or Nested Paths. Is Supprt Index (Student[8].Name). Nested Paths Index Starts At 0
+    public static function loadJSON(string $Url, string $Name): string
     {
-        return "@lj" . $url . "," . $name;
+        return '@lj' . $Url . self::RS . $Name;
     }
 
-    public static function loadXML($url, $name)
+    // Name: Name Or XPath; XPath Index Starts At 1
+    public static function loadXML(string $Url, string $Name): string
     {
-        return "@lx" . $url . "," . $name;
+        return '@lx' . $Url . self::RS . $Name;
     }
 
-    public static function hasMethod($methodName)
+    // MethodName: It's Check Function Or Variable
+    public static function hasMethod(string $MethodName): string
     {
-        return "@hm" . $methodName;
+        return '@hm' . $MethodName;
     }
 
-    public static function hasModuleMethod($methodName)
+    public static function hasModuleMethod(string $MethodName): string
     {
-        return "@hM" . $methodName;
+        return '@hM' . $MethodName;
     }
 
-    public static function getModifierState($modifier)
+    // This Method Return True Or False If Key Pressed
+    // Modifier: Alt, AltGraph, Control, Meta, Shift, CapsLock, NumLock, ScrollLock
+    public static function getModifierState(string $Modifier): string
     {
-        return "@ms" . $modifier;
+        return '@ms' . $Modifier;
     }
 
     // Math
-    public static function math($methodName, $args = null)
+    public static function math(string $MethodName, ?array $Args = null): string
     {
-        $returnValue = "@M#" . $methodName;
-
-        if ($args !== null && count($args) > 0) {
-            $returnValue .= "," . implode(",", $args);
+        $returnValue = '@M#' . $MethodName;
+        if ($Args !== null && count($Args) > 0) {
+            $returnValue .= self::RS . implode(self::US, array_map('strval', $Args));
         }
-
         return $returnValue;
     }
 
     // Data
-    const DateYear = "@dy";
-    const DateMonth = "@dm";
-    const DateDay = "@dd";
-    const DateHours = "@dh";
-    const DateMinutes = "@di";
-    const DateSeconds = "@ds";
-    const DateMilliseconds = "@dl";
+    public const DateYear = '@dy';
+    // Month In JavaScript Is Start From Index 0, Month In WebForms Core Is Start From Index 1 
+    public const DateMonth = '@dm';
+    public const DateDay = '@dd';
+    public const DateDate = '@dD';
+    public const DateHours = '@dh';
+    public const DateMinutes = '@di';
+    public const DateSeconds = '@ds';
+    public const DateMilliseconds = '@dl';
 
     // String
-    const Space = "@sp";
-    const AtSign = "@sa";
+    public const Space = '@sp';
+    public const AtSign = '@sa';
 
     // Tag
-    public static function getId($inputPlace)
+    public static function getId(string $InputPlace): string
     {
-        return "@\$i" . $inputPlace;
+        return '@$i' . $InputPlace;
     }
 
-    public static function getName($inputPlace)
+    public static function getName(string $InputPlace): string
     {
-        return "@\$n" . $inputPlace;
+        return '@$n' . $InputPlace;
     }
 
-    public static function getValue($inputPlace)
+    public static function getValue(string $InputPlace): string
     {
-        return "@\$v" . $inputPlace;
+        return '@$v' . $InputPlace;
     }
 
-    public static function getValueLength($inputPlace)
+    public static function getValueLength(string $InputPlace): string
     {
-        return "@\$e" . $inputPlace;
+        return '@$e' . $InputPlace;
     }
 
-    public static function getClass($inputPlace)
+    public static function getClass(string $InputPlace): string
     {
-        return "@\$c" . $inputPlace;
+        return '@$c' . $InputPlace;
     }
 
-    public static function getStyle($inputPlace)
+    public static function getStyle(string $InputPlace): string
     {
-        return "@\$s" . $inputPlace;
+        return '@$s' . $InputPlace;
     }
 
-    public static function getTitle($inputPlace)
+    public static function getTitle(string $InputPlace): string
     {
-        return "@\$l" . $inputPlace;
+        return '@$l' . $InputPlace;
     }
 
-    public static function getLabel($inputPlace)
+    public static function getLabel(string $InputPlace): string
     {
-        return "@\$A" . $inputPlace;
+        return '@$A' . $InputPlace;
     }
 
-    public static function getText($inputPlace)
+    public static function getText(string $InputPlace): string
     {
-        return "@\$t" . $inputPlace;
+        return '@$t' . $InputPlace;
     }
 
-    public static function getOuterText($inputPlace)
+    public static function getOuterText(string $InputPlace): string
     {
-        return "@\$o" . $inputPlace;
+        return '@$o' . $InputPlace;
     }
 
-    public static function getTextLength($inputPlace)
+    public static function getTextLength(string $InputPlace): string
     {
-        return "@\$g" . $inputPlace;
+        return '@$g' . $InputPlace;
     }
 
-    public static function getAttribute($inputPlace, $attribute)
+    public static function getAttribute(string $InputPlace, string $Attribute): string
     {
-        return "@\$a" . $inputPlace . "," . $attribute;
+        return '@$a' . $InputPlace . self::RS . $Attribute;
     }
 
-    public static function getWidth($inputPlace)
+    public static function getWidth(string $InputPlace): string
     {
-        return "@\$w" . $inputPlace;
+        return '@$w' . $InputPlace;
     }
 
-    public static function getHeight($inputPlace)
+    public static function getHeight(string $InputPlace): string
     {
-        return "@\$h" . $inputPlace;
+        return '@$h' . $InputPlace;
     }
 
-    public static function getIsReadOnly($inputPlace)
+    public static function getIsReadOnly(string $InputPlace): string
     {
-        return "@\$r" . $inputPlace;
+        return '@$r' . $InputPlace;
     }
 
-    public static function getSelectedIndex($inputPlace)
+    public static function getSelectedIndex(string $InputPlace): string
     {
-        return "@\$x" . $inputPlace;
+        return '@$x' . $InputPlace;
     }
 
-    public static function getIndex($inputPlace)
+    public static function getIndex(string $InputPlace): string
     {
-        return "@\$I" . $inputPlace;
+        return '@$I' . $InputPlace;
     }
 
-    public static function getTextAlign($inputPlace)
+    public static function getTextAlign(string $InputPlace): string
     {
-        return "@\$T" . $inputPlace;
+        return '@$T' . $InputPlace;
     }
 
-    public static function getNodeLength($inputPlace)
+    public static function getNodeLength(string $InputPlace): string
     {
-        return "@\$L" . $inputPlace;
+        return '@$L' . $InputPlace;
     }
 
-    public static function getIsVisible($inputPlace)
+    public static function getIsVisible(string $InputPlace): string
     {
-        return "@\$V" . $inputPlace;
+        return '@$V' . $InputPlace;
     }
 
     // Save
-    public static function hasHash($hash)
+    public static function hasHash(string $Hash): string
     {
-        return "@HH" . $hash;
+        return '@HH' . $Hash;
     }
 
-    public static function cookie($key)
+    public static function cookie(string $Key): string
     {
-        return "@co" . $key;
+        return '@co' . $Key;
     }
 
-    public static function session($key)
+    public static function save(string $Key = '.', ?string $ReplaceValue = null): string
     {
-        return "@cs" . $key;
+        if ($ReplaceValue !== null) {
+            return '@cs' . $Key . self::RS . $ReplaceValue;
+        }
+        return '@cs' . $Key;
     }
 
-    public static function sessionWithReplace($key, $replaceValue)
+    public static function saveThenRemove(string $Key): string
     {
-        return "@cs" . $key . "," . $replaceValue;
+        return '@cl' . $Key;
     }
 
-    public static function sessionAndRemove($key)
+    public static function saveLength(string $Key = '.'): string
     {
-        return "@cl" . $key;
+        return '@cg' . $Key;
     }
 
-    public static function saved($key = ".")
+    public static function cache(string $Key = '.', ?string $ReplaceValue = null): string
     {
-        return self::session($key);
+        if ($ReplaceValue !== null) {
+            return '@cd' . $Key . self::RS . $ReplaceValue;
+        }
+        return '@cd' . $Key;
     }
 
-    public static function cache($key = ".")
+    public static function cacheThenRemove(string $Key): string
     {
-        return "@cd" . $key;
+        return '@ct' . $Key;
     }
 
-    public static function cacheWithReplace($key, $replaceValue)
+    public static function cacheLength(string $Key = '.'): string
     {
-        return "@cd" . $key . "," . $replaceValue;
+        return '@cG' . $Key;
     }
 
-    public static function cacheAndRemove($key)
+    public static function savedLine(string $Key = '.', int $Line = 0): string
     {
-        return "@ct" . $key;
+        return '@lL' . $Key . '[' . (string)$Line;
     }
 
-    public static function savedLine($key = ".", $line = 0)
+    public static function savedLineConsume(string $Key = '.'): string
     {
-        return "@lL" . $key . "[" . $line;
+        return '@lL' . $Key;
     }
 
-    public static function savedLineConsume($key = ".")
+    // INIKey: Only Direct Key is Supported
+    public static function savedINI(string $Key, string $INIKey): string
     {
-        return "@lL" . $key;
+        return '@lI' . $Key . '[' . $INIKey;
     }
 
-    public static function savedINI($key, $iniKey)
+    public static function cacheLine(string $Key = '.', int $Line = 0): string
     {
-        return "@lI" . $key . "[" . $iniKey;
+        return '@dL' . $Key . '[' . (string)$Line;
     }
 
-    public static function cacheLine($key = ".", $line = 0)
+    public static function cacheLineConsume(string $Key = '.'): string
     {
-        return "@dL" . $key . "[" . $line;
+        return '@dL' . $Key;
     }
 
-    public static function cacheLineConsume($key = ".")
+    // INIKey: Only Direct Key is Supported
+    public static function cacheINI(string $Key, string $INIKey): string
     {
-        return "@dL" . $key;
-    }
-
-    public static function cacheINI($key, $iniKey)
-    {
-        return "@dI" . $key . "[" . $iniKey;
+        return '@dI' . $Key . '[' . $INIKey;
     }
 
     // Format Storage
-    public static function formatStore($key)
+    public static function formatStore(string $Key): string
     {
-        return "@fr" . $key;
+        return '@fr' . $Key;
     }
 
-    public static function formatStoreByXMLQuery($key, $xPath)
+    public static function formatStoreByXMLQuery(string $Key, string $XPath): string
     {
-        return "@fx" . $key . "," . $xPath;
+        return '@fx' . $Key . self::RS . $XPath;
     }
 
-    public static function formatStoreByJSONQuery($key, $query)
+    public static function formatStoreByJSONQuery(string $Key, string $Query): string
     {
-        return "@fj" . $key . "," . $query;
+        return '@fj' . $Key . self::RS . $Query;
     }
 
-    public static function formatStoreByINI($key, $name)
+    public static function formatStoreByINI(string $Key, string $Name): string
     {
-        return "@fi" . $key . "," . $name;
+        return '@fi' . $Key . self::RS . $Name;
     }
 
-    public static function formatStoreByText($key, $line)
+    public static function formatStoreByText(string $Key, int $Line): string
     {
-        return "@ft" . $key . "," . $line;
+        return '@ft' . $Key . self::RS . (string)$Line;
     }
 
-    public static function formatStoreByVariable($key)
+    public static function formatStoreByVariable(string $Key): string
     {
-        return "@fv" . $key;
+        return '@fv' . $Key;
+    }
+
+    // State
+    public static function hasState(string $Path): string
+    {
+        return '@hs' . $Path;
+    }
+
+    // SSE
+    public static function sSEIsConnected(string $Path): string
+    {
+        return '@Sc' . $Path;
+    }
+
+    // WebSockets
+    public static function webSocketsIsConnected(string $Path = ''): string
+    {
+        return '@Wc' . $Path;
     }
 
     // Document
-    const TabIsActive = "@da";
+    public const TabIsActive = '@da';
 
     // Window
-    const Href = "@wf";
-    const PathName = "@wP";
-    const Query = "@wq";
-    const Hash = "@wh";
-    const Host = "@wH";
-    const HostName = "@wn";
-    const Port = "@wT";
-    const Origin = "@wo";
-    const GetSelection = "@ws";
-    const ScrollX = "@wx";
-    const ScrollY = "@wy";
+    public const Href = '@wf';
+    public const PathName = '@wP';
+    
+    public static function query(string $Name = '*'): string
+    {
+        return '@wq' . $Name;
+    }
+    
+    public const Hash = '@wh';
+    public const Host = '@wH';
+    public const HostName = '@wn';
+    public const Port = '@wT';
+    public const Origin = '@wo';
+    public const GetSelection = '@ws';
+    public const ScrollX = '@wx';
+    public const ScrollY = '@wy';
+    
+    public static function segment(int $Index): string
+    {
+        return '@wS' . (string)$Index;
+    }
+    
+    // It Only Works when the String Starts with the Tilde Character (~). The Path is Also Separated by the Slash Character (/). #~/Segment1/Segment2/Segment3
+    public static function hashSegment(int $Index): string
+    {
+        return '@wt' . (string)$Index;
+    }
 
     // Navigator
-    const ClipboardText = "@nC";
-    const GeoLatitude = "@nW";
-    const GeoLongitude = "@nO";
-    const Language = "@nL";
-    const IsOnLine = "@no";
-    const UserAgent = "@na";
+    public const ClipboardText = '@nC';
+    public const GeoLatitude = '@nW';
+    public const GeoLongitude = '@nO';
+    public const Language = '@nL';
+    public const IsOnLine = '@no';
+    public const UserAgent = '@na';
 
     // Screen
-    const ScreenWidth = "@sw";
-    const ScreenHeight = "@sh";
-    const ScreenOrientationType = "@so";
-    const ScreenOrientationAngle = "@sr";
+    public const ScreenWidth = '@sw';
+    public const ScreenHeight = '@sh';
+    public const ScreenOrientationType = '@so';
+    public const ScreenOrientationAngle = '@sr';
 
     // Performance
-    const TimeOrigin = "@pt";
-    const PerformanceNow = "@pn";
+    public const TimeOrigin = '@pt';
+    public const PerformanceNow = '@pn';
 
     // Event
-    const Event = "@EV";
-    const EventSerialize = "@Es";
-    const EventKey = "@ek";
-    const EventWhich = "@ew";
-    const EventClientX = "@ex";
-    const EventClientY = "@ey";
-    const EventPageX = "@eX";
-    const EventPageY = "@eY";
-    const EventOffsetX = "@Ex";
-    const EventOffsetY = "@Ey";
-    const EventDeltaY = "@ed";
+    public const Event = '@EV';
+    public const EventSerialize = '@Es';
+    public const EventKey = '@ek';
+    public const EventWhich = '@ew';
+    public const EventClientX = '@ex';
+    public const EventClientY = '@ey';
+    public const EventPageX = '@eX';
+    public const EventPageY = '@eY';
+    public const EventOffsetX = '@Ex';
+    public const EventOffsetY = '@Ey';
+    public const EventDeltaY = '@ed';
 }
 
 class WasmLanguage
 {
-    const C = "c";
-    const CPP = "c";
-    const Rust = "rust";
-    const CSharp = "csharp";
-    const GO = "go";
-    const JAVA = "java";
-    const AssemblyScript = "as";
+    // The Suffix "Mediator" Means You Must Call the JavaScript Interface. In Other Cases, the WASM File Should Be Called Directly.
+    public const C = 'c';
+    public const CPP = 'c';
+    public const Rust = 'rust';
+    public const CSharp = 'csharp';
+    // .NET WebCIL Container. The "dotnet.js" File Should Be Invoked.
+    public const CSharpMediator = 'csharp-m';
+    public const GO = 'go';
+    public const JAVA = 'java';
+    public const AssemblyScript = 'as';
 }
 
 class HtmlEvent
 {
-    const OnAbort = "onabort";
-    const OnAfterPrint = "onafterprint";
-    const OnBeforePrint = "onbeforeprint";
-    const OnBeforeUnload = "onbeforeunload";
-    const OnBlur = "onblur";
-    const OnCanPlay = "oncanplay";
-    const OnCanPlayThrough = "oncanplaythrough";
-    const OnChange = "onchange";
-    const OnClick = "onclick";
-    const OnCopy = "oncopy";
-    const OnCut = "oncut";
-    const OnDoubleClick = "ondblclick";
-    const OnDrag = "ondrag";
-    const OnDragEnd = "ondragend";
-    const OnDragEnter = "ondragenter";
-    const OnDragLeave = "ondragleave";
-    const OnDragOver = "ondragover";
-    const OnDragStart = "ondragstart";
-    const OnDrop = "ondrop";
-    const OnDurationChange = "ondurationchange";
-    const OnEnded = "onended";
-    const OnError = "onerror";
-    const OnFocus = "onfocus";
-    const OnFocusin = "onfocusin";
-    const OnFocusOut = "onfocusout";
-    const OnHashChange = "onhashchange";
-    const OnInput = "oninput";
-    const OnInvalid = "oninvalid";
-    const OnKeyDown = "onkeydown";
-    const OnKeyPress = "onkeypress";
-    const OnKeyUp = "onkeyup";
-    const OnLoad = "onload";
-    const OnLoadedData = "onloadeddata";
-    const OnLoadedMetaData = "onloadedmetadata";
-    const OnLoadStart = "onloadstart";
-    const OnMouseDown = "onmousedown";
-    const OnMouseEnter = "onmouseenter";
-    const OnMouseLeave = "onmouseleave";
-    const OnMouseMove = "onmousemove";
-    const OnMouseOver = "onmouseover";
-    const OnMouseOut = "onmouseout";
-    const OnMouseUp = "onmouseup";
-    const OnOffline = "onoffline";
-    const OnOnline = "ononline";
-    const OnPageHide = "onpagehide";
-    const OnPageShow = "onpageshow";
-    const OnPaste = "onpaste";
-    const OnPause = "onpause";
-    const OnPlay = "onplay";
-    const OnPlaying = "onplaying";
-    const OnProgress = "onprogress";
-    const OnRateChange = "onratechange";
-    const OnResize = "onresize";
-    const OnReset = "onreset";
-    const OnScroll = "onscroll";
-    const OnSearch = "onsearch";
-    const OnSeeked = "onseeked";
-    const OnSeeking = "onseeking";
-    const OnSelect = "onselect";
-    const OnStalled = "onstalled";
-    const OnSubmit = "onsubmit";
-    const OnSuspend = "onsuspend";
-    const OnTimeUpdate = "ontimeupdate";
-    const OnToggle = "ontoggle";
-    const OnTouchCancel = "ontouchcancel";
-    const OnTouchend = "ontouchend";
-    const OnTouchMove = "ontouchmove";
-    const OnTouchStart = "ontouchstart";
-    const OnUnload = "onunload";
-    const OnVolumeChange = "onvolumechange";
-    const OnWaiting = "onwaiting";
-    const OnWheel = "onwheel";
+    public const OnAbort = 'onabort';
+    public const OnAfterPrint = 'onafterprint';
+    public const OnBeforePrint = 'onbeforeprint';
+    public const OnBeforeUnload = 'onbeforeunload';
+    public const OnBlur = 'onblur';
+    public const OnCanPlay = 'oncanplay';
+    public const OnCanPlayThrough = 'oncanplaythrough';
+    public const OnChange = 'onchange';
+    public const OnClick = 'onclick';
+    public const OnCopy = 'oncopy';
+    public const OnCut = 'oncut';
+    public const OnDoubleClick = 'ondblclick';
+    public const OnDrag = 'ondrag';
+    public const OnDragEnd = 'ondragend';
+    public const OnDragEnter = 'ondragenter';
+    public const OnDragLeave = 'ondragleave';
+    public const OnDragOver = 'ondragover';
+    public const OnDragStart = 'ondragstart';
+    public const OnDrop = 'ondrop';
+    public const OnDurationChange = 'ondurationchange';
+    public const OnEnded = 'onended';
+    public const OnError = 'onerror';
+    public const OnFocus = 'onfocus';
+    public const OnFocusin = 'onfocusin';
+    public const OnFocusOut = 'onfocusout';
+    public const OnHashChange = 'onhashchange';
+    public const OnInput = 'oninput';
+    public const OnInvalid = 'oninvalid';
+    public const OnKeyDown = 'onkeydown';
+    public const OnKeyPress = 'onkeypress';
+    public const OnKeyUp = 'onkeyup';
+    public const OnLoad = 'onload';
+    public const OnLoadedData = 'onloadeddata';
+    public const OnLoadedMetaData = 'onloadedmetadata';
+    public const OnLoadStart = 'onloadstart';
+    public const OnMouseDown = 'onmousedown';
+    public const OnMouseEnter = 'onmouseenter';
+    public const OnMouseLeave = 'onmouseleave';
+    public const OnMouseMove = 'onmousemove';
+    public const OnMouseOver = 'onmouseover';
+    public const OnMouseOut = 'onmouseout';
+    public const OnMouseUp = 'onmouseup';
+    public const OnOffline = 'onoffline';
+    public const OnOnline = 'ononline';
+    public const OnPageHide = 'onpagehide';
+    public const OnPageShow = 'onpageshow';
+    public const OnPaste = 'onpaste';
+    public const OnPause = 'onpause';
+    public const OnPlay = 'onplay';
+    public const OnPlaying = 'onplaying';
+    public const OnProgress = 'onprogress';
+    public const OnRateChange = 'onratechange';
+    public const OnResize = 'onresize';
+    public const OnReset = 'onreset';
+    public const OnScroll = 'onscroll';
+    public const OnSearch = 'onsearch';
+    public const OnSeeked = 'onseeked';
+    public const OnSeeking = 'onseeking';
+    public const OnSelect = 'onselect';
+    public const OnStalled = 'onstalled';
+    public const OnSubmit = 'onsubmit';
+    public const OnSuspend = 'onsuspend';
+    public const OnTimeUpdate = 'ontimeupdate';
+    public const OnToggle = 'ontoggle';
+    public const OnTouchCancel = 'ontouchcancel';
+    public const OnTouchend = 'ontouchend';
+    public const OnTouchMove = 'ontouchmove';
+    public const OnTouchStart = 'ontouchstart';
+    public const OnUnload = 'onunload';
+    public const OnVolumeChange = 'onvolumechange';
+    public const OnWaiting = 'onwaiting';
+    public const OnWheel = 'onwheel';
 }
 
 class HtmlEventListener
 {
-    const Abort = "abort";
-    const AfterPrint = "afterprint";
-    const BeforePrint = "beforeprint";
-    const BeforeUnload = "beforeunload";
-    const Blur = "blur";
-    const CanPlay = "canplay";
-    const CanPlayThrough = "canplaythrough";
-    const Change = "change";
-    const Click = "click";
-    const Copy = "copy";
-    const Cut = "cut";
-    const DoubleClick = "dblclick";
-    const Drag = "drag";
-    const DragEnd = "dragend";
-    const DragEnter = "dragenter";
-    const DragLeave = "dragleave";
-    const DragOver = "dragover";
-    const DragStart = "dragstart";
-    const Drop = "drop";
-    const DurationChange = "durationchange";
-    const Ended = "ended";
-    const Error = "error";
-    const Focus = "focus";
-    const Focusin = "focusin";
-    const FocusOut = "focusout";
-    const HashChange = "hashchange";
-    const Input = "input";
-    const Invalid = "invalid";
-    const KeyDown = "keydown";
-    const KeyPress = "keypress";
-    const KeyUp = "keyup";
-    const Load = "load";
-    const LoadedData = "loadeddata";
-    const LoadedMetaData = "loadedmetadata";
-    const LoadStart = "loadstart";
-    const MouseDown = "mousedown";
-    const MouseEnter = "mouseenter";
-    const MouseLeave = "mouseleave";
-    const MouseMove = "mousemove";
-    const MouseOver = "mouseover";
-    const MouseOut = "mouseout";
-    const MouseUp = "mouseup";
-    const Offline = "offline";
-    const Online = "online";
-    const PageHide = "pagehide";
-    const PageShow = "pageshow";
-    const Paste = "paste";
-    const Pause = "pause";
-    const Play = "play";
-    const Playing = "playing";
-    const Progress = "progress";
-    const RateChange = "ratechange";
-    const Resize = "resize";
-    const Reset = "reset";
-    const Scroll = "scroll";
-    const Search = "search";
-    const Seeked = "seeked";
-    const Seeking = "seeking";
-    const Select = "select";
-    const Stalled = "stalled";
-    const Submit = "submit";
-    const Suspend = "suspend";
-    const TimeUpdate = "timeupdate";
-    const Toggle = "toggle";
-    const TouchCancel = "touchcancel";
-    const Touchend = "touchend";
-    const TouchMove = "touchmove";
-    const TouchStart = "touchstart";
-    const Unload = "unload";
-    const VolumeChange = "volumechange";
-    const Waiting = "waiting";
-    const Wheel = "wheel";
+    public const Abort = 'abort';
+    public const AfterPrint = 'afterprint';
+    public const BeforePrint = 'beforeprint';
+    public const BeforeUnload = 'beforeunload';
+    public const Blur = 'blur';
+    public const CanPlay = 'canplay';
+    public const CanPlayThrough = 'canplaythrough';
+    public const Change = 'change';
+    public const Click = 'click';
+    public const Copy = 'copy';
+    public const Cut = 'cut';
+    public const DoubleClick = 'dblclick';
+    public const Drag = 'drag';
+    public const DragEnd = 'dragend';
+    public const DragEnter = 'dragenter';
+    public const DragLeave = 'dragleave';
+    public const DragOver = 'dragover';
+    public const DragStart = 'dragstart';
+    public const Drop = 'drop';
+    public const DurationChange = 'durationchange';
+    public const Ended = 'ended';
+    public const Error = 'error';
+    public const Focus = 'focus';
+    public const Focusin = 'focusin';
+    public const FocusOut = 'focusout';
+    public const HashChange = 'hashchange';
+    public const Input = 'input';
+    public const Invalid = 'invalid';
+    public const KeyDown = 'keydown';
+    public const KeyPress = 'keypress';
+    public const KeyUp = 'keyup';
+    public const Load = 'load';
+    public const LoadedData = 'loadeddata';
+    public const LoadedMetaData = 'loadedmetadata';
+    public const LoadStart = 'loadstart';
+    public const MouseDown = 'mousedown';
+    public const MouseEnter = 'mouseenter';
+    public const MouseLeave = 'mouseleave';
+    public const MouseMove = 'mousemove';
+    public const MouseOver = 'mouseover';
+    public const MouseOut = 'mouseout';
+    public const MouseUp = 'mouseup';
+    public const Offline = 'offline';
+    public const Online = 'online';
+    public const PageHide = 'pagehide';
+    public const PageShow = 'pageshow';
+    public const Paste = 'paste';
+    public const Pause = 'pause';
+    public const Play = 'play';
+    public const Playing = 'playing';
+    public const Progress = 'progress';
+    public const RateChange = 'ratechange';
+    public const Resize = 'resize';
+    public const Reset = 'reset';
+    public const Scroll = 'scroll';
+    public const Search = 'search';
+    public const Seeked = 'seeked';
+    public const Seeking = 'seeking';
+    public const Select = 'select';
+    public const Stalled = 'stalled';
+    public const Submit = 'submit';
+    public const Suspend = 'suspend';
+    public const TimeUpdate = 'timeupdate';
+    public const Toggle = 'toggle';
+    public const TouchCancel = 'touchcancel';
+    public const Touchend = 'touchend';
+    public const TouchMove = 'touchmove';
+    public const TouchStart = 'touchstart';
+    public const Unload = 'unload';
+    public const VolumeChange = 'volumechange';
+    public const Waiting = 'waiting';
+    public const Wheel = 'wheel';
 
-    const AnimationEnd = "animationend";
-    const AnimationIteration = "animationiteration";
-    const AnimationStart = "animationstart";
-    const ContextMenu = "contextmenu";
-    const FullScreenChange = "fullscreenchange";
-    const FullScreenError = "fullscreenerror";
-    const PopState = "popstate";
-    const TransitionEnd = "transitionend";
-    const Storage = "storage";
+    public const AnimationEnd = 'animationend';
+    public const AnimationIteration = 'animationiteration';
+    public const AnimationStart = 'animationstart';
+    public const ContextMenu = 'contextmenu';
+    public const FullScreenChange = 'fullscreenchange';
+    public const FullScreenError = 'fullscreenerror';
+    public const PopState = 'popstate';
+    public const TransitionEnd = 'transitionend';
+    public const Storage = 'storage';
 
     // Custom
-    const ScrollBottom = "scrollbottom";
-    const ElementReached = "elementreached";
+    public const ScrollBottom = 'scrollbottom'; // Need Call EnableScrollBottomEvent Method Before
+    public const ElementReached = 'elementreached'; // Need Call EnableReachedElementEvent Method Before
 }
 
 class ExtensionWebFormsMethods
 {
-    public static function appendPlace($text, $value)
+    public static function child(string $Text, string $Value): string
     {
-        if (strlen($text) < 1) {
-            return $value;
+        if ($Text === '') {
+            return $Value;
         }
 
-        return $text . "|" . $value;
+        return $Text . '|' . $Value;
     }
 
-    public static function appendParent($text)
+    public static function parent(string $Text): string
     {
-        return "/" . $text;
-    }
-
-    public static function exportActionControlsToWebFormsTag($actionControls, $addLine = false)
-    {
-        return ($addLine ? "\n" : "") . "<web-forms ac=\"" . $actionControls . "\"></web-forms>";
-    }
-
-    public static function exportActionControlsToHtmlComment($actionControls, $addLine = false)
-    {
-        return ($addLine ? "\n" : "") . "<!--[web-forms]\n" . $actionControls . "-->";
-    }
-
-    public static function exportActionControlsToResponse($actionControls)
-    {
-        return "[web-forms]\n" . $actionControls;
-    }
-
-    public static function removeOuter($text, $startString, $endString)
-    {
-        $start = strpos($text, $startString);
-        if ($start === false) {
-            return $text;
+        if ($Text === '') {
+            return $Text;
         }
 
-        $end = strpos($text, $endString, $start);
-        if ($end === false) {
-            return $text;
+        if (str_ends_with($Text, '|/') || str_ends_with($Text, '//')) {
+            return $Text . '/';
         }
 
-        $lengthToRemove = ($end - $start) + strlen($endString);
-
-        return substr($text, 0, $start) . substr($text, $end + strlen($endString));
+        return $Text . '|/';
     }
 
-    public static function lineBreak($text)
+    public static function criteria(string $Text, string $Value): string
     {
-        return str_replace("\n", "$[sln]", $text);
+        if ($Text === '') {
+            return $Value;
+        }
+
+        return $Text . '?' . str_replace(['|', '?'], ['$[vb];', '$[qu];'], $Value);
+    }
+
+    public static function appendFetchReplace(string $Text, string $SearchValue, string $Value): string
+    {
+        $const = "\x1C";
+
+        $Text = substr($Text, 1);
+        return '@;' . $SearchValue . $const . $Value . $const . $Text;
+    }
+
+    public static function lineBreak(string $Text, bool $EncodeLine = false): string
+    {
+        $encode = $EncodeLine ? '$[sln];' : '';
+        return str_replace(["\r\n", "\n", "\r"], $encode, $Text);
+    }
+
+    // Converts Numbers to Strings
+    public static function toJSString(string $Text): string
+    {
+        return '"' . $Text . '"';
+    }
+
+    // Get JS Object Momentary 
+    public static function toJSObject(string $Text): string
+    {
+        return '$' . $Text;
+    }
+
+    // Get JS Object Returned Value Once
+    public static function toJSReturnObject(string $Text): string
+    {
+        return '$@' . $Text;
     }
 }
 
-
-
-
+?>
