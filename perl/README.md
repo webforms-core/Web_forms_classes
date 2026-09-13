@@ -1,40 +1,35 @@
-## How to work with WebForms Core in Perl
+## How to work with WebForms Core in Perl (Mojolicious framework)
 
 To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
 
 ```perl
-#!/usr/bin/perl
-use strict;
-use warnings;
-use CGI;
-use lib '.'; # Add the current directory to @INC
-use WebForms;
+use Mojolicious::Lite;
 
-my $cgi = CGI->new;
+require './webforms.pm';
 
-# Check if the form is submitted
-if ($cgi->param('btn_SetBodyValue')) {
-    my $name = $cgi->param('txt_Name');
-    my $backgroundColor = $cgi->param('txt_BackgroundColor');
-    my $fontSize = $cgi->param('txt_FontSize');
+post '/' => sub {
+    my $c = shift;
+
+    my $name = $c->param('txt_Name');
+    my $backgroundColor = $c->param('txt_BackgroundColor');
+    my $fontSize = $c->param('txt_FontSize');
 
     my $form = WebForms->new;
 
-    $form->SetFontSize(InputPlace::Tag('form'), "$fontSize" . "px");
-    $form->SetBackgroundColor(InputPlace::Tag('form'), $backgroundColor);
-    $form->SetDisabled(InputPlace::Name('btn_SetBodyValue'), 1);
+    $form->set_font_size(InputPlace::tag('form'), "${fontSize}px");
+    $form->set_background_color(InputPlace::tag('form'), $backgroundColor);
+    $form->set_disabled(InputPlace::name('btn_SetBodyValue'), 1);
 
-    $form->AddTag(InputPlace::Tag('form'), 'h3');
-    $form->SetText(InputPlace::Tag('h3'), "Welcome $name!");
+    $form->add_tag(InputPlace::tag('form'), 'h3');
+    $form->set_text(InputPlace::tag('h3'), "Welcome $name!");
 
-    print $cgi->header('text/plain');
-    print $form->Response();
-    exit;
-}
+    $c->render(text => $form->response());
+};
 
-# Render the form if not submitted
-print $cgi->header('text/html');
-print <<"HTML";
+get '/' => sub {
+    my $c = shift;
+
+    $c->render(text => <<'HTML');
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,6 +52,9 @@ print <<"HTML";
 </body>
 </html>
 HTML
+};
+
+app->start;
 ```
 
 In the upper part of the View file, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
