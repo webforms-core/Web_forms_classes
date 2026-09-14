@@ -1,4 +1,4 @@
-# webforms.pm 2.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+# WebForms.pm 2.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
 # Compatible with WebFormsJS version 2.1
 
 package WebForms;
