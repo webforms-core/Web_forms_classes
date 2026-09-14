@@ -5,7 +5,7 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 ```perl
 use Mojolicious::Lite;
 
-require './webforms.pm';
+require './WebForms.pm';
 
 post '/' => sub {
     my $c = shift;
