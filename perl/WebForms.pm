@@ -2,6 +2,7 @@
 # Compatible with WebFormsJS version 2.1
 
 package WebForms;
+our $VERSION = '2.1.0';
 use strict;
 use warnings;
 use v5.36;
