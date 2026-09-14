@@ -110,6 +110,15 @@ st<h3>=Adriano! Your message was sent successfully.
 
 ---
 
+**AssemblyScript in npm** (https://www.npmjs.com/package/webformscore-wasm)
+
+CLI
+```bash
+npm install webformscore-wasm
+```
+
+---
+
 **C# (.NET) in NuGet** (https://www.nuget.org/packages/WFC)
 
 CLI
