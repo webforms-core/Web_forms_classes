@@ -34,7 +34,7 @@ get '/' => sub {
 <html>
 <head>
   <title>Using WebForms Core in Perl</title>
-  <script type="text/javascript" src="/script/web-forms.js"></script>
+  <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
     <form method="post" action="/">
