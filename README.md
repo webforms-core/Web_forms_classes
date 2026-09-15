@@ -171,6 +171,22 @@ npm install webformscore
 
 ---
 
+**Perl in CPAN** (https://metacpan.org/dist/WFC)
+
+CLI
+
+```bash
+cpanm WFC
+```
+
+or
+
+```bash
+cpan WFC
+```
+
+---
+
 **PHP in Packagist** (https://packagist.org/packages/webforms-core/php)
 
 CLI
