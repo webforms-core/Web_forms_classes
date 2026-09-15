@@ -12,6 +12,20 @@ In the WebForms Core architecture, the WebForms class acts as the **Commander**,
 
 [**WebForms Core**](https://github.com/webforms-core) is a server-driven web technology created by [**Elanat**](https://elanat.net). It allows developers to manage interactive HTML interfaces from server-side code without requiring a separate front-end layer.
 
+**What Exactly Is WebForms Class?**
+
+* Commander
+* Logic Engine
+* Workflow Engine
+* Controller
+* Command Pipeline
+* UI Orchestrator
+* UI Behavior Engine
+* Action Builder
+* Response Composer
+* DOM Operation Planner
+* Event Coordinator
+
 ## WebForms Core Example
 
 To use WebForms Core technology, you need to get the [**WebFormsJS**](https://github.com/elanatframework/Web_forms) library and add it to the `<head>` section of your HTML page.
