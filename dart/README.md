@@ -8,18 +8,26 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 
-import 'WebForms.dart';
+import 'webforms.dart';
 
 void main() async {
-  // Create a Shelf router
   var router = Router();
 
-  // Handle POST requests to the root path
+  router.get('/script/web-forms.js', (Request request) {
+    final file = File('web/script/web-forms.js');
+    if (!file.existsSync()) {
+      return Response.notFound('web-forms.js not found');
+    }
+    return Response.ok(
+      file.readAsStringSync(),
+      headers: {'Content-Type': 'application/javascript; charset=utf-8'},
+    );
+  });
+
   router.post('/', (Request request) async {
     var body = await request.readAsString();
     var formData = Uri.splitQueryString(body);
 
-    // Check if the button was clicked
     if (formData['btn_SetBodyValue'] != null) {
       var name = formData['txt_Name'] ?? '';
       var backgroundColor = formData['txt_BackgroundColor'] ?? '';
@@ -34,13 +42,26 @@ void main() async {
       form.addTag(InputPlace.tag('form'), 'h3');
       form.setText(InputPlace.tag('h3'), 'Welcome $name!');
 
-      return Response.ok(form.response(), headers: {'Content-Type': 'text/plain'});
+      return Response.ok(
+        form.response(),
+        headers: {'Content-Type': 'text/plain; charset=utf-8'},
+      );
     }
 
-    return Response.ok(_htmlForm(), headers: {'Content-Type': 'text/html'});
+    return Response.ok(
+      _htmlForm(),
+      headers: {'Content-Type': 'text/html; charset=utf-8'},
+    );
   });
 
-  var server = await io.serve(router, 'localhost', 8080);
+  router.get('/', (Request request) {
+    return Response.ok(
+      _htmlForm(),
+      headers: {'Content-Type': 'text/html; charset=utf-8'},
+    );
+  });
+
+  var server = await io.serve(router, InternetAddress.loopbackIPv4, 8080);
   print('Server running on http://${server.address.host}:${server.port}');
 }
 
@@ -50,11 +71,10 @@ String _htmlForm() {
 <html>
 <head>
   <title>Using WebForms Core</title>
-  <script type="text/javascript" src="/script/web-forms.js"></script>
+  <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
     <form method="post" action="/" >
-
         <label for="txt_Name">Your Name</label>
         <input name="txt_Name" id="txt_Name" type="text" />
         <br>
@@ -65,7 +85,6 @@ String _htmlForm() {
         <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
         <br>
         <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
-
     </form>
 </body>
 </html>
