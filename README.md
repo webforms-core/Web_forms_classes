@@ -147,6 +147,23 @@ Project settings
 
 ---
 
+**Dart in pub.dev** (https://pub.dev/packages/webforms)
+
+CLI
+
+```bash
+dart pub add webforms
+```
+
+Project settings
+
+```yaml
+dependencies:
+  webforms: ^2.1.0
+```
+
+---
+
 **GO module repository** (https://github.com/webforms-core/go)
 
 CLI
