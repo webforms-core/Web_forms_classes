@@ -147,7 +147,7 @@ Project settings
 
 ---
 
-**Dart in pub.dev** (https://pub.dev/packages/webforms)
+**Dart in Pub.dev** (https://pub.dev/packages/webforms)
 
 CLI
 
@@ -160,6 +160,26 @@ Project settings
 ```yaml
 dependencies:
   webforms: ^2.1.0
+```
+
+---
+
+**Elixir in Hex.pm** (https://hex.pm/packages/wfc)
+
+Project settings
+
+```elixir
+defp deps do
+  [
+    {:wfc, "~> 2.1"}
+  ]
+end
+```
+
+CLI
+
+```bash
+mix deps.get
 ```
 
 ---
