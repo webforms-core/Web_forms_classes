@@ -1,70 +1,114 @@
 ## How to work with WebForms Core in Elixir (Phoenix framework)
 
-To use WebForms Core, first copy the WebForms class file in this directory to your project. Then create a new View file similar to the one below.
+[WebForms Core](https://github.com/webforms-core) can be used with Elixir and the Phoenix framework to create server-controlled interactive web interfaces.
 
-Create a template file "default.html.eex" in the "templates/my" directory.
+In Phoenix, the `WebFormsCore` package provides the server-side WebForms classes used to build UI commands. The generated response is executed in the browser by WebFormsJS.
 
-View file
+The basic architecture is:
+
+`Phoenix Controller → WebForms → Commands → WebFormsJS → HTML DOM`
+
+### View
+
+Create a Phoenix view containing the HTML form and load the WebFormsJS runtime.
+
+For example, create an `index.html.heex` file:
+
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Using WebForms Core</title>
-  <script type="text/javascript" src="/script/web-forms.js"></script>
-</head>
-<body>
-    <form method="post" action="/" >
-        <label for="txt_Name">Your Name</label>
-        <input name="txt_Name" id="txt_Name" type="text" />
-        <br>
-        <label for="txt_FontSize">Set Font Size</label>
-        <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
-        <br>
-        <label for="txt_BackgroundColor">Set Background Color</label>
-        <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
-        <br>
-        <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
-    </form>
-</body>
-</html>
+<script type="module" src="/script/web-forms.js"></script>
+
+<form method="post" action="/">
+  <label for="txt_Name">Your Name</label>
+  <input name="txt_Name" id="txt_Name" type="text" />
+  <br>
+  <label for="txt_FontSize">Set Font Size</label>
+  <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
+  <br>
+  <label for="txt_BackgroundColor">Set Background Color</label>
+  <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
+  <br>
+  <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
+</form>
 ```
 
-Also, create a Controller class file as follows.
+The initial request displays the complete HTML view. When the form is submitted, Phoenix sends the form data to the controller, where WebForms Core generates the commands required to modify the existing HTML DOM.
 
-Controller class
+### Controller
+
+Create a controller such as `my_controller.ex`:
+
 ```elixir
 defmodule MyAppWeb.MyController do
   use MyAppWeb, :controller
 
-  # GET request handler
+  alias WebFormsCore.{WebForms, InputPlace}
+
   def index(conn, _params) do
-    render(conn, "default.html")
+    render(conn, :index)
   end
 
-  # POST request handler
   def submit(conn, %{
         "txt_Name" => name,
         "txt_BackgroundColor" => background_color,
         "txt_FontSize" => font_size,
         "btn_SetBodyValue" => _button
       }) do
+    form =
+      WebForms.new()
+      |> WebForms.set_font_size(InputPlace.tag("form"), String.to_integer(font_size))
+      |> WebForms.set_background_color(InputPlace.tag("form"), background_color)
+      |> WebForms.set_disabled(InputPlace.name("btn_SetBodyValue"), true)
+      |> WebForms.add_tag(InputPlace.tag("form"), "h3", nil)
+      |> WebForms.set_text(InputPlace.tag("h3"), "Welcome #{name}!")
 
-    form = WebForms.new()
-    form = WebForms.set_font_size(form, InputPlace.tag("form"), font_size)
-    form = WebForms.set_background_color(form, InputPlace.tag("form"), background_color)
-    form = WebForms.set_disabled(form, InputPlace.name("btn_SetBodyValue"), true)
-    form = WebForms.add_tag(form, InputPlace.tag("form"), "h3", nil)
-    form = WebForms.set_text(form, InputPlace.tag("h3"), "Welcome #{name}!")
-
-    response = WebForms.response(form)
-    text(conn, response)
+    text(conn, WebForms.response(form))
   end
 end
 ```
 
-Add routes for the controller in the Phoenix router.
+The controller creates a `WebForms` instance and adds UI commands to it. These commands are returned to the browser as the WebForms Core response.
 
-Router (router.ex)
+For example, the code:
+
+```elixir
+WebForms.set_font_size(InputPlace.tag("form"), String.to_integer(font_size))
+```
+
+generates a command that changes the font size of the `<form>` element.
+
+Similarly:
+
+```elixir
+WebForms.set_background_color(InputPlace.tag("form"), background_color)
+```
+
+changes the form background color, while:
+
+```elixir
+WebForms.set_disabled(InputPlace.name("btn_SetBodyValue"), true)
+```
+
+disables the submit button.
+
+The following commands add an `<h3>` element and set its text:
+
+```elixir
+WebForms.add_tag(InputPlace.tag("form"), "h3", nil)
+|> WebForms.set_text(InputPlace.tag("h3"), "Welcome #{name}!")
+```
+
+The controller finally returns the generated WebForms Core response:
+
+```elixir
+text(conn, WebForms.response(form))
+```
+
+WebFormsJS receives this response and executes the commands against the browser DOM.
+
+### Router
+
+Add routes for the controller to the Phoenix router:
+
 ```elixir
 defmodule MyAppWeb.Router do
   use MyAppWeb, :router
@@ -76,11 +120,18 @@ defmodule MyAppWeb.Router do
 end
 ```
 
-In the upper part of the View file, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
-Please note that if the submit button is not clicked (initial request), the view page will be displayed completely for the requester.
+The `GET /` route displays the initial view, while `POST /` processes the form submission and returns the WebForms Core commands.
 
-As you can see, the WebFormsJS script has been added in the header section of the View file above.
+### WebFormsJS
 
-The latest version of the WebFormsJS script is available through the link below.
+The WebFormsJS runtime is required in the browser to execute the commands generated by the server.
 
-https://github.com/elanatframework/Web_forms/blob/elanat_framework/web-forms.js
+Load it in the view:
+
+```html
+<script type="module" src="/script/web-forms.js"></script>
+```
+
+WebFormsJS acts as the browser-side executor of WebForms Core commands. It interprets the server response and applies the requested operations to the HTML DOM.
+
+The latest [WebFormsJS source](https://github.com/webforms-core/Web_forms) is available in the WebForms Core repository.
