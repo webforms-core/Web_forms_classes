@@ -3,10 +3,14 @@
 
 module WebFormsCore
 
+module WebForms
+
+function string(args...)
+    return join((a isa Nothing ? "" : Base.string(a) for a in args))
+end
+
 const GS = '\x1d'
 const US = '\x1f'
-
-module WebForms
 
 mutable struct Form
     data::String
