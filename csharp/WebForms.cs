@@ -1,1601 +1,1601 @@
-# WebForms.jl 2.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
-# Compatible with WebFormsJS version 2.1
+// WebForms.cs 2.1.1 - The Back-End Part of WebForms Core Technology, Owned by Elanat (https://elanat.net)
+// Compatible with WebFormsJS version 2.1
 
-module WebFormsCore
+using System.Text;
 
-module WebForms
-
-function string(args...)
-    return join((a isa Nothing ? "" : Base.string(a) for a in args))
-end
-
-const GS = '\x1d'
-const US = '\x1f'
-
-mutable struct Form
-    data::String
-    Form() = new("")
-end
-
-function add(w::Form, name::AbstractString, value::AbstractString)
-    if !isempty(w.data)
-        w.data *= "\n"
-    end
-
-    w.data *= name
-    w.data *= "="
-    w.data *= value
-end
-
-function add(w::Form, name::AbstractString)
-    if !isempty(w.data)
-        w.data *= "\n"
-    end
-
-    w.data *= name
-end
-
-function add_to_up(w::Form, name::AbstractString, value::AbstractString)
-    line = string(name, "=", value)
-
-    if !isempty(w.data)
-        line *= "\n"
-    end
-
-    w.data = line * w.data
-end
-
-function add_to_up(w::Form, name::AbstractString)
-    line = string(name)
-
-    if !isempty(w.data)
-        line *= "\n"
-    end
-
-    w.data = line * w.data
-end
-
-function get_line_by_index(w::Form, index::Integer)
-    if isempty(w.data)
-        return ""
-    end
-
-    lines = split(w.data, '\n')
-
-    if index < 0
-        index = length(lines) + index
-    end
-
-    if index < 0 || index >= length(lines)
-        return ""
-    end
-
-    return String(lines[index + 1])
-end
-
-function update_line_by_index(w::Form, index::Integer, name::AbstractString, value::AbstractString)
-    if isempty(w.data)
-        return
-    end
-
-    lines = split(w.data, '\n')
-
-    if index < 0
-        index = length(lines) + index
-    end
-
-    if index < 0 || index >= length(lines)
-        return
-    end
-
-    lines[index + 1] = string(name, isempty(value) ? "" : "=" * value)
-
-    w.data = join(lines, "\n")
-end
-
-# For Extension
-add_line(w::Form, name::AbstractString, value::AbstractString) = add(w, name, value)
-
-# Add
-# Creates the Data if it does not exist; otherwise, Appends the New Value to the Existing Value.
-add_id(w::Form, input_place::AbstractString, id::AbstractString) = add(w, "ai" * input_place, id)
-add_name(w::Form, input_place::AbstractString, name::AbstractString) = add(w, "an" * input_place, name)
-add_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "av" * input_place, value)
-add_class(w::Form, input_place::AbstractString, class::AbstractString) = add(w, "ac" * input_place, class)
-add_style(w::Form, input_place::AbstractString, style::AbstractString) = add(w, "as" * input_place, style)
-add_style(w::Form, input_place::AbstractString, name::AbstractString, value::AbstractString) = add(w, "as" * input_place, string(name, ':', value))
-add_option_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, selected::Bool=false) = add(w, "ao" * input_place, string(value, GS, text, selected ? string(GS, "1") : ""))
-add_check_box_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, checked::Bool=false) = add(w, "ak" * input_place, string(value, GS, text, checked ? string(GS, "1") : ""))
-add_title(w::Form, input_place::AbstractString, title::AbstractString) = add(w, "al" * input_place, title)
-add_label(w::Form, input_place::AbstractString, label::AbstractString) = add(w, "aA" * input_place, label)
-add_text(w::Form, input_place::AbstractString, text::AbstractString) = add(w, "at" * input_place, replace(text, "\n" => "\$[ln];"))
-add_text_to_up(w::Form, input_place::AbstractString, text::AbstractString) = add(w, "pt" * input_place, replace(text, "\n" => "\$[ln];"))
-add_attribute(w::Form, input_place::AbstractString, attribute::AbstractString, value::AbstractString="", splitter::Char='\0') = add(w, "aa" * input_place, string(attribute, GS, splitter != '\0' ? string(splitter) : "", isempty(value) ? "" : string(GS, value)))
-add_tag(w::Form, input_place::AbstractString, tag_name::AbstractString, id::AbstractString="") = add(w, "nt" * input_place, string(tag_name, isempty(id) ? "" : string(GS, id)))
-add_tag_to_up(w::Form, input_place::AbstractString, tag_name::AbstractString, id::AbstractString="") = add(w, "ut" * input_place, string(tag_name, isempty(id) ? "" : string(GS, id)))
-add_tag_before(w::Form, input_place::AbstractString, tag_name::AbstractString, id::AbstractString="") = add(w, "bt" * input_place, string(tag_name, isempty(id) ? "" : string(GS, id)))
-add_tag_after(w::Form, input_place::AbstractString, tag_name::AbstractString, id::AbstractString="") = add(w, "ft" * input_place, string(tag_name, isempty(id) ? "" : string(GS, id)))
-add_hidden(w::Form, input_place::AbstractString, name::AbstractString, value::AbstractString, id::AbstractString="") = add(w, "ah" * input_place, string(name, GS, value, isempty(id) ? "" : string(GS, id)))
-
-# Set
-# Creates the Data if it does not exist; otherwise, Replaces the Existing Value with the New Value.
-set_id(w::Form, input_place::AbstractString, id::AbstractString) = add(w, "si" * input_place, id)
-set_name(w::Form, input_place::AbstractString, name::AbstractString) = add(w, "sn" * input_place, name)
-set_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "sv" * input_place, value)
-set_class(w::Form, input_place::AbstractString, class::AbstractString) = add(w, "sc" * input_place, class)
-set_style(w::Form, input_place::AbstractString, style::AbstractString) = add(w, "ss" * input_place, style)
-set_style(w::Form, input_place::AbstractString, name::AbstractString, value::AbstractString) = add(w, "ss" * input_place, string(name, ':', value))
-set_option_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, selected::Bool=false) = add(w, "so" * input_place, string(value, GS, text, selected ? string(GS, "1") : ""))
-set_checked(w::Form, input_place::AbstractString, checked::Bool=false) = add(w, "sk" * input_place, checked ? "1" : "0")
-set_check_box_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, checked::Bool=false) = add(w, "sk" * input_place, string(value, GS, text, checked ? string(GS, "1") : ""))
-set_title(w::Form, input_place::AbstractString, title::AbstractString) = add(w, "sl" * input_place, title)
-set_label(w::Form, input_place::AbstractString, label::AbstractString) = add(w, "sA" * input_place, label)
-set_text(w::Form, input_place::AbstractString, text::AbstractString) = add(w, "st" * input_place, replace(text, "\n" => "\$[ln];"))
-set_attribute(w::Form, input_place::AbstractString, attribute::AbstractString, value::AbstractString="") = add(w, "sa" * input_place, string(attribute, GS, isempty(value) ? "" : string(GS, value)))
-set_width(w::Form, input_place::AbstractString, width::AbstractString) = add(w, "sw" * input_place, width)
-set_width(w::Form, input_place::AbstractString, width::Integer) = set_width(w, input_place, string(width, "px"))
-set_height(w::Form, input_place::AbstractString, height::AbstractString) = add(w, "sh" * input_place, height)
-set_height(w::Form, input_place::AbstractString, height::Integer) = set_height(w, input_place, string(height, "px"))
-set_background_color(w::Form, input_place::AbstractString, color::AbstractString) = add(w, "bc" * input_place, color)
-set_text_color(w::Form, input_place::AbstractString, color::AbstractString) = add(w, "tc" * input_place, color)
-set_font_name(w::Form, input_place::AbstractString, name::AbstractString) = add(w, "fn" * input_place, name)
-set_font_size(w::Form, input_place::AbstractString, size::AbstractString) = add(w, "fs" * input_place, size)
-set_font_size(w::Form, input_place::AbstractString, size::Integer) = add(w, "fs" * input_place, string(size, "px"))
-set_font_bold(w::Form, input_place::AbstractString, bold::Bool) = add(w, "fb" * input_place, bold ? "1" : "0")
-set_visible(w::Form, input_place::AbstractString, visible::Bool) = add(w, "vi" * input_place, visible ? "1" : "0")
-set_text_align(w::Form, input_place::AbstractString, align::AbstractString) = add(w, "ta" * input_place, align)
-set_read_only(w::Form, input_place::AbstractString, read_only::Bool) = add(w, "sr" * input_place, read_only ? "1" : "0")
-set_disabled(w::Form, input_place::AbstractString, disabled::Bool) = add(w, "sd" * input_place, disabled ? "1" : "0")
-set_focus(w::Form, input_place::AbstractString, focus::Bool) = add(w, "sf" * input_place, focus ? "1" : "0")
-set_min_length(w::Form, input_place::AbstractString, length::AbstractString) = add(w, "mn" * input_place, length)
-set_min_length(w::Form, input_place::AbstractString, length::Integer) = set_min_length(w, input_place, string(length))
-set_max_length(w::Form, input_place::AbstractString, length::AbstractString) = add(w, "mx" * input_place, length)
-set_max_length(w::Form, input_place::AbstractString, length::Integer) = set_max_length(w, input_place, string(length))
-set_selected_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "ts" * input_place, value)
-set_selected_index(w::Form, input_place::AbstractString, index::AbstractString) = add(w, "ti" * input_place, index)
-set_selected_index(w::Form, input_place::AbstractString, index::Integer) = set_selected_index(w, input_place, string(index))
-set_checked_value(w::Form, input_place::AbstractString, value::AbstractString, checked::Bool) = add(w, "ks" * input_place, string(value, GS, checked ? "1" : "0"))
-set_checked_index(w::Form, input_place::AbstractString, index::AbstractString, checked::Bool) = add(w, "ki" * input_place, string(index, GS, checked ? "1" : "0"))
-set_checked_index(w::Form, input_place::AbstractString, index::Integer, checked::Bool) = set_checked_index(w, input_place, string(index), checked)
-
-# Insert
-# Creates the Data only if it does not exist; otherwise, does nothing.
-insert_id(w::Form, input_place::AbstractString, id::AbstractString) = add(w, "ii" * input_place, id)
-insert_name(w::Form, input_place::AbstractString, name::AbstractString) = add(w, "in" * input_place, name)
-insert_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "iv" * input_place, value)
-insert_class(w::Form, input_place::AbstractString, class::AbstractString) = add(w, "ic" * input_place, class)
-insert_style(w::Form, input_place::AbstractString, style::AbstractString) = add(w, "is" * input_place, style)
-insert_style(w::Form, input_place::AbstractString, name::AbstractString, value::AbstractString) = add(w, "is" * input_place, string(name, ':', value))
-insert_option_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, selected::Bool=false) = add(w, "io" * input_place, string(value, GS, text, selected ? string(GS, "1") : ""))
-insert_check_box_tag(w::Form, input_place::AbstractString, text::AbstractString, value::AbstractString, checked::Bool=false) = add(w, "ik" * input_place, string(value, GS, text, checked ? string(GS, "1") : ""))
-insert_title(w::Form, input_place::AbstractString, title::AbstractString) = add(w, "il" * input_place, title)
-insert_label(w::Form, input_place::AbstractString, label::AbstractString) = add(w, "iA" * input_place, label)
-insert_text(w::Form, input_place::AbstractString, text::AbstractString) = add(w, "it" * input_place, replace(text, "\n" => "\$[ln];"))
-insert_attribute(w::Form, input_place::AbstractString, attribute::AbstractString, value::AbstractString="", splitter::Char='\0') = add(w, "ia" * input_place, string(attribute, GS, splitter != '\0' ? string(splitter) : "", isempty(value) ? "" : string(GS, value)))
-
-# Delete
-delete_id(w::Form, input_place::AbstractString) = add(w, "di" * input_place)
-delete_name(w::Form, input_place::AbstractString) = add(w, "dn" * input_place)
-delete_value(w::Form, input_place::AbstractString) = add(w, "dv" * input_place)
-delete_class(w::Form, input_place::AbstractString, class_name::AbstractString) = add(w, "dc" * input_place, class_name)
-delete_style(w::Form, input_place::AbstractString, style_name::AbstractString) = add(w, "ds" * input_place, style_name)
-delete_option_tag(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "do" * input_place, value)
-delete_all_option_tag(w::Form, input_place::AbstractString) = add(w, "do" * input_place, "*")
-delete_check_box_tag(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "dk" * input_place, value)
-delete_all_check_box_tag(w::Form, input_place::AbstractString) = add(w, "dk" * input_place, "*")
-delete_title(w::Form, input_place::AbstractString) = add(w, "dl" * input_place)
-delete_label(w::Form, input_place::AbstractString) = add(w, "dA" * input_place)
-delete_text(w::Form, input_place::AbstractString) = add(w, "dt" * input_place)
-delete_attribute(w::Form, input_place::AbstractString, attribute::AbstractString) = add(w, "da" * input_place, attribute)
-delete(w::Form, input_place::AbstractString) = add(w, "de" * input_place)
-delete_parent(w::Form, input_place::AbstractString) = add(w, "dp" * input_place)
-
-# Tag
-swap_tag(w::Form, input_place::AbstractString, output_place::AbstractString) = add(w, "sp" * input_place, output_place)
-set_reflection(w::Form, input_place::AbstractString, tag::AbstractString) = add(w, "sR" * input_place, tag)
-set_reflection_by_output_place(w::Form, input_place::AbstractString, output_place::AbstractString) = add(w, "iR" * input_place, output_place)
-set_morph(w::Form, input_place::AbstractString, tag::AbstractString) = add(w, "sM" * input_place, tag)
-set_morph_by_output_place(w::Form, input_place::AbstractString, output_place::AbstractString) = add(w, "iM" * input_place, output_place)
-
-# Browser
-change_url(w::Form, url::AbstractString) = add(w, "cu", url)
-set_head_title(w::Form, title::AbstractString) = add(w, "ht", title)
-clipboard_write_text(w::Form, text::AbstractString) = add(w, "nw", text)
-scroll_to(w::Form, x::AbstractString, y::AbstractString) = add(w, "ws", string(x, GS, y))
-scroll_to(w::Form, x::Integer, y::Integer) = scroll_to(w, string(x), string(y))
-history_go(w::Form, steps::AbstractString) = add(w, "wg", steps)
-history_go(w::Form, steps::Integer) = history_go(w, string(steps))
-reload_page(w::Form) = add(w, "lr")
-redirect(w::Form, path::AbstractString) = add(w, "lh", path)
-
-# Increase
-increase_min_length(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+n" * input_place, value)
-increase_min_length(w::Form, input_place::AbstractString, value::Integer) = increase_min_length(w, input_place, string(value))
-increase_max_length(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+x" * input_place, value)
-increase_max_length(w::Form, input_place::AbstractString, value::Integer) = increase_max_length(w, input_place, string(value))
-increase_font_size(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+f" * input_place, value)
-increase_font_size(w::Form, input_place::AbstractString, value::Integer) = increase_font_size(w, input_place, string(value))
-increase_width(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+w" * input_place, value)
-increase_width(w::Form, input_place::AbstractString, value::Integer) = increase_width(w, input_place, string(value))
-increase_height(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+h" * input_place, value)
-increase_height(w::Form, input_place::AbstractString, value::Integer) = increase_height(w, input_place, string(value))
-increase_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "+v" * input_place, value)
-increase_value(w::Form, input_place::AbstractString, value::Integer) = increase_value(w, input_place, string(value))
-
-# Decrease
-decrease_min_length(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-n" * input_place, value)
-decrease_min_length(w::Form, input_place::AbstractString, value::Integer) = decrease_min_length(w, input_place, string(value))
-decrease_max_length(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-x" * input_place, value)
-decrease_max_length(w::Form, input_place::AbstractString, value::Integer) = decrease_max_length(w, input_place, string(value))
-decrease_font_size(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-f" * input_place, value)
-decrease_font_size(w::Form, input_place::AbstractString, value::Integer) = decrease_font_size(w, input_place, string(value))
-decrease_width(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-w" * input_place, value)
-decrease_width(w::Form, input_place::AbstractString, value::Integer) = decrease_width(w, input_place, string(value))
-decrease_height(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-h" * input_place, value)
-decrease_height(w::Form, input_place::AbstractString, value::Integer) = decrease_height(w, input_place, string(value))
-decrease_value(w::Form, input_place::AbstractString, value::AbstractString) = add(w, "-v" * input_place, value)
-decrease_value(w::Form, input_place::AbstractString, value::Integer) = decrease_value(w, input_place, string(value))
-
-# Event
-# ConstructorName: mouseevent, keyboardevent, uievent, focusevent, inputevent, event
-# All Method in "Event" Section Only Support Dynamic Args Once. To Support Invoking Dynamic Arguments on a Momentary Basis, Use "EventListener" Section Methods.
-trigger_event(w::Form, input_place::AbstractString, html_event_listener::AbstractString, constructor_name::Union{Nothing, AbstractString}=nothing) = add(w, "TE" * input_place, string(html_event_listener, !isnothing(constructor_name) && !isempty(constructor_name) ? string(GS, constructor_name) : ""))
-set_post_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ep" * input_place, html_event)
-set_post_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString) = add(w, "Ep" * input_place, string(html_event, GS, output_place))
-set_post_event_add_view(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ep" * input_place, string(html_event, GS, "+"))
-set_post_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "EP" * input_place, html_event_listener)
-set_post_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString) = add(w, "EP" * input_place, string(html_event_listener, GS, output_place))
-set_post_event_listener_add_view(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "EP" * input_place, string(html_event_listener, GS, "+"))
-set_get_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Eg" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_get_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Eg" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_get_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EG" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_get_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EG" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_put_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Et" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_put_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Et" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_put_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "ET" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_put_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "ET" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_patch_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Ea" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_patch_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Ea" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_patch_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EA" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_patch_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EA" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_delete_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "El" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_delete_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "El" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_delete_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EL" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_delete_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EL" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_options_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Eo" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_options_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Eo" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_options_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EO" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_options_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EO" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#", GS, output_place))
-set_head_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "Eh" * input_place, string(html_event, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-set_head_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "EH" * input_place, string(html_event_listener, GS, !isnothing(path) && !isempty(path) ? path : "#"))
-# IsMultiPart: If this value is true, the data will be sent based on the Form and with the "content" key.
-set_send_event(w::Form, input_place::AbstractString, html_event::AbstractString, data::AbstractString, path::Union{Nothing, AbstractString}=nothing, method::AbstractString="POST", is_multi_part::Bool=false, content_type::AbstractString="text/plain", output_place::Union{Nothing, AbstractString}=nothing) = add(w, "En" * input_place, string(html_event, GS, replace(replace(replace(data, "\n" => "\$[ln];"), "\"" => "\$[dq];"), "'" => "\$[sq];"), GS, !isnothing(path) && !isempty(path) ? path : "#", GS, method, GS, is_multi_part ? "1" : "0", GS, content_type, GS, output_place))
-set_send_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, data::AbstractString, path::Union{Nothing, AbstractString}=nothing, method::AbstractString="POST", is_multi_part::Bool=false, content_type::AbstractString="text/plain", output_place::Union{Nothing, AbstractString}=nothing) = add(w, "EN" * input_place, string(html_event_listener, GS, replace(data, "\n" => "\$[ln];"), GS, !isnothing(path) && !isempty(path) ? path : "#", GS, method, GS, is_multi_part ? "1" : "0", GS, content_type, GS, output_place))
-set_comment_event(w::Form, input_place::AbstractString, html_event::AbstractString, index::Union{Nothing, AbstractString}=nothing, output_place::Union{Nothing, AbstractString}=nothing) = add(w, "Eb" * input_place, string(html_event, GS, index, GS, output_place))
-set_comment_event(w::Form, input_place::AbstractString, html_event::AbstractString, index::Integer, output_place::Union{Nothing, AbstractString}=nothing) = set_comment_event(w, input_place, html_event, string(index), output_place)
-set_comment_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, index::Union{Nothing, AbstractString}=nothing, output_place::Union{Nothing, AbstractString}=nothing) = add(w, "EB" * input_place, string(html_event_listener, GS, index, GS, output_place))
-set_comment_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, index::Integer, output_place::Union{Nothing, AbstractString}=nothing) = set_comment_event_listener(w, input_place, html_event_listener, string(index), output_place)
-
-function set_wasm_event(w::Form, input_place::AbstractString, html_event::AbstractString, wasm_language::AbstractString, wasm_url::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? "[" * join(args, US) : ""
-    end
-
-    add(w, "Ey" * input_place, string(html_event, GS, wasm_language, GS, wasm_url, GS, method_name, GS, args_join, GS, output_place))
-end
-
-function set_wasm_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, wasm_language::AbstractString, wasm_url::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? "[" * join(args, US) : ""
-    end
-
-    add(w, "EY" * input_place, string(html_event_listener, GS, wasm_language, GS, wasm_url, GS, method_name, GS, args_join, GS, output_place))
-end
-
-set_web_socket_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::AbstractString) = add(w, "Ew" * input_place, string(html_event, GS, path))
-set_web_socket_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::AbstractString) = add(w, "EW" * input_place, string(html_event_listener, GS, path))
-set_sse_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::AbstractString, should_reconnect::Bool=true, reconnect_try_timeout::Integer=3000) = add(w, "Ee" * input_place, string(html_event, GS, path, GS, should_reconnect ? "1" : "0", GS, reconnect_try_timeout))
-set_sse_event(w::Form, input_place::AbstractString, html_event::AbstractString, path::AbstractString, output_place::AbstractString, should_reconnect::Bool=true, reconnect_try_timeout::Integer=3000) = add(w, "Ee" * input_place, string(html_event, GS, path, GS, should_reconnect ? "1" : "0", GS, reconnect_try_timeout, GS, output_place))
-set_sse_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::AbstractString, should_reconnect::Bool=true, reconnect_try_timeout::Integer=3000) = add(w, "EE" * input_place, string(html_event_listener, GS, path, GS, should_reconnect ? "1" : "0", GS, reconnect_try_timeout))
-set_sse_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, path::AbstractString, output_place::AbstractString, should_reconnect::Bool=true, reconnect_try_timeout::Integer=3000) = add(w, "EE" * input_place, string(html_event_listener, GS, path, GS, should_reconnect ? "1" : "0", GS, reconnect_try_timeout, GS, output_place))
-
-function set_front_event(w::Form, input_place::AbstractString, html_event::AbstractString, module_path::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "Ej" * input_place, string(html_event, GS, module_path, GS, output_place, args_join))
-end
-
-function set_front_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, module_path::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "EJ" * input_place, string(html_event_listener, GS, module_path, GS, output_place, args_join))
-end
-
-set_master_pages_event(w::Form, input_place::AbstractString, html_event::AbstractString, output_place::Union{Nothing, AbstractString}=nothing) = add(w, "Eu" * input_place, string(html_event, GS, output_place))
-set_master_pages_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, output_place::Union{Nothing, AbstractString}=nothing) = add(w, "EU" * input_place, string(html_event_listener, GS, output_place))
-set_prevent_default_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ed" * input_place, html_event)
-set_prevent_default_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "ED" * input_place, html_event_listener)
-set_stop_propagation_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Es" * input_place, html_event)
-set_stop_propagation_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "ES" * input_place, html_event_listener)
-
-function set_method_event(w::Form, input_place::AbstractString, html_event::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "Em" * input_place, string(html_event, GS, method_name, args_join))
-end
-
-function set_method_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "EM" * input_place, string(html_event_listener, GS, method_name, args_join))
-end
-
-function set_module_method_event(w::Form, input_place::AbstractString, html_event::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "Ex" * input_place, string(html_event, GS, method_name, args_join))
-end
-
-function set_module_method_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "EX" * input_place, string(html_event_listener, GS, method_name, args_join))
-end
-
-assign_confirm_event(w::Form, input_place::AbstractString, html_event::AbstractString, text::AbstractString="Are you sure you want to proceed?", type::AbstractString="none", title::AbstractString="Confirm", ok_text::AbstractString="OK", cancel_text::AbstractString="Cancel") = add(w, "Ef" * input_place, string(html_event, GS, text == "Are you sure you want to proceed?" ? "" : text, GS, type == "none" ? "" : type, GS, title == "Confirm" ? "" : title, GS, ok_text == "OK" ? "" : ok_text, GS, cancel_text == "Cancel" ? "" : cancel_text))
-remove_post_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rp" * input_place, html_event)
-remove_post_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RP" * input_place, html_event_listener)
-remove_get_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rg" * input_place, html_event)
-remove_get_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RG" * input_place, html_event_listener)
-remove_put_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rt" * input_place, html_event)
-remove_put_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RT" * input_place, html_event_listener)
-remove_patch_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ra" * input_place, html_event)
-remove_patch_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RA" * input_place, html_event_listener)
-remove_delete_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rl" * input_place, html_event)
-remove_delete_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RL" * input_place, html_event_listener)
-remove_options_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ro" * input_place, html_event)
-remove_options_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RO" * input_place, html_event_listener)
-remove_head_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rh" * input_place, html_event)
-remove_head_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RH" * input_place, html_event_listener)
-remove_send_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rn" * input_place, html_event)
-remove_send_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RN" * input_place, html_event_listener)
-remove_comment_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rb" * input_place, html_event)
-remove_comment_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RB" * input_place, html_event_listener)
-remove_wasm_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ry" * input_place, html_event)
-remove_wasm_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RY" * input_place, html_event_listener)
-remove_web_socket_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rw" * input_place, html_event)
-remove_web_socket_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RW" * input_place, html_event_listener)
-remove_sse_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Re" * input_place, html_event)
-remove_sse_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RE" * input_place, html_event_listener)
-remove_front_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rj" * input_place, html_event)
-remove_front_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RJ" * input_place, html_event_listener)
-remove_prevent_default_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rd" * input_place, html_event)
-remove_prevent_default_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RD" * input_place, html_event_listener)
-remove_master_pages_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Ru" * input_place, html_event)
-remove_master_pages_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RU" * input_place, html_event_listener)
-remove_stop_propagation_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rs" * input_place, html_event)
-remove_stop_propagation_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString) = add(w, "RS" * input_place, html_event_listener)
-remove_method_event(w::Form, input_place::AbstractString, html_event::AbstractString, method_name::AbstractString) = add(w, "Rm" * input_place, string(html_event, GS, method_name))
-remove_method_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, method_name::AbstractString) = add(w, "RM" * input_place, string(html_event_listener, GS, method_name))
-remove_module_method_event(w::Form, input_place::AbstractString, html_event::AbstractString, method_name::AbstractString) = add(w, "Rx" * input_place, string(html_event, GS, method_name))
-remove_module_method_event_listener(w::Form, input_place::AbstractString, html_event_listener::AbstractString, method_name::AbstractString) = add(w, "RX" * input_place, string(html_event_listener, GS, method_name))
-remove_confirm_event(w::Form, input_place::AbstractString, html_event::AbstractString) = add(w, "Rf" * input_place, html_event)
-
-# Custom Event
-# This Method Is Compatible With EventListener And May Not Be Compatible With Events Written As Attributes In Some Browsers.
-# Watch: attribute, style, text, children, value
-# Compare: greater, less, equal, notequal, includes, startswith, endswith, matches, changed, inrange, lengthgreater, lengthless, lengthequal
-# Range: Only Use For Compare With inrange Value. Split By Comma ","
-# Key: Only Use For Watch With attribute And style Value
-create_custom_dom_event(w::Form, input_place::AbstractString, event_name::AbstractString, watch::AbstractString, key::AbstractString, compare::AbstractString, value::AbstractString, range::AbstractString, immediate::Bool=false, delay::AbstractString="0") = add(w, "eC" * input_place, string(event_name, GS, watch, GS, key, GS, compare, GS, value, GS, range, GS, immediate ? "1" : "0", GS, delay))
-create_custom_dom_event(w::Form, input_place::AbstractString, event_name::AbstractString, watch::AbstractString, key::AbstractString, compare::AbstractString, value::AbstractString, range::AbstractString, immediate::Bool, delay::Integer) = create_custom_dom_event(w, input_place, event_name, watch, key, compare, value, range, immediate, string(delay))
-enable_scroll_bottom_event(w::Form, enable::Bool=true) = add(w, "eb", enable ? "1" : "0")
-enable_reached_element_event(w::Form, input_place::AbstractString, once::Bool, enable::Bool=true) = add(w, "er" * input_place, string(once ? "1" : "0", GS, enable ? "1" : "0"))
-
-# Module
-function load_module(w::Form, module_path::AbstractString, methods::Union{Nothing, Vector{String}}=nothing)
-    if isnothing(methods)
-        methods = String[]
-    end
-    add(w, "Ml", module_path * ((length(methods) > 0) ? string(GS, "[") * join(methods, US) : ""))
-end
-unload_module(w::Form, module_path::AbstractString) = add(w, "Mu", module_path)
-delete_module_method(w::Form, method_name::AbstractString) = add(w, "Md", method_name)
-
-# Unit Testing
-# InputPlace Is Actual, Expected Is Tag/OutputPlace
-assert_equal(w::Form, input_place::AbstractString, tag::AbstractString) = add(w, "At" * input_place, replace(tag, "\n" => "\$[ln];"))
-assert_equal_by_output_place(w::Form, input_place::AbstractString, output_place::AbstractString) = add(w, "Ao" * input_place, output_place)
-
-# Debug
-create_debugger(w::Form, pause::Bool=false) = add(w, "Dc", pause ? "1" : "0")
-
-# Service Worker
-# To Use Service Worker, You Need To Add The Elanat Dedicated Module (service-worker.js) On The Client Side
-service_worker_register(w::Form, path::Union{Nothing, AbstractString}=nothing, scope_path::Union{Nothing, AbstractString}=nothing) = add(w, "wR", string(path, GS, scope_path))
-service_worker_pre_cache_static(w::Form, path_list::Vector{String}) = add(w, "wp", join(path_list, GS))
-service_worker_dynamic_cache(w::Form, path::AbstractString, seconds::AbstractString="") = add(w, "wc", path * (seconds != "" ? string(GS, seconds) : ""))
-service_worker_dynamic_cache(w::Form, path::AbstractString, seconds::Integer) = service_worker_dynamic_cache(w, path, seconds > 0 ? string(seconds) : "")
-service_worker_delete_dynamic_cache(w::Form) = add(w, "wd")
-service_worker_delete_dynamic_cache(w::Form, path::AbstractString) = add(w, "wd", path)
-service_worker_dynamic_cache_ttl_update(w::Form, path::AbstractString, seconds::AbstractString="") = add(w, "wt", path * (seconds != "" ? string(GS, seconds) : ""))
-service_worker_dynamic_cache_ttl_update(w::Form, path::AbstractString, seconds::Integer) = service_worker_dynamic_cache_ttl_update(w, path, seconds > 0 ? string(seconds) : "")
-# Path: Support Wildcard Automatically And Also Support Regex If Use "re:" Before Pattern
-# Type: Type Is Cache Strategy. cachefirst, networkfirst, cacheonly, networkonly, stalerevalidate (Fast From Cache, Updates Simultaneously From The Network)
-# CacheDynamic: If True, Any Successful Network Response For That Route Will Be Stored In The Dynamic Cache
-service_worker_route_set(w::Form, path::AbstractString, type::AbstractString, cache_dynamic::Bool=false) = add(w, "wr", string(path, GS, type, cache_dynamic ? string(GS, "1") : ""))
-service_worker_route_alias(w::Form, path::AbstractString, to::AbstractString) = add(w, "wa", string(path, GS, to))
-service_worker_delete_route_alias(w::Form, path::Union{Nothing, AbstractString}=nothing) = add(w, "wC", path)
-# Delete All Route And Alias
-service_worker_delete_route(w::Form) = add(w, "wD")
-service_worker_delete_route(w::Form, path::AbstractString) = add(w, "wD", path)
-
-# SSE
-disconnect_sse(w::Form, path::AbstractString) = add(w, "Ds", path)
-disconnect_all_sse(w::Form) = add(w, "Ds")
-
-# State
-add_state(w::Form, path::Union{Nothing, AbstractString}=nothing, title::Union{Nothing, AbstractString}=nothing) = add(w, "AS", string(path, GS, title))
-save_state(w::Form, path::Union{Nothing, AbstractString}=nothing, title::Union{Nothing, AbstractString}=nothing) = add(w, "As", string(path, GS, title))
-load_state(w::Form, path::AbstractString) = add(w, "ls", path)
-delete_state(w::Form, path::Union{Nothing, AbstractString}=nothing) = add(w, "DS", path)
-delete_all_state(w::Form) = add(w, "DS", "*")
-
-# Cookie
-set_cookie(w::Form, key::AbstractString, value::AbstractString, seconds::AbstractString, path::Union{Nothing, AbstractString}=nothing) = add(w, "sC", string(key, GS, value, GS, seconds, !isnothing(path) && !isempty(path) ? string(GS, path) : ""))
-set_cookie(w::Form, key::AbstractString, value::AbstractString, seconds::Integer, path::Union{Nothing, AbstractString}=nothing) = set_cookie(w, key, value, string(seconds), path)
-
-# Save (Session Cache)
-save_id(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gi" * input_place, key)
-save_name(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gn" * input_place, key)
-save_value(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gv" * input_place, key)
-save_value_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@ge" * input_place, key)
-save_class(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gc" * input_place, key)
-save_style(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gs" * input_place, key)
-save_title(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gl" * input_place, key)
-save_label(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gA" * input_place, key)
-save_text(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gt" * input_place, key)
-save_outer_text(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@go" * input_place, key)
-save_text_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gg" * input_place, key)
-save_attribute(w::Form, input_place::AbstractString, attribute::AbstractString, key::AbstractString=".") = add(w, "@ga" * input_place, string(key, GS, attribute))
-save_width(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gw" * input_place, key)
-save_height(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gh" * input_place, key)
-save_read_only(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gr" * input_place, key)
-save_selected_index(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gx" * input_place, key)
-save_text_align(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gT" * input_place, key)
-save_node_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gL" * input_place, key)
-save_visible(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gV" * input_place, key)
-save_url(w::Form, url::AbstractString, fetch_script::Bool=false, key::AbstractString=".") = add(w, "@gu", string(key, GS, url, fetch_script ? string(GS, "1") : ""))
-save_index(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@gI" * input_place, key)
-remove_save(w::Form, cache_key::AbstractString) = add(w, "rs", cache_key)
-remove_all_save(w::Form) = add(w, "rs", "*")
-# Calling the SetSave Method Causes Action Control Requests Triggered by Events Using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send Event, to be Temporarily Saved on the Active Page, so the Request will not be Sent to the Server Again.
-set_save(w::Form) = add(w, "cs", "*")
-add_save_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "SA", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-insert_save_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "SI", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-append_save_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "SP", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-replace_save_value(w::Form, cache_key::AbstractString, search_value::AbstractString, value::AbstractString) = add(w, "SR", string(cache_key, GS, replace(value, "\n" => "\$[ln];"), GS, replace(search_value, "\n" => "\$[ln];")))
-
-# Cache
-cache_id(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@ci" * input_place, key)
-cache_name(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cn" * input_place, key)
-cache_value(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cv" * input_place, key)
-cache_value_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@ce" * input_place, key)
-cache_class(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cc" * input_place, key)
-cache_style(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cs" * input_place, key)
-cache_title(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cl" * input_place, key)
-cache_label(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cA" * input_place, key)
-cache_text(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@ct" * input_place, key)
-cache_outer_text(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@co" * input_place, key)
-cache_text_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cg" * input_place, key)
-cache_attribute(w::Form, input_place::AbstractString, attribute::AbstractString, key::AbstractString=".") = add(w, "@ca" * input_place, string(key, GS, attribute))
-cache_width(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cw" * input_place, key)
-cache_height(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@ch" * input_place, key)
-cache_read_only(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cr" * input_place, key)
-cache_selected_index(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cx" * input_place, key)
-cache_text_align(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cT" * input_place, key)
-cache_node_length(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cL" * input_place, key)
-cache_visible(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cV" * input_place, key)
-cache_url(w::Form, url::AbstractString, fetch_script::Bool=false, key::AbstractString=".") = add(w, "@cu", string(key, GS, url, fetch_script ? string(GS, "1") : ""))
-cache_index(w::Form, input_place::AbstractString, key::AbstractString=".") = add(w, "@cI" * input_place, key)
-remove_cache(w::Form, cache_key::AbstractString) = add(w, "rd", cache_key)
-remove_all_cache(w::Form) = add(w, "rd", "*")
-# Calling the SetCache Method Causes Action Control Requests Triggered by events using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send event, to be Cached, so the Request will not be Sent to the Server Again.
-set_cache(w::Form, second::AbstractString) = add(w, "cd", second)
-set_cache(w::Form, second::Integer) = set_cache(w, string(second))
-set_cache(w::Form) = add(w, "cd", "*")
-add_cache_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "CA", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-insert_cache_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "CI", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-append_cache_value(w::Form, cache_key::AbstractString, value::AbstractString) = add(w, "CP", string(cache_key, GS, replace(value, "\n" => "\$[ln];")))
-replace_cache_value(w::Form, cache_key::AbstractString, search_value::AbstractString, value::AbstractString) = add(w, "CR", string(cache_key, GS, replace(value, "\n" => "\$[ln];"), GS, replace(search_value, "\n" => "\$[ln];")))
-
-# Call
-load_url(w::Form, input_place::AbstractString, url::AbstractString) = add(w, "lu" * input_place, url)
-run_action_controls(w::Form, action_controls::AbstractString, without_web_forms_section::Bool=true, index::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "lA", string(use_current_event ? "1" : "0", GS, without_web_forms_section ? "1" : "0", GS, index, GS, action_controls))
-call_script(w::Form, script_text::AbstractString) = add(w, "_", replace(script_text, "\n" => "\$[ln];"))
-
-function call_method(w::Form, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "lm", method_name * args_join)
-end
-
-function call_module_method(w::Form, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "lM", method_name * args_join)
-end
-
-call_post_back(w::Form, form_input_place::AbstractString, output_place::Union{Nothing, AbstractString}=nothing) = add(w, "Lp", "1" * string(GS, form_input_place, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_comment_back(w::Form, index::Union{Nothing, AbstractString}=nothing, input_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "LC", string(use_current_event ? "1" : "0", GS, index, GS, input_place))
-call_comment_back(w::Form, index::Integer, input_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = call_comment_back(w, string(index), input_place, use_current_event)
-
-function call_wasm_back(w::Form, wasm_language::AbstractString, wasm_url::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? "[" * join(args, US) : ""
-    end
-
-    add(w, "Ly", string(use_current_event ? "1" : "0", GS, wasm_language, GS, wasm_url, GS, method_name, GS, args_join, GS, output_place))
-end
-
-call_web_socket_back(w::Form, path::AbstractString, use_current_event::Bool=true) = add(w, "Lw", string(use_current_event ? "1" : "0", GS, path))
-call_sse_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true, should_reconnect::Bool=true, reconnect_try_timeout::AbstractString="3000") = add(w, "Ls", string(use_current_event ? "1" : "0", GS, path, GS, should_reconnect ? "1" : "0", GS, reconnect_try_timeout, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_sse_back(w::Form, path::AbstractString, output_place::AbstractString, use_current_event::Bool, should_reconnect::Bool, reconnect_try_timeout::Integer) = call_sse_back(w, path, output_place, use_current_event, should_reconnect, string(reconnect_try_timeout))
-
-function call_front(w::Form, module_path::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true)
-    args_join = ""
-
-    if !isnothing(args)
-        args_join = (length(args) > 0) ? string(GS, "[") * join(args, US) : ""
-    end
-
-    add(w, "Lj", string(use_current_event ? "1" : "0", GS, module_path, GS, output_place, args_join))
-end
-
-call_get_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "Lg", string(use_current_event ? "1" : "0", GS, path, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_put_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "Lt", string(use_current_event ? "1" : "0", GS, path, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_patch_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "LP", string(use_current_event ? "1" : "0", GS, path, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_delete_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "Ld", string(use_current_event ? "1" : "0", GS, path, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_head_back(w::Form, path::AbstractString, use_current_event::Bool=true) = add(w, "Lh", string(use_current_event ? "1" : "0", GS, path))
-call_options_back(w::Form, path::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "Lo", string(use_current_event ? "1" : "0", GS, path, (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-call_send_back(w::Form, path::AbstractString, method::AbstractString, is_multi_part::Bool, content_type::AbstractString, data::AbstractString, output_place::Union{Nothing, AbstractString}=nothing, use_current_event::Bool=true) = add(w, "LS", string(use_current_event ? "1" : "0", GS, path, GS, method, GS, is_multi_part ? "1" : "0", GS, content_type, GS, replace(data, "\n" => "\$[ln];"), (!isnothing(output_place) && !isempty(output_place)) ? string(GS, output_place) : ""))
-
-# Update
-increase(w::Form, input_place::AbstractString, value::Float64) = add(w, "gt" * input_place, "i" * string(GS, value))
-decrease(w::Form, input_place::AbstractString, value::Float64) = add(w, "gt" * input_place, "i" * string(GS, value * -1))
-# If You Don't Use Deep Mode, any Tags Inside the Current Tag Will Simply Be Treated as Strings. Deep Mode Does not Remove Inner Elements.
-replace_(w::Form, input_place::AbstractString, value::AbstractString, new_value::AbstractString, also_start_tag::Bool=false, deep::Bool=true) = add(w, "gt" * input_place, string("r", GS, value, GS, new_value, GS, also_start_tag ? "1" : "0", GS, deep ? "1" : "0"))
-# HTML Converts Attribute Names to Lowercase, so they Need to Be Written in Lowercase.
-replace_start_tag(w::Form, input_place::AbstractString, value::AbstractString, new_value::AbstractString) = add(w, "gt" * input_place, string("s", GS, value, GS, new_value))
-
-# Pre Runner
-function assign_delay(w::Form, mili_second::Integer, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    new_name = ":" * string(mili_second) * ")" * parts[1]
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-function assign_delay_change(w::Form, mili_second::Integer, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    current_name = String(parts[1])
-
-    if startswith(current_name, ":") && occursin(")", current_name)
-        closing_bracket = findfirst(')', current_name)
-        current_name = current_name[closing_bracket + 1:end]
-    end
-
-    new_name = ":" * string(mili_second) * ")" * current_name
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-function assign_interval(w::Form, mili_second::Integer, id::Union{Nothing, AbstractString}=nothing, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    new_name = "(" * string(mili_second) * ((!isnothing(id) && !isempty(id)) ? "|" * id : "") * ")" * parts[1]
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-function assign_interval_change(w::Form, mili_second::Integer, id::Union{Nothing, AbstractString}=nothing, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    current_name = String(parts[1])
-
-    if startswith(current_name, "(") && occursin(")", current_name)
-        closing_bracket = findfirst(')', current_name)
-        current_name = current_name[closing_bracket + 1:end]
-    end
-
-    new_name = "(" * string(mili_second) * ((!isnothing(id) && !isempty(id)) ? "|" * id : "") * ")" * current_name
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-delete_interval(w::Form, id::AbstractString) = add(w, "Di", id)
-
-function assign_repeat(w::Form, count::Integer, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    new_name = "," * string(count) * ")" * parts[1]
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-function assign_repeat_change(w::Form, count::Integer, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    current_name = String(parts[1])
-
-    if startswith(current_name, ",") && occursin(")", current_name)
-        closing_bracket = findfirst(')', current_name)
-        current_name = current_name[closing_bracket + 1:end]
-    end
-
-    new_name = "," * string(count) * ")" * current_name
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-# Index
-start_index(w::Form, name::AbstractString) = add(w, "#", name)
-start_index(w::Form) = start_index(w, "")
-# This Index Is Automatically Run After Changing The Browser History (Back And Forward Buttons)
-start_state(w::Form) = start_index(w, "\$")
-go_to(w::Form, line::AbstractString, repeat::AbstractString) = add(w, "&", string(line, GS, repeat))
-go_to(w::Form, line::Integer, repeat::Integer=1) = go_to(w, string(line), string(repeat))
-go_to(w::Form, index::AbstractString, repeat::Integer=1) = add(w, "&", string("#", index, GS, repeat))
-
-# Start
-start_transient_dom(w::Form, input_place::AbstractString) = add(w, "td", input_place)
-end_transient_dom(w::Form) = add(w, "td", ";")
-
-# Message
-# Type: warning, problem, help, success, none
-alert_(w::Form, text::AbstractString, type::AbstractString="none", title::AbstractString="Alert", ok_text::AbstractString="OK") = add(w, "Al", string(text, GS, type == "none" ? "" : type, GS, title == "Alert" ? "" : title, GS, ok_text == "OK" ? "" : ok_text))
-message(w::Form, text::AbstractString, type::AbstractString="none", duration::AbstractString="0") = add(w, "me", string(text, GS, type == "none" ? "" : type, GS, duration == "0" ? "" : duration))
-message(w::Form, text::AbstractString, type::AbstractString, duration::Integer) = message(w, text, type, string(duration))
-message(w::Form, text::AbstractString, duration::Integer) = message(w, text, "", string(duration))
-
-# Type: log, info, warn, error, debug, trace, group, groupend, table
-console_message(w::Form, text::AbstractString, type::AbstractString="log") = add(w, "mc", replace(text, "\n" => "\$[ln];") * (type == "log" ? "" : string(GS, type)))
-console_message_assert(w::Form, text::AbstractString, condition::AbstractString) = add(w, "ma", string(replace(text, "\n" => "\$[ln];"), GS, condition))
-
-# Enable
-# Calling The EnableWebSocket Or EnableWebSocketOnce Or AddWebSocket Methods Will Cause Any Subsequent Requests (Under WebForms Core Technology) To Operate Under The WebSocket Protocol.
-enable_web_socket(w::Form, enable::Bool=true) = add(w, "ew", enable ? "1" : "0")
-enable_web_socket_once(w::Form) = add(w, "ew", "\$")
-add_web_socket(w::Form, path::AbstractString) = add(w, "aw" * path)
-# Disconnected WebSocket
-delete_web_socket(w::Form, path::AbstractString) = add(w, "dw" * path)
-
-# Use
-# InputPlace Using Only For form Element
-use_web_socket(w::Form, input_place::AbstractString) = add(w, "uw" * input_place)
-use_only_change_update(w::Form, input_place::AbstractString) = add(w, "uo" * input_place)
-
-# Condition And Loop
-# Condition And Loop Supports Brackets and Then
-# Type: warning, problem, help, success, none
-# Interval: Value 0 is Await (if is not True, all Next Action Controls Waiting for it), Value -1 is Sync Check Once (is Support Bracket or Next Action Control), Value > 0 is Async and is Wait Based on Time Repetition Until it Becomes True (Is Support Bracket or Next Action Control, but is not Support Else).
-# Nested Conditions and Nested Loops are Possible.
-function confirm_is_true_accept(w::Form, text::AbstractString="Are you sure you want to proceed?", type::AbstractString="none", title::AbstractString="Confirm", ok_text::AbstractString="OK", cancel_text::AbstractString="Cancel", interval::Integer=100)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "ct", string(text == "Are you sure you want to proceed?" ? "" : text, GS, type == "none" ? "" : type, GS, title == "Confirm" ? "" : title, GS, ok_text == "OK" ? "" : ok_text, GS, cancel_text == "Cancel" ? "" : cancel_text))
-    return w
-end
-
-function confirm_is_false_accept(w::Form, text::AbstractString="Are you sure you want to proceed?", type::AbstractString="none", title::AbstractString="Confirm", ok_text::AbstractString="OK", cancel_text::AbstractString="Cancel", interval::Integer=100)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "cf", string(text == "Are you sure you want to proceed?" ? "" : text, GS, type == "none" ? "" : type, GS, title == "Confirm" ? "" : title, GS, ok_text == "OK" ? "" : ok_text, GS, cancel_text == "Cancel" ? "" : cancel_text))
-    return w
-end
-
-function is_greater_than(w::Form, first_value::AbstractString, second_value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "gt", string(first_value, GS, second_value))
-    return w
-end
-
-function is_less_than(w::Form, first_value::AbstractString, second_value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "lt", string(first_value, GS, second_value))
-    return w
-end
-
-function is_equal_to(w::Form, first_value::AbstractString, second_value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "et", string(first_value, GS, second_value))
-    return w
-end
-
-function is_not_equal_to(w::Form, first_value::AbstractString, second_value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "Nt", string(first_value, GS, second_value))
-    return w
-end
-
-function exist(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "ex", value)
-    return w
-end
-
-function not_exist(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "nx", value)
-    return w
-end
-
-function is_true(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "tr", value)
-    return w
-end
-
-function is_false(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "fa", value)
-    return w
-end
-
-function is_match_media(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "mm", value)
-    return w
-end
-
-function is_not_match_media(w::Form, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "nm", value)
-    return w
-end
-
-function include_(w::Form, text::AbstractString, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "In", string(value, GS, text))
-    return w
-end
-
-function not_include(w::Form, text::AbstractString, value::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "Nn", string(value, GS, text))
-    return w
-end
-
-function element_exists(w::Form, input_place::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "eE", input_place)
-    return w
-end
-
-function element_not_exists(w::Form, input_place::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "nE", input_place)
-    return w
-end
-
-function is_regex_match(w::Form, value::AbstractString, pattern::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "re", string(value, GS, pattern))
-    return w
-end
-
-function is_regex_not_match(w::Form, value::AbstractString, pattern::AbstractString, interval::Integer=-1)
-    add(w, (interval >= 0 ? "{(" * string(interval) * ")" : "{") * "rn", string(value, GS, pattern))
-    return w
-end
-
-# In: Everything Becomes A JSON List.
-# Key: Creates A Temporary Data In The Browser IndexedDB.
-# Key + "i" Creates A Temporary Data To Maintain The Loop Counter In The Browser IndexedDB.
-function for_each(w::Form, path::AbstractString, in_::AbstractString, key::AbstractString=".")
-    add(w, "{fe", string(path, GS, in_, GS, key))
-    return w
-end
-
-break_(w::Form) = add(w, ";")
-
-function else_(w::Form)
-    add(w, "}e")
-    return w
-end
-
-start_bracket(w::Form) = add(w, "{")
-end_bracket(w::Form) = add(w, "}")
-
-# Used Then In Condition And Loop Methods
-function then_(w::Form, new_form::Form)
-    data = !isnothing(new_form) ? get_web_forms_data(new_form) : nothing
-
-    if !isnothing(data) && !isempty(data)
-        if occursin('\n', data)
-            add_to_up(new_form, "{")
-            add(new_form, "}")
-        end
-    end
-
-    append_form(w, new_form)
-    return w
-end
-
-function then_(w::Form, configure::Function)
-    new_form = WebForms()
-    configure(new_form)
-
-    data = !isnothing(new_form) ? get_web_forms_data(new_form) : nothing
-
-    if !isnothing(data) && !isempty(data)
-        if occursin('\n', data)
-            add_to_up(new_form, "{")
-            add(new_form, "}")
-        end
-    end
-
-    append_form(w, new_form)
-    return w
-end
-
-function repeat_(w::Form, new_form::Form, repeat::Integer)
-    if isnothing(new_form)
-        return w
-    end
-
-    body_data = get_web_forms_data(new_form)
-
-    if isempty(body_data)
-        return w
-    end
-
-    start_line = -1 * length(split(body_data, '\n'))
-
-    append_form(w, new_form)
-    go_to(w, start_line, repeat - 1)
-
-    return w
-end
-
-function repeat_(w::Form, new_form::Form, repeat::Integer, index::AbstractString)
-    if isnothing(new_form)
-        return w
-    end
-
-    go_to(w, index)
-    start_index(w, index)
-
-    body_data = get_web_forms_data(new_form)
-
-    if isempty(body_data)
-        return w
-    end
-
-    append_form(w, new_form)
-
-    if isempty(index)
-        index_number = -1
-
-        for x in split(get_web_forms_data(w), '\n')
-            if startswith(x, "#")
-                index_number += 1
-            end
-        end
-
-        go_to(w, index_number, repeat - 1)
-    else
-        go_to(w, index, repeat - 1)
-    end
-
-    return w
-end
-
-function repeat_(w::Form, configure::Function, repeat::Integer)
-    new_form = WebForms()
-    configure(new_form)
-    return repeat_(w, new_form, repeat)
-end
-
-function repeat_(w::Form, configure::Function, repeat::Integer, index::AbstractString)
-    new_form = WebForms()
-    configure(new_form)
-    return repeat_(w, new_form, repeat, index)
-end
-
-# Async
-# It Supports Brackets and Then
-function async_(w::Form)
-    add(w, "{(a)")
-    return w
-end
-
-delay(w::Form, mili_second::AbstractString) = add(w, "De", mili_second)
-delay(w::Form, mili_second::Integer) = delay(w, string(mili_second))
-
-# Option
-change_option(w::Form, name::AbstractString, value::AbstractString) = add(w, "co", string(name, GS, value))
-reset_option(w::Form) = add(w, "ro")
-reset_option(w::Form, name::AbstractString) = add(w, "ro", name)
-
-# Format Storage
-create_format_storage(w::Form, key::AbstractString, data::AbstractString) = add(w, ".C", string(key, GS, data))
-delete_format_storage(w::Form, key::AbstractString) = add(w, ".D", key)
-add_json(w::Form, key::AbstractString, path::AbstractString, value::AbstractString) = add(w, ".a", string(key, GS, "j", GS, value, GS, path))
-# Name: For Support Attribute, Set Double At Sign (@@) Before Name.
-add_xml(w::Form, key::AbstractString, path::AbstractString, name::AbstractString, value::Union{Nothing, AbstractString}=nothing) = add(w, ".a", string(key, GS, "x", GS, name, GS, value, GS, path))
-add_ini(w::Form, key::AbstractString, path::AbstractString, value::AbstractString, is_ini_like::Bool=false) = add(w, ".a", string(key, GS, "i", GS, is_ini_like ? "1" : "0", GS, value, GS, path))
-add_text_line(w::Form, key::AbstractString, line::AbstractString, text::AbstractString) = add(w, ".a", string(key, GS, "t", GS, text, GS, line))
-add_text_line(w::Form, key::AbstractString, line::Integer, text::AbstractString) = add_text_line(w, key, string(line), text)
-add_variable(w::Form, key::AbstractString, value::AbstractString) = add(w, ".a", string(key, GS, "v", GS, value))
-update_json(w::Form, key::AbstractString, path::AbstractString, value::AbstractString) = add(w, ".u", string(key, GS, "j", GS, value, GS, path))
-update_xml(w::Form, key::AbstractString, path::AbstractString, value::AbstractString) = add(w, ".u", string(key, GS, "x", GS, value, GS, path))
-update_ini(w::Form, key::AbstractString, path::AbstractString, value::AbstractString, is_ini_like::Bool=false) = add(w, ".u", string(key, GS, "i", GS, is_ini_like ? "1" : "0", GS, value, GS, path))
-update_tex_line(w::Form, key::AbstractString, line::AbstractString, text::AbstractString) = add(w, ".u", string(key, GS, "t", GS, text, GS, line))
-update_tex_line(w::Form, key::AbstractString, line::Integer, text::AbstractString) = update_tex_line(w, key, string(line), text)
-update_variable(w::Form, key::AbstractString, value::AbstractString) = add(w, ".u", string(key, GS, "v", GS, value))
-increase_variable(w::Form, key::AbstractString, value::AbstractString) = add(w, ".i", string(key, GS, "v", GS, value))
-increase_variable(w::Form, key::AbstractString, value::Integer) = increase_variable(w, key, string(value))
-decrease_variable(w::Form, key::AbstractString, value::Integer) = increase_variable(w, key, value * -1)
-delete_json(w::Form, key::AbstractString, path::AbstractString) = add(w, ".d", string(key, GS, "j", GS, path))
-delete_xml(w::Form, key::AbstractString, path::AbstractString) = add(w, ".d", string(key, GS, "x", GS, path))
-delete_ini(w::Form, key::AbstractString, path::AbstractString, is_ini_like::Bool=false) = add(w, ".d", string(key, GS, "i", GS, is_ini_like, GS, path))
-delete_text_line(w::Form, key::AbstractString, line::AbstractString) = add(w, ".d", string(key, GS, "t", GS, line))
-delete_text_line(w::Form, key::AbstractString, line::Integer) = delete_text_line(w, key, string(line))
-delete_variable(w::Form, key::AbstractString) = add(w, ".d", string(key, GS, "v"))
-
-# Template Engine
-# Pattern Example: {{value}}, ((value)), *value*, $value;
-bind_json_to_template(w::Form, input_place::AbstractString, json_text::AbstractString, path::AbstractString, pattern::AbstractString, also_start_tag::Bool=true) = add(w, "Tj" * input_place, string(json_text, GS, path, GS, pattern, GS, also_start_tag ? "1" : "0"))
-# Because XML Elements Are Lowercased, Placeholders Must Use Lowercase Names.
-bind_xml_to_template(w::Form, input_place::AbstractString, xml_text::AbstractString, path::AbstractString, pattern::AbstractString, also_start_tag::Bool=true) = add(w, "Tx" * input_place, string(xml_text, GS, path, GS, pattern, GS, also_start_tag ? "1" : "0"))
-bind_ini_to_template(w::Form, input_place::AbstractString, ini_text::AbstractString, path::AbstractString, pattern::AbstractString, also_start_tag::Bool=true) = add(w, "Ti" * input_place, string(ini_text, GS, path, GS, pattern, GS, also_start_tag ? "1" : "0"))
-
-# Inject
-# Need Add @: to First of String
-inject_(w::Form, value::AbstractString) = "\$[" * value * "];"
-
-# Action Control
-function replace_action_control(w::Form, search_value::AbstractString, value::AbstractString, adding_to_up::Bool=false)
-    if adding_to_up
-        add_to_up(w, "rE", string(search_value, GS, value))
-    else
-        add(w, "rE", string(search_value, GS, value))
-    end
-end
-
-function assign_replace(w::Form, search_value::AbstractString, value::AbstractString, index::Integer=-1)
-    current_line = get_line_by_index(w, index)
-    if isempty(current_line)
-        return
-    end
-
-    parts = split(current_line, '='; limit=2)
-    new_name = ";" * string(search_value, GS, value, GS, parts[1])
-    new_value = length(parts) > 1 ? String(parts[2]) : ""
-
-    update_line_by_index(w, index, new_name, new_value)
-end
-
-# Hash And Checksum
-set_hash(w::Form) = add(w, "SH")
-set_checksum(w::Form) = add(w, "CS")
-
-function checksum_calculation(text::AbstractString)
-    sum_val = Int32(0)
-    mod_val = Int32(65536)
-    shift = 5
-
-    for c in text
-        sum_val = ((sum_val << shift) | (sum_val >> (16 - shift))) ⊻ Int32(c)
-        sum_val %= mod_val
-    end
-
-    return string(sum_val)
-end
-
-get_checksum(w::Form) = checksum_calculation(get_web_forms_data(w))
-
-# Get
-function get_forms_action_data(w::Form)
-    if isempty(w.data)
-        return ""
-    end
-
-    return w.data
-end
-
-function response(w::Form)
-    return "[web-forms]\n" * get_forms_action_data(w)
-end
-
-function get_forms_action_data_line_break(w::Form)
-    if isempty(w.data)
-        return ""
-    end
-
-    processed_data = replace(w.data, "\"" => "\$[dq];")
-    return replace(processed_data, "\n" => "\$[sln];")
-end
-
-# Export
-function export_to_html_comment(w::Form, add_line::Bool=false)
-    resp = replace(response(w), "--" => "\$[dd];")
-    if resp[end] == '-'
-        resp = resp[1:end-1] * "\$[da];"
-    end
-
-    return (add_line ? "\n" : "") * "<!--" * resp * "-->"
-end
-
-# Using it for SSE Response
-function export_to_line_break(w::Form, src::Union{Nothing, AbstractString}=nothing)
-    return "[web-forms]\$[sln];" * get_forms_action_data_line_break(w)
-end
-
-get_web_forms_data(w::Form) = w.data
-
-function append_form(w::Form, form::Form)
-    if isnothing(form)
-        return
-    end
-
-    other_data = get_web_forms_data(form)
-    if !isempty(other_data)
-        if !isempty(w.data)
-            w.data *= "\n"
-        end
-        w.data *= other_data
-    end
-end
-
-function clean(w::Form)
-    w.data = ""
-end
-end
-
-struct Security end
-
-function safe_value(::Security, value::AbstractString)
-    if length(value) < 1
-        return value
-    end
-
-    if value[1] == '@'
-        value = "@" * value
-    end
-
-    value = replace(value, "\n" => "\$[ln];")
-    value = replace(value, ",@" => "\$[co];@")
-    value = replace(value, '\x1c' => '\0')
-    value = replace(value, '\x1d' => '\0')
-    value = replace(value, '\x1e' => '\0')
-    value = replace(value, '\x1f' => '\0')
-
-    return value
-end
-
-# WebForms Place Criteria (WPC) DSL
-module InputPlace
-
-const DOCUMENT = ","
-const WINDOW = "`"
-# When Calling TransientDOM, Using Root will Result in the Selection of the Transient Tag.
-const ROOT = "~"
-const HTML = "."
-const HEAD = "^"
-const SCREEN_ORIENTATION = "%"
-const ALL = "*"
-const PARENT = "/"
-const CURRENT = "\$"
-const TARGET = "!"
-const UPPER = "-"
-
-id(id_val::AbstractString) = id_val
-name(name_val::AbstractString) = "(" * name_val * ")"
-name(name_val::AbstractString, index::Integer) = "(" * name_val * ")" * string(index)
-all_names(name_val::AbstractString) = "(" * name_val * ")*"
-tag(tag_val::AbstractString) = "<" * tag_val * ">"
-tag(tag_val::AbstractString, index::Integer) = "<" * tag_val * ">" * string(index)
-all_tags(tag_val::AbstractString) = "<" * tag_val * ">*"
-child() = "<>"
-child(index::Integer) = "<>" * string(index)
-all_child() = "<>*"
-class(class_val::AbstractString) = "{" * class_val * "}"
-class(class_val::AbstractString, index::Integer) = "{" * class_val * "}" * string(index)
-all_classes(class_val::AbstractString) = "{" * class_val * "}*"
-attribute(name_val::AbstractString) = "\"" * name_val * "\""
-attribute(name_val::AbstractString, index::Integer) = "\"" * name_val * "\"" * string(index)
-all_attributes(name_val::AbstractString) = "\"" * name_val * "\"*"
-# Operator: '^', '$', '*', '~'
-attribute(name_val::AbstractString, value::AbstractString, operator::Char='\0') = "\"" * name_val * (operator != '\0' ? string(operator) : "") * "'" * value * "\""
-attribute(name_val::AbstractString, value::AbstractString, index::Integer, operator::Char='\0') = "\"" * name_val * (operator != '\0' ? string(operator) : "") * "'" * value * "\"" * string(index)
-all_attributes(name_val::AbstractString, value::AbstractString, operator::Char='\0') = "\"" * name_val * (operator != '\0' ? string(operator) : "") * "'" * value * "\"*"
-query(query_val::AbstractString) = "*" * replace(replace(replace(query_val, "=" => "\$[eq];"), "|" => "\$[vb];"), "?" => "\$[qu];")
-query_all(query_val::AbstractString) = "[" * replace(replace(replace(query_val, "=" => "\$[eq];"), "|" => "\$[vb];"), "?" => "\$[qu];")
-
-end
-
-const OutputPlace = InputPlace
-
-# Do not Add any Data Before or After it
-module Fetch
-
-const RS = '\x1e'
-const US = '\x1f'
-
-# Method
-random(max_value::Integer) = "@mr" * string(max_value)
-random(min_value::Integer, max_value::Integer) = "@mr" * string(max_value) * RS * string(min_value)
-space_to_char(text::AbstractString, character::AbstractString="-") = "@sc" * character * RS * text
-encode_uri(text::AbstractString) = "@ue" * text
-decode_uri(text::AbstractString) = "@ud" * text
-
-function method(method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    return_value = "@cm" * method_name
-
-    if !isnothing(args)
-        return_value *= (length(args) > 0) ? RS * join(args, US) : ""
-    end
-
-    return return_value
-end
-
-function module_method(method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    return_value = "@cM" * method_name
-
-    if !isnothing(args)
-        return_value *= (length(args) > 0) ? RS * join(args, US) : ""
-    end
-
-    return return_value
-end
-
-# MethodName: The Method Name May Need to Include the Class Name, Separated by a Period. Example: MyClassName.MyMethodName
-function wasm_method(wasm_language::AbstractString, wasm_url::AbstractString, method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing, key::AbstractString=".")
-    return_value = "@wA" * wasm_language * RS * wasm_url * RS * method_name
-
-    if !isnothing(args)
-        return_value *= (length(args) > 0) ? RS * join(args, US) : ""
-    end
-
-    return return_value
-end
-
-script(script_text::AbstractString) = "@_" * replace(script_text, "\n" => "\$[ln];")
-load_url(url::AbstractString, fetch_script::Bool=false) = "@lu" * url * (fetch_script ? RS * "1" : "")
-load_html(url::AbstractString, fetch_input_place::AbstractString="", fetch_script::Bool=false) = "@lh" * url * RS * (fetch_script ? "1" : "0") * ((!isnothing(fetch_input_place) && !isempty(fetch_input_place)) ? RS * fetch_input_place : "")
-load_line(url::AbstractString, line::Integer) = "@ll" * url * RS * string(line)
-load_ini(url::AbstractString, name::AbstractString, is_ini_like::Bool=false) = "@li" * url * RS * name * (is_ini_like ? RS * "1" : "")
-# Name: Name Or Nested Paths. Is Supprt Index (Student[8].Name). Nested Paths Index Starts At 0
-load_json(url::AbstractString, name::AbstractString) = "@lj" * url * RS * name
-# Name: Name Or XPath; XPath Index Starts At 1
-load_xml(url::AbstractString, name::AbstractString) = "@lx" * url * RS * name
-# MethodName: It's Check Function Or Variable
-has_method(method_name::AbstractString) = "@hm" * method_name
-has_module_method(method_name::AbstractString) = "@hM" * method_name
-# This Method Return True Or False If Key Pressed
-# Modifier: Alt, AltGraph, Control, Meta, Shift, CapsLock, NumLock, ScrollLock
-get_modifier_state(modifier::AbstractString) = "@ms" * modifier
-
-# Math
-function math(method_name::AbstractString, args::Union{Nothing, Vector{Any}}=nothing)
-    return_value = "@M#" * method_name
-
-    if !isnothing(args)
-        return_value *= (length(args) > 0) ? RS * join(args, US) : ""
-    end
-
-    return return_value
-end
-
-# Data
-const DATE_YEAR = "@dy"
-# Month In JavaScript Is Start From Index 0, Month In WebForms Core Is Start From Index 1
-const DATE_MONTH = "@dm"
-const DATE_DAY = "@dd"
-const DATE_DATE = "@dD"
-const DATE_HOURS = "@dh"
-const DATE_MINUTES = "@di"
-const DATE_SECONDS = "@ds"
-const DATE_MILLISECONDS = "@dl"
-
-# String
-const SPACE = "@sp"
-const AT_SIGN = "@sa"
-
-# Tag
-get_id(input_place::AbstractString) = "@\$i" * input_place
-get_name(input_place::AbstractString) = "@\$n" * input_place
-get_value(input_place::AbstractString) = "@\$v" * input_place
-get_value_length(input_place::AbstractString) = "@\$e" * input_place
-get_class(input_place::AbstractString) = "@\$c" * input_place
-get_style(input_place::AbstractString) = "@\$s" * input_place
-get_title(input_place::AbstractString) = "@\$l" * input_place
-get_label(input_place::AbstractString) = "@\$A" * input_place
-get_text(input_place::AbstractString) = "@\$t" * input_place
-get_outer_text(input_place::AbstractString) = "@\$o" * input_place
-get_text_length(input_place::AbstractString) = "@\$g" * input_place
-get_attribute(input_place::AbstractString, attribute::AbstractString) = "@\$a" * input_place * RS * attribute
-get_width(input_place::AbstractString) = "@\$w" * input_place
-get_height(input_place::AbstractString) = "@\$h" * input_place
-get_is_read_only(input_place::AbstractString) = "@\$r" * input_place
-get_selected_index(input_place::AbstractString) = "@\$x" * input_place
-get_index(input_place::AbstractString) = "@\$I" * input_place
-get_text_align(input_place::AbstractString) = "@\$T" * input_place
-get_node_length(input_place::AbstractString) = "@\$L" * input_place
-get_is_visible(input_place::AbstractString) = "@\$V" * input_place
-
-# Save
-has_hash(hash::AbstractString) = "@HH" * hash
-cookie(key::AbstractString) = "@co" * key
-save(key::AbstractString=".") = "@cs" * key
-save(key::AbstractString, replace_value::AbstractString) = "@cs" * key * RS * replace_value
-save_then_remove(key::AbstractString) = "@cl" * key
-save_length(key::AbstractString=".") = "@cg" * key
-cache(key::AbstractString=".") = "@cd" * key
-cache(key::AbstractString, replace_value::AbstractString) = "@cd" * key * RS * replace_value
-cache_then_remove(key::AbstractString) = "@ct" * key
-cache_length(key::AbstractString=".") = "@cG" * key
-save_line(key::AbstractString=".", line::Integer=0) = "@lL" * key * "[" * string(line)
-save_line_consume(key::AbstractString=".") = "@lL" * key
-# INIKey: Only Direct Key is Supported
-save_ini(key::AbstractString, ini_key::AbstractString) = "@lI" * key * "[" * ini_key
-cache_line(key::AbstractString=".", line::Integer=0) = "@dL" * key * "[" * string(line)
-cache_line_consume(key::AbstractString=".") = "@dL" * key
-# INIKey: Only Direct Key is Supported
-cache_ini(key::AbstractString, ini_key::AbstractString) = "@dI" * key * "[" * ini_key
-
-# Format Storage
-format_store(key::AbstractString) = "@fr" * key
-format_store_by_xml_query(key::AbstractString, xpath::AbstractString) = "@fx" * key * RS * xpath
-format_store_by_json_query(key::AbstractString, query::AbstractString) = "@fj" * key * RS * query
-format_store_by_ini(key::AbstractString, name::AbstractString) = "@fi" * key * RS * name
-format_store_by_text(key::AbstractString, line::Integer) = "@ft" * key * RS * string(line)
-format_store_by_variable(key::AbstractString) = "@fv" * key
-
-# State
-has_state(path::AbstractString) = "@hs" * path
-
-# SSE
-sse_is_connected(path::AbstractString) = "@Sc" * path
-
-# WebSockets
-web_sockets_is_connected(path::AbstractString="") = "@Wc" * path
-
-# Document
-const TAB_IS_ACTIVE = "@da"
-
-# Window
-const HREF = "@wf"
-const PATH_NAME = "@wP"
-query(name::AbstractString="*") = "@wq" * name
-const HASH = "@wh"
-const HOST = "@wH"
-const HOST_NAME = "@wn"
-const PORT = "@wT"
-const ORIGIN = "@wo"
-const GET_SELECTION = "@ws"
-const SCROLL_X = "@wx"
-const SCROLL_Y = "@wy"
-segment(index::Integer) = "@wS" * string(index)
-# It Only Works when the String Starts with the Tilde Character (~). The Path is Also Separated by the Slash Character (/). #~/Segment1/Segment2/Segment3
-hash_segment(index::Integer) = "@wt" * string(index)
-
-# Navigator
-const CLIPBOARD_TEXT = "@nC"
-const GEO_LATITUDE = "@nW"
-const GEO_LONGITUDE = "@nO"
-const LANGUAGE = "@nL"
-const IS_ON_LINE = "@no"
-const USER_AGENT = "@na"
-
-# Screen
-const SCREEN_WIDTH = "@sw"
-const SCREEN_HEIGHT = "@sh"
-const SCREEN_ORIENTATION_TYPE = "@so"
-const SCREEN_ORIENTATION_ANGLE = "@sr"
-
-# Performance
-const TIME_ORIGIN = "@pt"
-const PERFORMANCE_NOW = "@pn"
-
-# Event
-const EVENT = "@EV"
-const EVENT_SERIALIZE = "@Es"
-const EVENT_KEY = "@ek"
-const EVENT_WHICH = "@ew"
-const EVENT_CLIENT_X = "@ex"
-const EVENT_CLIENT_Y = "@ey"
-const EVENT_PAGE_X = "@eX"
-const EVENT_PAGE_Y = "@eY"
-const EVENT_OFFSET_X = "@Ex"
-const EVENT_OFFSET_Y = "@Ey"
-const EVENT_DELTA_Y = "@ed"
-
-end
-
-module WasmLanguage
-
-# The Suffix "Mediator" Means You Must Call the JavaScript Interface. In Other Cases, the WASM File Should Be Called Directly.
-const C = "c"
-const CPP = "c"
-const Rust = "rust"
-const CSharp = "csharp"
-# .NET WebCIL Container. The "dotnet.js" File Should Be Invoked.
-const CSharpMediator = "csharp-m"
-const GO = "go"
-const JAVA = "java"
-const AssemblyScript = "as"
-
-end
-
-module HtmlEvent
-
-const OnAbort = "onabort"
-const OnAfterPrint = "onafterprint"
-const OnBeforePrint = "onbeforeprint"
-const OnBeforeUnload = "onbeforeunload"
-const OnBlur = "onblur"
-const OnCanPlay = "oncanplay"
-const OnCanPlayThrough = "oncanplaythrough"
-const OnChange = "onchange"
-const OnClick = "onclick"
-const OnCopy = "oncopy"
-const OnCut = "oncut"
-const OnDoubleClick = "ondblclick"
-const OnDrag = "ondrag"
-const OnDragEnd = "ondragend"
-const OnDragEnter = "ondragenter"
-const OnDragLeave = "ondragleave"
-const OnDragOver = "ondragover"
-const OnDragStart = "ondragstart"
-const OnDrop = "ondrop"
-const OnDurationChange = "ondurationchange"
-const OnEnded = "onended"
-const OnError = "onerror"
-const OnFocus = "onfocus"
-const OnFocusin = "onfocusin"
-const OnFocusOut = "onfocusout"
-const OnHashChange = "onhashchange"
-const OnInput = "oninput"
-const OnInvalid = "oninvalid"
-const OnKeyDown = "onkeydown"
-const OnKeyPress = "onkeypress"
-const OnKeyUp = "onkeyup"
-const OnLoad = "onload"
-const OnLoadedData = "onloadeddata"
-const OnLoadedMetaData = "onloadedmetadata"
-const OnLoadStart = "onloadstart"
-const OnMouseDown = "onmousedown"
-const OnMouseEnter = "onmouseenter"
-const OnMouseLeave = "onmouseleave"
-const OnMouseMove = "onmousemove"
-const OnMouseOver = "onmouseover"
-const OnMouseOut = "onmouseout"
-const OnMouseUp = "onmouseup"
-const OnOffline = "onoffline"
-const OnOnline = "ononline"
-const OnPageHide = "onpagehide"
-const OnPageShow = "onpageshow"
-const OnPaste = "onpaste"
-const OnPause = "onpause"
-const OnPlay = "onplay"
-const OnPlaying = "onplaying"
-const OnProgress = "onprogress"
-const OnRateChange = "onratechange"
-const OnResize = "onresize"
-const OnReset = "onreset"
-const OnScroll = "onscroll"
-const OnSearch = "onsearch"
-const OnSeeked = "onseeked"
-const OnSeeking = "onseeking"
-const OnSelect = "onselect"
-const OnStalled = "onstalled"
-const OnSubmit = "onsubmit"
-const OnSuspend = "onsuspend"
-const OnTimeUpdate = "ontimeupdate"
-const OnToggle = "ontoggle"
-const OnTouchCancel = "ontouchcancel"
-const OnTouchend = "ontouchend"
-const OnTouchMove = "ontouchmove"
-const OnTouchStart = "ontouchstart"
-const OnUnload = "onunload"
-const OnVolumeChange = "onvolumechange"
-const OnWaiting = "onwaiting"
-const OnWheel = "onwheel"
-
-end
-
-module HtmlEventListener
-
-const Abort = "abort"
-const AfterPrint = "afterprint"
-const BeforePrint = "beforeprint"
-const BeforeUnload = "beforeunload"
-const Blur = "blur"
-const CanPlay = "canplay"
-const CanPlayThrough = "canplaythrough"
-const Change = "change"
-const Click = "click"
-const Copy = "copy"
-const Cut = "cut"
-const DoubleClick = "dblclick"
-const Drag = "drag"
-const DragEnd = "dragend"
-const DragEnter = "dragenter"
-const DragLeave = "dragleave"
-const DragOver = "dragover"
-const DragStart = "dragstart"
-const Drop = "drop"
-const DurationChange = "durationchange"
-const Ended = "ended"
-const Error = "error"
-const Focus = "focus"
-const Focusin = "focusin"
-const FocusOut = "focusout"
-const HashChange = "hashchange"
-const Input = "input"
-const Invalid = "invalid"
-const KeyDown = "keydown"
-const KeyPress = "keypress"
-const KeyUp = "keyup"
-const Load = "load"
-const LoadedData = "loadeddata"
-const LoadedMetaData = "loadedmetadata"
-const LoadStart = "loadstart"
-const MouseDown = "mousedown"
-const MouseEnter = "mouseenter"
-const MouseLeave = "mouseleave"
-const MouseMove = "mousemove"
-const MouseOver = "mouseover"
-const MouseOut = "mouseout"
-const MouseUp = "mouseup"
-const Offline = "offline"
-const Online = "online"
-const PageHide = "pagehide"
-const PageShow = "pageshow"
-const Paste = "paste"
-const Pause = "pause"
-const Play = "play"
-const Playing = "playing"
-const Progress = "progress"
-const RateChange = "ratechange"
-const Resize = "resize"
-const Reset = "reset"
-const Scroll = "scroll"
-const Search = "search"
-const Seeked = "seeked"
-const Seeking = "seeking"
-const Select = "select"
-const Stalled = "stalled"
-const Submit = "submit"
-const Suspend = "suspend"
-const TimeUpdate = "timeupdate"
-const Toggle = "toggle"
-const TouchCancel = "touchcancel"
-const Touchend = "touchend"
-const TouchMove = "touchmove"
-const TouchStart = "touchstart"
-const Unload = "unload"
-const VolumeChange = "volumechange"
-const Waiting = "waiting"
-const Wheel = "wheel"
-
-const AnimationEnd = "animationend"
-const AnimationIteration = "animationiteration"
-const AnimationStart = "animationstart"
-const ContextMenu = "contextmenu"
-const FullScreenChange = "fullscreenchange"
-const FullScreenError = "fullscreenerror"
-const PopState = "popstate"
-const TransitionEnd = "transitionend"
-const Storage = "storage"
-
-# Custom
-const ScrollBottom = "scrollbottom" # Need Call EnableScrollBottomEvent Method Before
-const ElementReached = "elementreached" # Need Call EnableReachedElementEvent Method Before
-
-end
-
-function child(text::AbstractString, value::AbstractString)
-    if length(text) < 1
-        return value
-    end
-
-    return text * "|" * value
-end
-
-function parent(text::AbstractString)
-    if length(text) < 1
-        return text
-    end
-
-    if endswith(text, "|/") || endswith(text, "//")
-        return text * "/"
-    end
-
-    return text * "|/"
-end
-
-function criteria(text::AbstractString, value::AbstractString)
-    if length(text) < 1
-        return value
-    end
-
-    return text * "?" * replace(replace(value, "|" => "\$[vb];"), "?" => "\$[qu];")
-end
-
-function append_fetch_replace(text::AbstractString, search_value::AbstractString, value::AbstractString)
-    FS = '\x1c'
-
-    text = text[2:end]
-    return "@;" * search_value * FS * value * FS * text
-end
-
-function line_break(text::AbstractString, encode_line::Bool=false)
-    encode = encode_line ? "\$[sln];" : ""
-    return replace(replace(replace(text, "\r\n" => encode), "\n" => encode), "\r" => encode)
-end
-
-# Converts Numbers to Strings
-to_js_string(text::AbstractString) = "\"" * text * "\""
-
-# Get JS Object Momentary
-to_js_object(text::AbstractString) = "\$" * text
-
-# Get JS Object Returned Value Once
-to_js_return_object(text::AbstractString) = "\$@" * text
-
-end
+namespace WebFormsCore
+{
+    public class WebForms
+    {
+        private const char GS = (char)29;
+        private const char US = (char)31;
+
+        private StringBuilder WebFormsData = new StringBuilder();
+
+        internal void Add(string Name, string Value)
+        {
+            if (WebFormsData.Length > 0)
+                WebFormsData.Append('\n');
+
+            WebFormsData.Append(Name);
+            WebFormsData.Append('=');
+            WebFormsData.Append(Value);
+        }
+
+        internal void Add(string Name)
+        {
+            if (WebFormsData.Length > 0)
+                WebFormsData.Append('\n');
+
+            WebFormsData.Append(Name);
+        }
+
+        internal void AddToUp(string name, string value)
+        {
+            string line = $"{name}={value}";
+
+            if (WebFormsData.Length > 0)
+                line += "\n";
+
+            WebFormsData.Insert(0, line);
+        }
+
+        internal void AddToUp(string name)
+        {
+            string line = name;
+
+            if (WebFormsData.Length > 0)
+                line += "\n";
+
+            WebFormsData.Insert(0, line);
+        }
+
+        internal string GetLineByIndex(int Index)
+        {
+            if (WebFormsData.Length == 0)
+                return "";
+
+            string data = WebFormsData.ToString();
+            string[] lines = data.Split('\n');
+
+            if (Index < 0)
+                Index = lines.Length + Index;
+
+            if (Index < 0 || Index >= lines.Length)
+                return "";
+
+            return lines[Index];
+        }
+
+        internal void UpdateLineByIndex(int Index, string Name, string Value)
+        {
+            if (WebFormsData.Length == 0)
+                return;
+
+            string data = WebFormsData.ToString();
+            string[] lines = data.Split('\n');
+
+            if (Index < 0)
+                Index = lines.Length + Index;
+
+            if (Index < 0 || Index >= lines.Length)
+                return;
+
+            lines[Index] = Name + (string.IsNullOrEmpty(Value) ? "" : "=" + Value);
+
+            WebFormsData.Clear();
+            WebFormsData.Append(string.Join("\n", lines));
+        }
+
+        // For Extension
+        public void AddLine(string Name, string Value) => Add(Name, Value);
+
+        // Add
+        // Creates the Data if it does not exist; otherwise, Appends the New Value to the Existing Value.
+        public void AddId(string InputPlace, string Id) => Add("ai" + InputPlace, Id);
+        public void AddName(string InputPlace, string Name) => Add("an" + InputPlace, Name);
+        public void AddValue(string InputPlace, string Value) => Add("av" + InputPlace, Value);
+        public void AddClass(string InputPlace, string Class) => Add("ac" + InputPlace, Class);
+        public void AddStyle(string InputPlace, string Style) => Add("as" + InputPlace, Style);
+        public void AddStyle(string InputPlace, string Name, string Value) => Add("as" + InputPlace, Name + ':' + Value);
+        public void AddOptionTag(string InputPlace, string Text, string Value, bool Selected = false) => Add("ao" + InputPlace, Value + GS + Text + (Selected ? GS + "1" : ""));
+        public void AddCheckBoxTag(string InputPlace, string Text, string Value, bool Checked = false) => Add("ak" + InputPlace, Value + GS + Text + (Checked ? GS + "1" : ""));
+        public void AddTitle(string InputPlace, string Title) => Add("al" + InputPlace, Title);
+        public void AddLabel(string InputPlace, string Label) => Add("aA" + InputPlace, Label);
+        public void AddText(string InputPlace, string Text) => Add("at" + InputPlace, Text.Replace('\n'.ToString(), "$[ln];"));
+        public void AddTextToUp(string InputPlace, string Text) => Add("pt" + InputPlace, Text.Replace('\n'.ToString(), "$[ln];"));
+        public void AddAttribute(string InputPlace, string Attribute, string Value = "", char Splitter = '\0') => Add("aa" + InputPlace, Attribute + GS + ((Splitter != '\0') ? Splitter.ToString() : "") + (!string.IsNullOrEmpty(Value) ? GS + Value : ""));
+        public void AddTag(string InputPlace, string TagName, string Id = "") => Add("nt" + InputPlace, TagName + (!string.IsNullOrEmpty(Id) ? GS + Id : ""));
+        public void AddTagToUp(string InputPlace, string TagName, string Id = "") => Add("ut" + InputPlace, TagName + (!string.IsNullOrEmpty(Id) ? GS + Id : ""));
+        public void AddTagBefore(string InputPlace, string TagName, string Id = "") => Add("bt" + InputPlace, TagName + (!string.IsNullOrEmpty(Id) ? GS + Id : ""));
+        public void AddTagAfter(string InputPlace, string TagName, string Id = "") => Add("ft" + InputPlace, TagName + (!string.IsNullOrEmpty(Id) ? GS + Id : ""));
+        public void AddHidden(string InputPlace, string Name, string Value, string Id = "") => Add("ah" + InputPlace, Name + GS + Value + (!string.IsNullOrEmpty(Id) ? GS + Id : ""));
+
+        // Set
+        // Creates the Data if it does not exist; otherwise, Replaces the Existing Value with the New Value.
+        public void SetId(string InputPlace, string Id) => Add("si" + InputPlace, Id);
+        public void SetName(string InputPlace, string Name) => Add("sn" + InputPlace, Name);
+        public void SetValue(string InputPlace, string Value) => Add("sv" + InputPlace, Value);
+        public void SetClass(string InputPlace, string Class) => Add("sc" + InputPlace, Class);
+        public void SetStyle(string InputPlace, string Style) => Add("ss" + InputPlace, Style);
+        public void SetStyle(string InputPlace, string Name, string Value) => Add("ss" + InputPlace, Name + ':' + Value);
+        public void SetOptionTag(string InputPlace, string Text, string Value, bool Selected = false) => Add("so" + InputPlace, Value + GS + Text + (Selected ? GS + "1" : ""));
+        public void SetChecked(string InputPlace, bool Checked = false) => Add("sk" + InputPlace, Checked ? "1" : "0");
+        public void SetCheckBoxTag(string InputPlace, string Text, string Value, bool Checked = false) => Add("sk" + InputPlace, Value + GS + Text + (Checked ? GS + "1" : ""));
+        public void SetTitle(string InputPlace, string Title) => Add("sl" + InputPlace, Title);
+        public void SetLabel(string InputPlace, string Label) => Add("sA" + InputPlace, Label);
+        public void SetText(string InputPlace, string Text) => Add("st" + InputPlace, Text.Replace('\n'.ToString(), "$[ln];"));
+        public void SetAttribute(string InputPlace, string Attribute, string Value = "") => Add("sa" + InputPlace, Attribute + GS + (!string.IsNullOrEmpty(Value) ? GS + Value : ""));
+        public void SetWidth(string InputPlace, string Width) => Add("sw" + InputPlace, Width);
+        public void SetWidth(string InputPlace, int Width) => SetWidth(InputPlace, Width.ToString() + "px");
+        public void SetHeight(string InputPlace, string Height) => Add("sh" + InputPlace, Height);
+        public void SetHeight(string InputPlace, int Height) => SetHeight(InputPlace, Height.ToString() + "px");
+        public void SetBackgroundColor(string InputPlace, string Color) => Add("bc" + InputPlace, Color);
+        public void SetTextColor(string InputPlace, string Color) => Add("tc" + InputPlace, Color);
+        public void SetFontName(string InputPlace, string Name) => Add("fn" + InputPlace, Name);
+        public void SetFontSize(string InputPlace, string Size) => Add("fs" + InputPlace, Size);
+        public void SetFontSize(string InputPlace, int Size) => Add("fs" + InputPlace, Size.ToString() + "px");
+        public void SetFontBold(string InputPlace, bool Bold) => Add("fb" + InputPlace, Bold ? "1" : "0");
+        public void SetVisible(string InputPlace, bool Visible) => Add("vi" + InputPlace, Visible ? "1" : "0");
+        public void SetTextAlign(string InputPlace, string Align) => Add("ta" + InputPlace, Align);
+        public void SetReadOnly(string InputPlace, bool ReadOnly) => Add("sr" + InputPlace, ReadOnly ? "1" : "0");
+        public void SetDisabled(string InputPlace, bool Disabled) => Add("sd" + InputPlace, Disabled ? "1" : "0");
+        public void SetFocus(string InputPlace, bool Focus) => Add("sf" + InputPlace, Focus ? "1" : "0");
+        public void SetMinLength(string InputPlace, string Length) => Add("mn" + InputPlace, Length);
+        public void SetMinLength(string InputPlace, int Length) => SetMinLength(InputPlace, Length.ToString());
+        public void SetMaxLength(string InputPlace, string Length) => Add("mx" + InputPlace, Length);
+        public void SetMaxLength(string InputPlace, int Length) => SetMaxLength(InputPlace, Length.ToString());
+        public void SetSelectedValue(string InputPlace, string Value) => Add("ts" + InputPlace, Value);
+        public void SetSelectedIndex(string InputPlace, string Index) => Add("ti" + InputPlace, Index);
+        public void SetSelectedIndex(string InputPlace, int Index) => SetSelectedIndex(InputPlace, Index.ToString());
+        public void SetCheckedValue(string InputPlace, string Value, bool Checked) => Add("ks" + InputPlace, Value + GS + (Checked ? "1" : "0"));
+        public void SetCheckedIndex(string InputPlace, string Index, bool Checked) => Add("ki" + InputPlace, Index + GS + (Checked ? "1" : "0"));
+        public void SetCheckedIndex(string InputPlace, int Index, bool Checked) => SetCheckedIndex(InputPlace, Index.ToString(), Checked);
+
+        // Insert
+        // Creates the Data only if it does not exist; otherwise, does nothing.
+        public void InsertId(string InputPlace, string Id) => Add("ii" + InputPlace, Id);
+        public void InsertName(string InputPlace, string Name) => Add("in" + InputPlace, Name);
+        public void InsertValue(string InputPlace, string Value) => Add("iv" + InputPlace, Value);
+        public void InsertClass(string InputPlace, string Class) => Add("ic" + InputPlace, Class);
+        public void InsertStyle(string InputPlace, string Style) => Add("is" + InputPlace, Style);
+        public void InsertStyle(string InputPlace, string Name, string Value) => Add("is" + InputPlace, Name + ':' + Value);
+        public void InsertOptionTag(string InputPlace, string Text, string Value, bool Selected = false) => Add("io" + InputPlace, Value + GS + Text + (Selected ? GS + "1" : ""));
+        public void InsertCheckBoxTag(string InputPlace, string Text, string Value, bool Checked = false) => Add("ik" + InputPlace, Value + GS + Text + (Checked ? GS + "1" : ""));
+        public void InsertTitle(string InputPlace, string Title) => Add("il" + InputPlace, Title);
+        public void InsertLabel(string InputPlace, string Label) => Add("iA" + InputPlace, Label);
+        public void InsertText(string InputPlace, string Text) => Add("it" + InputPlace, Text.Replace('\n'.ToString(), "$[ln];"));
+        public void InsertAttribute(string InputPlace, string Attribute, string Value = "", char Splitter = '\0') => Add("ia" + InputPlace, Attribute + GS + ((Splitter != '\0') ? Splitter.ToString() : "") + (!string.IsNullOrEmpty(Value) ? GS + Value : ""));
+        
+        // Delete
+        public void DeleteId(string InputPlace) => Add("di" + InputPlace);
+        public void DeleteName(string InputPlace) => Add("dn" + InputPlace);
+        public void DeleteValue(string InputPlace) => Add("dv" + InputPlace);
+        public void DeleteClass(string InputPlace, string ClassName) => Add("dc" + InputPlace, ClassName);
+        public void DeleteStyle(string InputPlace, string StyleName) => Add("ds" + InputPlace, StyleName);
+        public void DeleteOptionTag(string InputPlace, string Value) => Add("do" + InputPlace, Value);
+        public void DeleteAllOptionTag(string InputPlace) => Add("do" + InputPlace, "*");
+        public void DeleteCheckBoxTag(string InputPlace, string Value) => Add("dk" + InputPlace, Value);
+        public void DeleteAllCheckBoxTag(string InputPlace) => Add("dk" + InputPlace, "*");
+        public void DeleteTitle(string InputPlace) => Add("dl" + InputPlace);
+        public void DeleteLabel(string InputPlace) => Add("dA" + InputPlace);
+        public void DeleteText(string InputPlace) => Add("dt" + InputPlace);
+        public void DeleteAttribute(string InputPlace, string Attribute) => Add("da" + InputPlace, Attribute);
+        public void Delete(string InputPlace) => Add("de" + InputPlace);
+        public void DeleteParent(string InputPlace) => Add("dp" + InputPlace);
+
+        // Tag
+        public void SwapTag(string InputPlace, string OutputPlace) => Add("sp" + InputPlace, OutputPlace);
+        public void SetReflection(string InputPlace, string Tag) => Add("sR" + InputPlace, Tag);
+        public void SetReflectionByOutputPlace(string InputPlace, string OutputPlace) => Add("iR" + InputPlace, OutputPlace);
+        public void SetMorph(string InputPlace, string Tag) => Add("sM" + InputPlace, Tag);
+        public void SetMorphByOutputPlace(string InputPlace, string OutputPlace) => Add("iM" + InputPlace, OutputPlace);
+
+        // Browser
+        public void ChangeUrl(string Url) => Add("cu", Url);
+        public void SetHeadTitle(string Title) => Add("ht", Title);
+        public void ClipboardWriteText(string Text) => Add("nw", Text);
+        public void ScrollTo(string X, string Y) => Add("ws", X + GS + Y);
+        public void ScrollTo(int X, int Y) => ScrollTo(X.ToString(), Y.ToString());
+        public void HistoryGo(string Steps) => Add("wg", Steps);
+        public void HistoryGo(int Steps) => HistoryGo(Steps.ToString());
+        public void ReloadPage() => Add("lr");
+        public void Redirect(string Path) => Add("lh", Path);
+
+        // Increase
+        public void IncreaseMinLength(string InputPlace, string Value) => Add("+n" + InputPlace, Value);
+        public void IncreaseMinLength(string InputPlace, int Value) => IncreaseMinLength(InputPlace, Value.ToString());
+        public void IncreaseMaxLength(string InputPlace, string Value) => Add("+x" + InputPlace, Value);
+        public void IncreaseMaxLength(string InputPlace, int Value) => IncreaseMaxLength(InputPlace, Value.ToString());
+        public void IncreaseFontSize(string InputPlace, string Value) => Add("+f" + InputPlace, Value);
+        public void IncreaseFontSize(string InputPlace, int Value) => IncreaseFontSize(InputPlace, Value.ToString());
+        public void IncreaseWidth(string InputPlace, string Value) => Add("+w" + InputPlace, Value);
+        public void IncreaseWidth(string InputPlace, int Value) => IncreaseWidth(InputPlace, Value.ToString());
+        public void IncreaseHeight(string InputPlace, string Value) => Add("+h" + InputPlace, Value);
+        public void IncreaseHeight(string InputPlace, int Value) => IncreaseHeight(InputPlace, Value.ToString());
+        public void IncreaseValue(string InputPlace, string Value) => Add("+v" + InputPlace, Value);
+        public void IncreaseValue(string InputPlace, int Value) => IncreaseValue(InputPlace, Value.ToString());
+
+        // Decrease
+        public void DecreaseMinLength(string InputPlace, string Value) => Add("-n" + InputPlace, Value);
+        public void DecreaseMinLength(string InputPlace, int Value) => DecreaseMinLength(InputPlace, Value.ToString());
+        public void DecreaseMaxLength(string InputPlace, string Value) => Add("-x" + InputPlace, Value);
+        public void DecreaseMaxLength(string InputPlace, int Value) => DecreaseMaxLength(InputPlace, Value.ToString());
+        public void DecreaseFontSize(string InputPlace, string Value) => Add("-f" + InputPlace, Value);
+        public void DecreaseFontSize(string InputPlace, int Value) => DecreaseFontSize(InputPlace, Value.ToString());
+        public void DecreaseWidth(string InputPlace, string Value) => Add("-w" + InputPlace, Value);
+        public void DecreaseWidth(string InputPlace, int Value) => DecreaseWidth(InputPlace, Value.ToString());
+        public void DecreaseHeight(string InputPlace, string Value) => Add("-h" + InputPlace, Value);
+        public void DecreaseHeight(string InputPlace, int Value) => DecreaseHeight(InputPlace, Value.ToString());
+        public void DecreaseValue(string InputPlace, string Value) => Add("-v" + InputPlace, Value);
+        public void DecreaseValue(string InputPlace, int Value) => DecreaseValue(InputPlace, Value.ToString());
+
+        // Event
+        // ConstructorName: mouseevent, keyboardevent, uievent, focusevent, inputevent, event
+        // All Method in "Event" Section Only Support Dynamic Args Once. To Support Invoking Dynamic Arguments on a Momentary Basis, Use "EventListener" Section Methods.
+        public void TriggerEvent(string InputPlace, string HtmlEventListener, string ConstructorName = null) => Add("TE" + InputPlace, HtmlEventListener + (!string.IsNullOrEmpty(ConstructorName)? GS + ConstructorName : ""));
+        public void SetPostEvent(string InputPlace, string HtmlEvent) => Add("Ep" + InputPlace, HtmlEvent);
+        public void SetPostEvent(string InputPlace, string HtmlEvent, string OutputPlace) => Add("Ep" + InputPlace, HtmlEvent + GS + OutputPlace);
+        public void SetPostEventAddView(string InputPlace, string HtmlEvent) => Add("Ep" + InputPlace, HtmlEvent + GS + "+");
+        public void SetPostEventListener(string InputPlace, string HtmlEventListener) => Add("EP" + InputPlace, HtmlEventListener);
+        public void SetPostEventListener(string InputPlace, string HtmlEventListener, string OutputPlace) => Add("EP" + InputPlace, HtmlEventListener + GS + OutputPlace);
+        public void SetPostEventListenerAddView(string InputPlace, string HtmlEventListener) => Add("EP" + InputPlace, HtmlEventListener + GS + "+");
+        public void SetGetEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("Eg" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetGetEvent(string InputPlace, string HtmlEvent, string OutputPlace, string Path = null) => Add("Eg" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetGetEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("EG" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetGetEventListener(string InputPlace, string HtmlEventListener, string OutputPlace, string Path = null) => Add("EG" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetPutEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("Et" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetPutEvent(string InputPlace, string HtmlEvent, string OutputPlace, string Path = null) => Add("Et" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetPutEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("ET" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetPutEventListener(string InputPlace, string HtmlEventListener, string OutputPlace, string Path = null) => Add("ET" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetPatchEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("Ea" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetPatchEvent(string InputPlace, string HtmlEvent, string OutputPlace, string Path = null) => Add("Ea" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetPatchEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("EA" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetPatchEventListener(string InputPlace, string HtmlEventListener, string OutputPlace, string Path = null) => Add("EA" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetDeleteEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("El" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetDeleteEvent(string InputPlace, string HtmlEvent, string OutputPlace, string Path = null) => Add("El" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetDeleteEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("EL" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetDeleteEventListener(string InputPlace, string HtmlEventListener, string OutputPlace, string Path = null) => Add("EL" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetOptionsEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("Eo" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetOptionsEvent(string InputPlace, string HtmlEvent, string OutputPlace, string Path = null) => Add("Eo" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetOptionsEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("EO" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetOptionsEventListener(string InputPlace, string HtmlEventListener, string OutputPlace, string Path = null) => Add("EO" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + OutputPlace);
+        public void SetHeadEvent(string InputPlace, string HtmlEvent, string Path = null) => Add("Eh" + InputPlace, HtmlEvent + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        public void SetHeadEventListener(string InputPlace, string HtmlEventListener, string Path = null) => Add("EH" + InputPlace, HtmlEventListener + GS + (!string.IsNullOrEmpty(Path) ? Path : "#"));
+        // IsMultiPart: If this value is true, the data will be sent based on the Form and with the "content" key.
+        public void SetSendEvent(string InputPlace, string HtmlEvent, string Data, string Path = null, string Method = "POST", bool IsMultiPart = false, string ContentType = "text/plain", string OutputPlace = null) => Add("En" + InputPlace, HtmlEvent + GS + Data.Replace('\n'.ToString(), "$[ln];").Replace("\"", "$[dq];").Replace("'", "$[sq];") + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + Method + GS + (IsMultiPart ? "1" : "0") + GS + ContentType + GS + OutputPlace);
+        public void SetSendEventListener(string InputPlace, string HtmlEventListener, string Data, string Path = null, string Method = "POST", bool IsMultiPart = false, string ContentType = "text/plain", string OutputPlace = null) => Add("EN" + InputPlace, HtmlEventListener + GS + Data.Replace('\n'.ToString(), "$[ln];") + GS + (!string.IsNullOrEmpty(Path) ? Path : "#") + GS + Method + GS + (IsMultiPart ? "1" : "0") + GS + ContentType + GS + OutputPlace);
+        public void SetCommentEvent(string InputPlace, string HtmlEvent, string Index = null, string OutputPlace = null) => Add("Eb" + InputPlace, HtmlEvent + GS + Index + GS + OutputPlace);
+        public void SetCommentEvent(string InputPlace, string HtmlEvent, int Index, string OutputPlace = null) => SetCommentEvent(InputPlace, HtmlEvent, Index.ToString(), OutputPlace);
+        public void SetCommentEventListener(string InputPlace, string HtmlEventListener, string Index = null, string OutputPlace = null) => Add("EB" + InputPlace, HtmlEventListener + GS + Index + GS + OutputPlace);
+        public void SetCommentEventListener(string InputPlace, string HtmlEventListener, int Index, string OutputPlace = null) => SetCommentEventListener(InputPlace, HtmlEventListener, Index.ToString(), OutputPlace);
+        public void SetWasmEvent(string InputPlace, string HtmlEvent, string WasmLanguage, string WasmUrl, string MethodName, object[] Args = null, string OutputPlace = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? "[" + string.Join(US, Args) : "";
+
+            Add("Ey" + InputPlace, HtmlEvent + GS + WasmLanguage + GS + WasmUrl + GS + MethodName + GS + ArgsJoin + GS + OutputPlace);
+        }
+        public void SetWasmEventListener(string InputPlace, string HtmlEventListener, string WasmLanguage, string WasmUrl, string MethodName, object[] Args = null, string OutputPlace = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? "[" + string.Join(US, Args) : "";
+
+            Add("EY" + InputPlace, HtmlEventListener + GS + WasmLanguage + GS + WasmUrl + GS + MethodName + GS + ArgsJoin + GS + OutputPlace);
+        }
+        public void SetWebSocketEvent(string InputPlace, string HtmlEvent, string Path) => Add("Ew" + InputPlace, HtmlEvent + GS + Path);
+        public void SetWebSocketEventListener(string InputPlace, string HtmlEventListener, string Path) => Add("EW" + InputPlace, HtmlEventListener + GS + Path);
+        public void SetSSEEvent(string InputPlace, string HtmlEvent, string Path, bool ShouldReconnect = true, int ReconnectTryTimeout = 3000) => Add("Ee" + InputPlace, HtmlEvent + GS + Path + GS + (ShouldReconnect? "1" : "0") + GS + ReconnectTryTimeout.ToString());
+        public void SetSSEEvent(string InputPlace, string HtmlEvent, string Path, string OutputPlace, bool ShouldReconnect = true, int ReconnectTryTimeout = 3000) => Add("Ee" + InputPlace, HtmlEvent + GS + Path + GS + (ShouldReconnect ? "1" : "0") + GS + ReconnectTryTimeout.ToString() + GS + OutputPlace);
+        public void SetSSEEventListener(string InputPlace, string HtmlEventListener, string Path, bool ShouldReconnect = true, int ReconnectTryTimeout = 3000) => Add("EE" + InputPlace, HtmlEventListener + GS + Path + GS + (ShouldReconnect? "1" : "0") + GS + ReconnectTryTimeout.ToString());
+        public void SetSSEEventListener(string InputPlace, string HtmlEventListener, string Path, string OutputPlace, bool ShouldReconnect = true, int ReconnectTryTimeout = 3000) => Add("EE" + InputPlace, HtmlEventListener + GS + Path + GS + (ShouldReconnect ? "1" : "0") + GS + ReconnectTryTimeout.ToString() + GS + OutputPlace);
+        public void SetFrontEvent(string InputPlace, string HtmlEvent, string ModulePath, object[] Args = null, string OutputPlace = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("Ej" + InputPlace, HtmlEvent + GS + ModulePath + GS + OutputPlace + ArgsJoin);
+        }
+        public void SetFrontEventListener(string InputPlace, string HtmlEventListener, string ModulePath, object[] Args = null, string OutputPlace = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("EJ" + InputPlace, HtmlEventListener + GS + ModulePath + GS + OutputPlace + ArgsJoin);
+        }
+        public void SetMasterPagesEvent(string InputPlace, string HtmlEvent, string OutputPlace = null) => Add("Eu" + InputPlace, HtmlEvent + GS + OutputPlace);
+        public void SetMasterPagesEventListener(string InputPlace, string HtmlEventListener, string OutputPlace = null) => Add("EU" + InputPlace, HtmlEventListener + GS + OutputPlace);
+        public void SetPreventDefaultEvent(string InputPlace, string HtmlEvent) => Add("Ed" + InputPlace, HtmlEvent);
+        public void SetPreventDefaultEventListener(string InputPlace, string HtmlEventListener) => Add("ED" + InputPlace, HtmlEventListener);
+        public void SetStopPropagationEvent(string InputPlace, string HtmlEvent) => Add("Es" + InputPlace, HtmlEvent);
+        public void SetStopPropagationEventListener(string InputPlace, string HtmlEventListener) => Add("ES" + InputPlace, HtmlEventListener);
+        public void SetMethodEvent(string InputPlace, string HtmlEvent, string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("Em" + InputPlace, HtmlEvent + GS + MethodName + ArgsJoin);
+        }
+        public void SetMethodEventListener(string InputPlace, string HtmlEventListener, string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("EM" + InputPlace, HtmlEventListener + GS + MethodName + ArgsJoin);
+        }
+        public void SetModuleMethodEvent(string InputPlace, string HtmlEvent, string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("Ex" + InputPlace, HtmlEvent + GS + MethodName + ArgsJoin);
+        }
+        public void SetModuleMethodEventListener(string InputPlace, string HtmlEventListener, string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("EX" + InputPlace, HtmlEventListener + GS + MethodName + ArgsJoin);
+        }
+        public void AssignConfirmEvent(string InputPlace, string HtmlEvent, string Text = "Are you sure you want to proceed?", string Type = "none", string Title = "Confirm", string OkText = "OK", string CancelText = "Cancel") => Add("Ef" + InputPlace, HtmlEvent + GS + (Text == "Are you sure you want to proceed?" ? "" : Text) + GS + (Type == "none"? "" : Type) + GS + (Title == "Confirm" ? "" : Title) + GS + (OkText == "OK" ? "" :  OkText) + GS + (CancelText == "Cancel" ? "" : CancelText));
+        public void RemovePostEvent(string InputPlace, string HtmlEvent) => Add("Rp" + InputPlace, HtmlEvent);
+        public void RemovePostEventListener(string InputPlace, string HtmlEventListener) => Add("RP" + InputPlace, HtmlEventListener);
+        public void RemoveGetEvent(string InputPlace, string HtmlEvent) => Add("Rg" + InputPlace, HtmlEvent);
+        public void RemoveGetEventListener(string InputPlace, string HtmlEventListener) => Add("RG" + InputPlace, HtmlEventListener);
+        public void RemovePutEvent(string InputPlace, string HtmlEvent) => Add("Rt" + InputPlace, HtmlEvent);
+        public void RemovePutEventListener(string InputPlace, string HtmlEventListener) => Add("RT" + InputPlace, HtmlEventListener);
+        public void RemovePatchEvent(string InputPlace, string HtmlEvent) => Add("Ra" + InputPlace, HtmlEvent);
+        public void RemovePatchEventListener(string InputPlace, string HtmlEventListener) => Add("RA" + InputPlace, HtmlEventListener);
+        public void RemoveDeleteEvent(string InputPlace, string HtmlEvent) => Add("Rl" + InputPlace, HtmlEvent);
+        public void RemoveDeleteEventListener(string InputPlace, string HtmlEventListener) => Add("RL" + InputPlace, HtmlEventListener);
+        public void RemoveOptionsEvent(string InputPlace, string HtmlEvent) => Add("Ro" + InputPlace, HtmlEvent);
+        public void RemoveOptionsEventListener(string InputPlace, string HtmlEventListener) => Add("RO" + InputPlace, HtmlEventListener);
+        public void RemoveHeadEvent(string InputPlace, string HtmlEvent) => Add("Rh" + InputPlace, HtmlEvent);
+        public void RemoveHeadEventListener(string InputPlace, string HtmlEventListener) => Add("RH" + InputPlace, HtmlEventListener);
+        public void RemoveSendEvent(string InputPlace, string HtmlEvent) => Add("Rn" + InputPlace, HtmlEvent);
+        public void RemoveSendEventListener(string InputPlace, string HtmlEventListener) => Add("RN" + InputPlace, HtmlEventListener);
+        public void RemoveCommentEvent(string InputPlace, string HtmlEvent) => Add("Rb" + InputPlace, HtmlEvent);
+        public void RemoveCommentEventListener(string InputPlace, string HtmlEventListener) => Add("RB" + InputPlace, HtmlEventListener);
+        public void RemoveWasmEvent(string InputPlace, string HtmlEvent) => Add("Ry" + InputPlace, HtmlEvent);
+        public void RemoveWasmEventListener(string InputPlace, string HtmlEventListener) => Add("RY" + InputPlace, HtmlEventListener);
+        public void RemoveWebSocketEvent(string InputPlace, string HtmlEvent) => Add("Rw" + InputPlace, HtmlEvent);
+        public void RemoveWebSocketEventListener(string InputPlace, string HtmlEventListener) => Add("RW" + InputPlace, HtmlEventListener);
+        public void RemoveSSEEvent(string InputPlace, string HtmlEvent) => Add("Re" + InputPlace, HtmlEvent);
+        public void RemoveSSEEventListener(string InputPlace, string HtmlEventListener) => Add("RE" + InputPlace, HtmlEventListener);
+        public void RemoveFrontEvent(string InputPlace, string HtmlEvent) => Add("Rj" + InputPlace, HtmlEvent);
+        public void RemoveFrontEventListener(string InputPlace, string HtmlEventListener) => Add("RJ" + InputPlace, HtmlEventListener);
+        public void RemovePreventDefaultEvent(string InputPlace, string HtmlEvent) => Add("Rd" + InputPlace, HtmlEvent);
+        public void RemovePreventDefaultEventListener(string InputPlace, string HtmlEventListener) => Add("RD" + InputPlace, HtmlEventListener);
+        public void RemoveMasterPagesEvent(string InputPlace, string HtmlEvent) => Add("Ru" + InputPlace, HtmlEvent);
+        public void RemoveMasterPagesEventListener(string InputPlace, string HtmlEventListener) => Add("RU" + InputPlace, HtmlEventListener);
+        public void RemoveStopPropagationEvent(string InputPlace, string HtmlEvent) => Add("Rs" + InputPlace, HtmlEvent);
+        public void RemoveStopPropagationEventListener(string InputPlace, string HtmlEventListener) => Add("RS" + InputPlace, HtmlEventListener);
+        public void RemoveMethodEvent(string InputPlace, string HtmlEvent, string MethodName) => Add("Rm" + InputPlace, HtmlEvent + GS + MethodName);
+        public void RemoveMethodEventListener(string InputPlace, string HtmlEventListener, string MethodName) => Add("RM" + InputPlace, HtmlEventListener + GS + MethodName);
+        public void RemoveModuleMethodEvent(string InputPlace, string HtmlEvent, string MethodName) => Add("Rx" + InputPlace, HtmlEvent + GS + MethodName);
+        public void RemoveModuleMethodEventListener(string InputPlace, string HtmlEventListener, string MethodName) => Add("RX" + InputPlace, HtmlEventListener + GS + MethodName);
+        public void RemoveConfirmEvent(string InputPlace, string HtmlEvent) => Add("Rf" + InputPlace, HtmlEvent);
+
+        // Custom Event
+		// This Method Is Compatible With EventListener And May Not Be Compatible With Events Written As Attributes In Some Browsers.
+        // Watch: attribute, style, text, children, value
+        // Compare: greater, less, equal, notequal, includes, startswith, endswith, matches, changed, inrange, lengthgreater, lengthless, lengthequal
+        // Range: Only Use For Compare With inrange Value. Split By Comma ","
+        // Key: Only Use For Watch With attribute And style Value
+        public void CreateCustomDOMEvent(string InputPlace, string EventName ,string Watch, string Key, string Compare, string Value, string Range, bool Immediate = false, string Delay = "0") => Add("eC" + InputPlace, EventName + GS + Watch + GS + Key + GS + Compare + GS + Value + GS + Range + GS + (Immediate?  "1" : "0") + GS + Delay);
+        public void CreateCustomDOMEvent(string InputPlace, string EventName ,string Watch, string Key, string Compare, string Value, string Range, bool Immediate, int Delay) => CreateCustomDOMEvent(InputPlace, EventName, Watch, Key, Compare, Value, Range, Immediate, Delay.ToString());
+        public void EnableScrollBottomEvent(bool Enable = true) => Add("eb", Enable? "1" : "0");
+        public void EnableReachedElementEvent(string InputPlace, bool Once, bool Enable = true) => Add("er" + InputPlace, (Once ? "1" : "0") + GS + (Enable? "1" : "0"));
+
+        // Module
+        public void LoadModule(string ModulePath, string[] Methods = null)
+        {
+            Methods ??= System.Array.Empty<string>();
+            Add("Ml", ModulePath + ((Methods.Length > 0) ? GS + "[" + string.Join(US, Methods) : ""));
+        }
+        public void UnloadModule(string ModulePath) => Add("Mu", ModulePath);
+        public void DeleteModuleMethod(string MethodName) => Add("Md", MethodName);
+
+        // Unit Testing
+        // InputPlace Is Actual, Expected Is Tag/OutputPlace
+        public void AssertEqual(string InputPlace, string Tag) => Add("At" + InputPlace, Tag.Replace('\n'.ToString(), "$[ln];"));
+        public void AssertEqualByOutputPlace(string InputPlace, string OutputPlace) => Add("Ao" + InputPlace, OutputPlace);
+
+        // Debug
+        public void CreateDebugger(bool Pause = false) => Add("Dc", Pause? "1" : "0");
+
+        // Service Worker
+        // To Use Service Worker, You Need To Add The Elanat Dedicated Module (service-worker.js) On The Client Side
+        public void ServiceWorkerRegister(string Path = null, string ScopePath = null) => Add("wR", Path + GS + ScopePath);
+        public void ServiceWorkerPreCacheStatic(string[] PathList) => Add("wp",string.Join(GS, PathList));
+        public void ServiceWorkerDynamicCache(string Path, string Seconds = "") => Add("wc", Path + (Seconds != "" ? GS + Seconds : ""));
+        public void ServiceWorkerDynamicCache(string Path, int Seconds) => ServiceWorkerDynamicCache(Path, Seconds > 0 ? Seconds.ToString() : "");
+        public void ServiceWorkerDeleteDynamicCache() => Add("wd");
+        public void ServiceWorkerDeleteDynamicCache(string Path) => Add("wd", Path);
+        public void ServiceWorkerDynamicCacheTTLUpdate(string Path, string Seconds = "") => Add("wt", Path + (Seconds != "" ? GS + Seconds : ""));
+        public void ServiceWorkerDynamicCacheTTLUpdate(string Path, int Seconds) => ServiceWorkerDynamicCacheTTLUpdate(Path, Seconds > 0 ? Seconds.ToString() : "");
+        // Path: Support Wildcard Automatically And Also Support Regex If Use "re:" Before Pattern
+        // Type: Type Is Cache Strategy. cachefirst, networkfirst, cacheonly, networkonly, stalerevalidate (Fast From Cache, Updates Simultaneously From The Network)
+        // CacheDynamic: If True, Any Successful Network Response For That Route Will Be Stored In The Dynamic Cache
+        public void ServiceWorkerRouteSet(string Path, string Type, bool CacheDynamic = false) => Add("wr", Path + GS + Type + (CacheDynamic? GS + "1" : ""));
+        public void ServiceWorkerRouteAlias(string Path, string To) => Add("wa", Path + GS + To);
+        public void ServiceWorkerDeleteRouteAlias(string Path = null) => Add("wC", Path);
+        // Delete All Route And Alias
+        public void ServiceWorkerDeleteRoute() => Add("wD");
+        public void ServiceWorkerDeleteRoute(string Path) => Add("wD", Path);
+
+        // SSE
+        public void DisconnectSSE(string Path) => Add("Ds", Path);
+        public void DisconnectAllSSE() => Add("Ds");
+
+        // State
+        public void AddState(string Path = null, string Title = null) => Add("AS", Path + GS + Title);
+        public void SaveState(string Path = null, string Title = null) => Add("As", Path + GS + Title);
+        public void LoadState(string Path) => Add("ls", Path);
+        public void DeleteState(string Path = null) => Add("DS", Path);
+        public void DeleteAllState() => Add("DS", "*");
+
+        // Cookie
+        public void SetCookie(string Key, string Value, string Seconds, string Path = null) => Add("sC", Key + GS + Value + GS + Seconds + (!string.IsNullOrEmpty(Path) ? GS + Path : ""));
+        public void SetCookie(string Key, string Value, int Seconds, string Path = null) => SetCookie(Key, Value , Seconds.ToString(), Path);
+
+        // Save (Session Cache)
+        public void SaveId(string InputPlace, string Key = ".") => Add("@gi" + InputPlace, Key);
+        public void SaveName(string InputPlace, string Key = ".") => Add("@gn" + InputPlace, Key);
+        public void SaveValue(string InputPlace, string Key = ".") => Add("@gv" + InputPlace, Key);
+        public void SaveValueLength(string InputPlace, string Key = ".") => Add("@ge" + InputPlace, Key);
+        public void SaveClass(string InputPlace, string Key = ".") => Add("@gc" + InputPlace, Key);
+        public void SaveStyle(string InputPlace, string Key = ".") => Add("@gs" + InputPlace, Key);
+        public void SaveTitle(string InputPlace, string Key = ".") => Add("@gl" + InputPlace, Key);
+        public void SaveLabel(string InputPlace, string Key = ".") => Add("@gA" + InputPlace, Key);
+        public void SaveText(string InputPlace, string Key = ".") => Add("@gt" + InputPlace, Key);
+        public void SaveOuterText(string InputPlace, string Key = ".") => Add("@go" + InputPlace, Key);
+        public void SaveTextLength(string InputPlace, string Key = ".") => Add("@gg" + InputPlace, Key);
+        public void SaveAttribute(string InputPlace, string Attribute, string Key = ".") => Add("@ga" + InputPlace, Key + GS + Attribute);
+        public void SaveWidth(string InputPlace, string Key = ".") => Add("@gw" + InputPlace, Key);
+        public void SaveHeight(string InputPlace, string Key = ".") => Add("@gh" + InputPlace, Key);
+        public void SaveReadOnly(string InputPlace, string Key = ".") => Add("@gr" + InputPlace, Key);
+        public void SaveSelectedIndex(string InputPlace, string Key = ".") => Add("@gx" + InputPlace, Key);
+        public void SaveTextAlign(string InputPlace, string Key = ".") => Add("@gT" + InputPlace, Key);
+        public void SaveNodeLength(string InputPlace, string Key = ".") => Add("@gL" + InputPlace, Key);
+        public void SaveVisible(string InputPlace, string Key = ".") => Add("@gV" + InputPlace, Key);
+        public void SaveUrl(string Url, bool FetchScript = false, string Key = ".") => Add("@gu", Key + GS + Url + (FetchScript ? GS + "1" : ""));
+        public void SaveIndex(string InputPlace, string Key = ".") => Add("@gI" + InputPlace, Key);
+        public void RemoveSave(string CacheKey) => Add("rs", CacheKey);
+        public void RemoveAllSave() => Add("rs", "*");
+        // Calling the SetSave Method Causes Action Control Requests Triggered by Events Using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send Event, to be Temporarily Saved on the Active Page, so the Request will not be Sent to the Server Again.
+        public void SetSave() => Add("cs", "*");
+        public void AddSaveValue(string CacheKey, string Value) => Add("SA", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void InsertSaveValue(string CacheKey, string Value) => Add("SI", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void AppendSaveValue(string CacheKey, string Value) => Add("SP", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void ReplaceSaveValue(string CacheKey, string SearchValue, string Value) => Add("SR", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];") + GS + SearchValue.Replace('\n'.ToString(), "$[ln];"));
+
+        // Cache
+        public void CacheId(string InputPlace, string Key = ".") => Add("@ci" + InputPlace, Key);
+        public void CacheName(string InputPlace, string Key = ".") => Add("@cn" + InputPlace, Key);
+        public void CacheValue(string InputPlace, string Key = ".") => Add("@cv" + InputPlace, Key);
+        public void CacheValueLength(string InputPlace, string Key = ".") => Add("@ce" + InputPlace, Key);
+        public void CacheClass(string InputPlace, string Key = ".") => Add("@cc" + InputPlace, Key);
+        public void CacheStyle(string InputPlace, string Key = ".") => Add("@cs" + InputPlace, Key);
+        public void CacheTitle(string InputPlace, string Key = ".") => Add("@cl" + InputPlace, Key);
+        public void CacheLabel(string InputPlace, string Key = ".") => Add("@cA" + InputPlace, Key);
+        public void CacheText(string InputPlace, string Key = ".") => Add("@ct" + InputPlace, Key);
+        public void CacheOuterText(string InputPlace, string Key = ".") => Add("@co" + InputPlace, Key);
+        public void CacheTextLength(string InputPlace, string Key = ".") => Add("@cg" + InputPlace, Key);
+        public void CacheAttribute(string InputPlace, string Attribute, string Key = ".") => Add("@ca" + InputPlace, Key + GS + Attribute);
+        public void CacheWidth(string InputPlace, string Key = ".") => Add("@cw" + InputPlace, Key);
+        public void CacheHeight(string InputPlace, string Key = ".") => Add("@ch" + InputPlace, Key);
+        public void CacheReadOnly(string InputPlace, string Key = ".") => Add("@cr" + InputPlace, Key);
+        public void CacheSelectedIndex(string InputPlace, string Key = ".") => Add("@cx" + InputPlace, Key);
+        public void CacheTextAlign(string InputPlace, string Key = ".") => Add("@cT" + InputPlace, Key);
+        public void CacheNodeLength(string InputPlace, string Key = ".") => Add("@cL" + InputPlace, Key);
+        public void CacheVisible(string InputPlace, string Key = ".") => Add("@cV" + InputPlace, Key);
+        public void CacheUrl(string Url, bool FetchScript = false, string Key = ".") => Add("@cu", Key + GS + Url + (FetchScript ? GS + "1" : ""));
+        public void CacheIndex(string InputPlace, string Key = ".") => Add("@cI" + InputPlace, Key);
+        public void RemoveCache(string CacheKey) => Add("rd", CacheKey);
+        public void RemoveAllCache() => Add("rd", "*");
+        // Calling the SetCache Method Causes Action Control Requests Triggered by events using the GET, POST, PUT, PATCH, DELETE, and OPTIONS Methods, as well as Requests Triggered by the Send event, to be Cached, so the Request will not be Sent to the Server Again.
+        public void SetCache(string Second) => Add("cd", Second);
+        public void SetCache(int Second) => SetCache(Second.ToString());
+        public void SetCache() => Add("cd", "*");
+        public void AddCacheValue(string CacheKey, string Value) => Add("CA", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void InsertCacheValue(string CacheKey, string Value) => Add("CI", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void AppendCacheValue(string CacheKey, string Value) => Add("CP", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];"));
+        public void ReplaceCacheValue(string CacheKey, string SearchValue, string Value) => Add("CR", CacheKey + GS + Value.Replace('\n'.ToString(), "$[ln];") +  GS + SearchValue.Replace('\n'.ToString(), "$[ln];"));
+
+        // Call
+        public void LoadUrl(string InputPlace, string Url) => Add("lu" + InputPlace, Url);
+        public void RunActionControls(string ActionControls, bool WithoutWebFormsSection = true, string Index = null, bool UseCurrentEvent = true) => Add("lA", (UseCurrentEvent ? "1" : "0") + GS + (WithoutWebFormsSection ? "1" : "0") + GS + Index + GS + ActionControls);
+        public void CallScript(string ScriptText) => Add("_", ScriptText.Replace('\n'.ToString(), "$[ln];"));
+        public void CallMethod(string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("lm", MethodName + ArgsJoin);
+        }
+        public void CallModuleMethod(string MethodName, object[] Args = null)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("lM", MethodName + ArgsJoin);
+        }
+        public void CallPostBack(string FormInputPlace, string OutputPlace = null) => Add("Lp", "1" + GS + FormInputPlace + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallCommentBack(string Index = null, string InputPlace = null, bool UseCurrentEvent = true) => Add("LC", (UseCurrentEvent? "1": "0") + GS + Index + GS + InputPlace);
+        public void CallCommentBack(int Index, string InputPlace = null, bool UseCurrentEvent = true) => CallCommentBack(Index.ToString(), InputPlace, UseCurrentEvent);
+        public void CallWasmBack(string WasmLanguage, string WasmUrl, string MethodName, object[] Args = null, string OutputPlace = null, bool UseCurrentEvent = true)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? "[" + string.Join(US, Args) : "";
+
+            Add("Ly", (UseCurrentEvent ? "1" : "0") + GS + WasmLanguage + GS + WasmUrl + GS + MethodName + GS + ArgsJoin + GS + OutputPlace);
+        }
+        public void CallWebSocketBack(string Path, bool UseCurrentEvent = true) => Add("Lw", (UseCurrentEvent? "1": "0") + GS + Path);
+        public void CallSSEBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true, bool ShouldReconnect = true, string ReconnectTryTimeout = "3000") => Add("Ls", (UseCurrentEvent ? "1" : "0") + GS + Path + GS + (ShouldReconnect ? "1" : "0") + GS + ReconnectTryTimeout + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallSSEBack(string Path, string OutputPlace, bool UseCurrentEvent, bool ShouldReconnect, int ReconnectTryTimeout) => CallSSEBack(Path, OutputPlace, UseCurrentEvent, ShouldReconnect, ReconnectTryTimeout.ToString());
+        public void CallFront(string ModulePath, object[] Args = null, string OutputPlace = null, bool UseCurrentEvent = true)
+        {
+            string ArgsJoin = "";
+
+            if (Args != null)
+                ArgsJoin = (Args.Length > 0) ? GS + "[" + string.Join(US, Args) : "";
+
+            Add("Lj", (UseCurrentEvent ? "1" : "0") + GS + ModulePath + GS + OutputPlace + ArgsJoin);
+        }
+        public void CallGetBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true) => Add("Lg", (UseCurrentEvent ? "1" : "0") + GS + Path + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallPutBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true) => Add("Lt", (UseCurrentEvent ? "1" : "0") + GS + Path + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallPatchBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true) => Add("LP", (UseCurrentEvent ? "1" : "0") + GS + Path + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallDeleteBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true) => Add("Ld", (UseCurrentEvent ? "1" : "0") + GS + Path + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallHeadBack(string Path, bool UseCurrentEvent = true) => Add("Lh", (UseCurrentEvent ? "1" : "0") + GS + Path);
+        public void CallOptionsBack(string Path, string OutputPlace = null, bool UseCurrentEvent = true) => Add("Lo", (UseCurrentEvent ? "1" : "0") + GS + Path + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+        public void CallSendBack(string Path, string Method, bool IsMultiPart, string ContentType, string Data, string OutputPlace = null, bool UseCurrentEvent = true) => Add("LS", (UseCurrentEvent ? "1" : "0") + GS + Path + GS + Method + GS + (IsMultiPart ? "1" : "0") + GS + ContentType + GS + Data.Replace('\n'.ToString(), "$[ln];") + (!string.IsNullOrEmpty(OutputPlace) ? GS + OutputPlace : ""));
+
+        // Update
+        public void Increase(string InputPlace, float Value) => Add("gt" + InputPlace, "i" + GS + Value.ToString());
+        public void Decrease(string InputPlace, float Value) => Add("gt" + InputPlace, "i" + GS + (Value * -1).ToString());
+        // If You Don't Use Deep Mode, any Tags Inside the Current Tag Will Simply Be Treated as Strings. Deep Mode Does not Remove Inner Elements.
+        public void Replace(string InputPlace, string Value, string NewValue, bool AlsoStartTag = false, bool Deep = true) => Add("gt" + InputPlace, "r" + GS + Value + GS + NewValue + GS + (AlsoStartTag ? "1" : "0") + GS + (Deep ? "1" : "0"));
+        // HTML Converts Attribute Names to Lowercase, so they Need to Be Written in Lowercase.
+        public void ReplaceStartTag(string InputPlace, string Value, string NewValue) => Add("gt" + InputPlace, "s" + GS + Value + GS + NewValue);
+
+        // Pre Runner
+        public void AssignDelay(int MiliSecond, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string newName = ":" + MiliSecond + ")" + parts[0];
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        public void AssignDelayChange(int MiliSecond, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string currentName = parts[0];
+
+            if (currentName.StartsWith(":") && currentName.Contains(")"))
+            {
+                int closingBracket = currentName.IndexOf(')');
+                currentName = currentName.Substring(closingBracket + 1);
+            }
+
+            string newName = ":" + MiliSecond + ")" + currentName;
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        public void AssignInterval(int MiliSecond, string Id = null, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string newName = "(" + MiliSecond + (!string.IsNullOrEmpty(Id) ? "|" + Id : "") + ")" + parts[0];
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        public void AssignIntervalChange(int MiliSecond, string Id = null, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string currentName = parts[0];
+
+            if (currentName.StartsWith("(") && currentName.Contains(")"))
+            {
+                int closingBracket = currentName.IndexOf(')');
+                currentName = currentName.Substring(closingBracket + 1);
+            }
+
+            string newName = "(" + MiliSecond + (!string.IsNullOrEmpty(Id) ? "|" + Id : "") + ")" + currentName;
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        public void DeleteInterval(string Id) => Add("Di", Id);
+
+        public void AssignRepeat(int Count, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string newName = "," + Count + ")" + parts[0];
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        public void AssignRepeatChange(int Count, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string currentName = parts[0];
+
+            if (currentName.StartsWith(",") && currentName.Contains(")"))
+            {
+                int closingBracket = currentName.IndexOf(')');
+                currentName = currentName.Substring(closingBracket + 1);
+            }
+
+            string newName = "," + Count + ")" + currentName;
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        // Index
+        public void StartIndex(string Name) => Add("#", Name);
+        public void StartIndex() => StartIndex("");
+        // This Index Is Automatically Run After Changing The Browser History (Back And Forward Buttons)
+        public void StartState() => StartIndex("$");
+        public void GoTo(string Line, string Repeat) => Add("&", Line + GS + Repeat);
+        public void GoTo(int Line, int Repeat = 1) => GoTo(Line.ToString(), Repeat.ToString());
+        public void GoTo(string Index, int Repeat = 1) => Add("&", "#" + Index + GS + Repeat.ToString());
+        
+        // Start
+        public void StartTransientDOM(string InputPlace) => Add("td", InputPlace);
+        public void EndTransientDOM() => Add("td", ";");
+
+        // Message
+        // Type: warning, problem, help, success, none
+        public void Alert(string Text, string Type = "none", string Title = "Alert", string OkText = "OK") => Add("Al", Text + GS + (Type == "none" ? "" : Type) + GS + (Title == "Alert" ? "" : Title) + GS + (OkText == "OK" ? "" : OkText));
+        public void Message(string Text, string Type = "none", string Duration = "0") => Add("me", Text + GS + (Type == "none" ? "" : Type) + GS + (Duration == "0" ? "" : Duration));
+        public void Message(string Text, string Type, int Duration) => Message(Text, Type, Duration.ToString());
+        public void Message(string Text, int Duration) => Message(Text, "", Duration.ToString());
+
+        // Type: log, info, warn, error, debug, trace, group, groupend, table
+        public void ConsoleMessage(string Text, string Type = "log") => Add("mc", Text.Replace('\n'.ToString(), "$[ln];") + (Type == "log" ? "" : GS + Type));
+        public void ConsoleMessageAssert(string Text, string Condition) => Add("ma", Text.Replace('\n'.ToString(), "$[ln];") + GS + Condition);
+
+        // Enable
+        //Calling The EnableWebSocket Or EnableWebSocketOnce Or AddWebSocket Methods Will Cause Any Subsequent Requests (Under WebForms Core Technology) To Operate Under The WebSocket Protocol.
+        public void EnableWebSocket(bool Enable = true) => Add("ew", Enable ? "1" : "0");
+        public void EnableWebSocketOnce() => Add("ew", "$");
+        public void AddWebSocket(string Path) => Add("aw" + Path);
+        // Disconnected WebSocket
+        public void DeleteWebSocket(string Path) => Add("dw" + Path);
+
+        // Use
+        // InputPlace Using Only For form Element
+        public void UseWebSocket(string InputPlace) => Add("uw" + InputPlace);
+        public void UseOnlyChangeUpdate(string InputPlace) => Add("uo" + InputPlace);
+
+        // Condition And Loop
+        // Condition And Loop Supports Brackets and Then
+        // Type: warning, problem, help, success, none
+        // Interval: Value 0 is Await (if is not True, all Next Action Controls Waiting for it), Value -1 is Sync Check Once (is Support Bracket or Next Action Control), Value > 0 is Async and is Wait Based on Time Repetition Until it Becomes True (Is Support Bracket or Next Action Control, but is not Support Else).
+        // Nested Conditions and Nested Loops are Possible.
+        public WebForms ConfirmIsTrueAccept(string Text = "Are you sure you want to proceed?", string Type = "none", string Title = "Confirm", string OkText = "OK", string CancelText = "Cancel", int Interval = 100)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "ct", (Text == "Are you sure you want to proceed?" ? "" : Text) + GS + (Type == "none" ? "" : Type) + GS + (Title == "Confirm" ? "" : Title) + GS + (OkText == "OK" ? "" : OkText) + GS + (CancelText == "Cancel" ? "" : CancelText));
+            return this;
+        }
+        public WebForms ConfirmIsFalseAccept(string Text = "Are you sure you want to proceed?", string Type = "none", string Title = "Confirm", string OkText = "OK", string CancelText = "Cancel", int Interval = 100)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "cf", (Text == "Are you sure you want to proceed?" ? "" : Text) + GS + (Type == "none" ? "" : Type) + GS + (Title == "Confirm" ? "" : Title) + GS + (OkText == "OK" ? "" : OkText) + GS + (CancelText == "Cancel" ? "" : CancelText));
+            return this;
+        }
+        public WebForms IsGreaterThan(string FirstValue, string SecondValue, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "gt", FirstValue + GS + SecondValue);
+            return this;
+        }
+        public WebForms IsLessThan(string FirstValue, string SecondValue, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "lt", FirstValue + GS + SecondValue);
+            return this;
+        }
+        public WebForms IsEqualTo(string FirstValue, string SecondValue, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "et", FirstValue + GS + SecondValue);
+            return this;
+        }
+        public WebForms IsNotEqualTo(string FirstValue, string SecondValue, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "Nt", FirstValue + GS + SecondValue);
+            return this;
+        }
+        public WebForms Exist(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "ex", Value);
+            return this;
+        }
+        public WebForms NotExist(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "nx", Value);
+            return this;
+        }
+        public WebForms IsTrue(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "tr", Value);
+            return this;
+        }
+        public WebForms IsFalse(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "fa", Value);
+            return this;
+        }
+        public WebForms IsMatchMedia(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "mm", Value);
+            return this;
+        }
+        public WebForms IsNotMatchMedia(string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "nm", Value);
+            return this;
+        }
+        public WebForms Include(string Text, string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "In", Value + GS + Text);
+            return this;
+        }
+        public WebForms NotInclude(string Text, string Value, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "Nn", Value + GS + Text);
+            return this;
+        }
+        public WebForms ElementExists(string InputPlace, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "eE", InputPlace);
+            return this;
+        }
+        public WebForms ElementNotExists(string InputPlace, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "nE", InputPlace);
+            return this;
+        }
+        public WebForms IsRegexMatch(string Value, string Pattern, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "re", Value + GS + Pattern);
+            return this;
+        }
+        public WebForms IsRegexNotMatch(string Value, string Pattern, int Interval = -1)
+        {
+            Add(((Interval >= 0) ? "{(" + Interval + ")" : "{") + "rn", Value + GS + Pattern);
+            return this;
+        }
+        // In: Everything Becomes A JSON List.
+        // Key: Creates A Temporary Data In The Browser IndexedDB.
+        // Key + "i" Creates A Temporary Data To Maintain The Loop Counter In The Browser IndexedDB.
+        public WebForms ForEach(string Path, string In, string Key = ".")
+        {
+            Add( "{fe", Path + GS + In + GS + Key);
+            return this;
+        }
+        public void Break() => Add(";");
+        public WebForms Else()
+        {
+            Add("}e");
+            return this;
+        }
+        public void StartBracket() => Add("{");
+        public void EndBracket() => Add("}");
+        // Used Then In Condition And Loop Methods
+        public WebForms Then(WebForms newForm)
+        {
+            string data = newForm?.GetWebFormsData();
+            
+            if (!string.IsNullOrEmpty(data))
+            {
+                if (data.Contains('\n'))
+                {
+                    newForm.AddToUp("{");
+                    newForm.Add("}");
+                }
+            }
+            
+            AppendForm(newForm);
+            return this;
+        }
+
+        public WebForms Then(System.Action<WebForms> configure)
+        {
+            var newForm = new WebForms();
+            configure(newForm);
+            
+            string data = newForm?.GetWebFormsData();
+            
+            if (!string.IsNullOrEmpty(data))
+            {
+                if (data.Contains('\n'))
+                {
+                    newForm.AddToUp("{");
+                    newForm.Add("}");
+                }
+            }
+            
+            AppendForm(newForm);
+            return this;
+        }
+
+        public WebForms Repeat(WebForms newForm, int repeat)
+        {
+            if (newForm == null)
+                return this;
+
+            string bodyData = newForm.GetWebFormsData();
+
+            if (string.IsNullOrEmpty(bodyData))
+                return this;
+
+            int startLine = bodyData.Split('\n').Length * -1;
+
+            AppendForm(newForm);
+            GoTo(startLine, repeat - 1);
+
+            return this;
+        }
+        
+        public WebForms Repeat(WebForms newForm, int repeat, string index)
+        {
+            if (newForm == null)
+                return this;
+
+            GoTo(index);
+            StartIndex(index);
+
+            string bodyData = newForm.GetWebFormsData();
+
+            if (string.IsNullOrEmpty(bodyData))
+                return this;
+
+            AppendForm(newForm);
+
+            if (string.IsNullOrEmpty(index))
+            {
+                int indexNumber = -1;
+
+                foreach (string x in GetWebFormsData().Split('\n'))
+                {
+                    if (x.StartsWith("#"))
+                        indexNumber++;
+                }
+
+                GoTo(indexNumber.ToString(), repeat - 1);
+            }
+            else
+                GoTo(index, repeat - 1);
+
+            return this;
+        }
+    
+        public WebForms Repeat(System.Action<WebForms> configure, int repeat)
+        {
+            var newForm = new WebForms();
+            configure(newForm);
+            return Repeat(newForm, repeat);
+        }
+        
+        public WebForms Repeat(System.Action<WebForms> configure, int repeat, string index)
+        {
+            var newForm = new WebForms();
+            configure(newForm);
+            return Repeat(newForm, repeat, index);
+        }
+
+        // Async
+        // It Supports Brackets and Then
+        public WebForms Async()
+        {
+            Add("{(a)");
+            return this;
+        }
+        public void Delay(string MiliSecond) => Add("De", MiliSecond);
+        public void Delay(int MiliSecond) => Delay(MiliSecond.ToString());
+
+        // Option
+        public void ChangeOption(string Name, string Value) => Add("co", Name + GS + Value);
+        public void ResetOption() => Add("ro");
+        public void ResetOption(string Name) => Add("ro", Name);
+
+        // Format Storage
+        public void CreateFormatStorage(string Key, string Data) => Add(".C", Key + GS + Data);
+        public void DeleteFormatStorage(string Key) => Add(".D", Key);
+        public void AddJSON(string Key, string Path, string Value) => Add(".a", Key + GS + "j" + GS + Value + GS + Path);
+        // Name: For Support Attribute, Set Double At Sign (@@) Before Name.
+        public void AddXML(string Key, string Path, string Name, string Value = null) => Add(".a", Key + GS + "x" + GS + Name + GS + Value + GS + Path);
+        public void AddINI(string Key, string Path, string Value, bool IsINILike = false) => Add(".a", Key + GS + "i" + GS + (IsINILike ? "1" : "0") + GS + Value + GS + Path);
+        public void AddTextLine(string Key, string Line, string Text) => Add(".a", Key + GS + "t" + GS + Text + GS + Line);
+        public void AddTextLine(string Key, int Line, string Text) => AddTextLine(Key, Line.ToString(), Text);
+        public void AddVariable(string Key, string Value) => Add(".a", Key + GS + "v" + GS + Value);
+        public void UpdateJSON(string Key, string Path, string Value) => Add(".u", Key + GS + "j" + GS + Value + GS + Path);
+        public void UpdateXML(string Key, string Path, string Value) => Add(".u", Key + GS + "x" + GS + Value + GS + Path);
+        public void UpdateINI(string Key, string Path, string Value, bool IsINILike = false) => Add(".u", Key + GS + "i" + GS + (IsINILike ? "1" : "0") + GS + Value + GS + Path);
+        public void UpdateTexLine(string Key, string Line, string Text) => Add(".u", Key + GS + "t" + GS + Text + GS + Line);
+        public void UpdateTexLine(string Key, int Line, string Text) => UpdateTexLine(Key, Line.ToString(), Text);
+        public void UpdateVariable(string Key, string Value) => Add(".u", Key + GS + "v" + GS + Value);
+        public void IncreaseVariable(string Key, string Value) => Add(".i", Key + GS + "v" + GS + Value);
+        public void IncreaseVariable(string Key, int Value) => IncreaseVariable(Key, Value.ToString());
+        public void DecreaseVariable(string Key, int Value) => IncreaseVariable(Key, Value * -1);
+        public void DeleteJSON(string Key, string Path) => Add(".d", Key + GS + "j" + GS + Path);
+        public void DeleteXML(string Key, string Path) => Add(".d", Key + GS + "x" + GS + Path);
+        public void DeleteINI(string Key, string Path, bool IsINILike = false) => Add(".d", Key + GS + "i" + GS + IsINILike + GS + Path);
+        public void DeleteTextLine(string Key, string Line) => Add(".d", Key + GS + "t" + GS + Line);
+        public void DeleteTextLine(string Key, int Line) => DeleteTextLine(Key, Line.ToString());
+        public void DeleteVariable(string Key) => Add(".d", Key + GS + "v");
+
+        // Template Engine
+        // Pattern Example: {{value}}, ((value)), *value*, $value;
+        public void BindJSONToTemplate(string InputPlace, string JSONText, string Path, string Pattern, bool AlsoStartTag = true) =>  Add("Tj" + InputPlace, JSONText + GS + Path + GS + Pattern + GS + (AlsoStartTag ? "1" : "0"));
+        // Because XML Elements Are Lowercased, Placeholders Must Use Lowercase Names.
+        public void BindXMLToTemplate(string InputPlace, string XMLText, string Path, string Pattern, bool AlsoStartTag = true) =>  Add("Tx" + InputPlace, XMLText + GS + Path + GS + Pattern + GS + (AlsoStartTag ? "1" : "0"));
+        public void BindINIToTemplate(string InputPlace, string INIText, string Path, string Pattern, bool AlsoStartTag = true) =>  Add("Ti" + InputPlace, INIText + GS + Path + GS + Pattern + GS + (AlsoStartTag ? "1" : "0"));
+
+        // Inject
+        // Need Add @: to First of String
+        public string Inject(string Value) => "$[" + Value + "];";
+
+        // Action Control
+        public void ReplaceActionControl(string SearchValue, string Value, bool AddingToUp = false)
+        {
+            if (AddingToUp)
+                AddToUp("rE", SearchValue + GS + Value);
+            else
+                Add("rE", SearchValue + GS + Value);
+        }
+        
+        public void AssignReplace(string SearchValue, string Value, int Index = -1)
+        {
+            string currentLine = GetLineByIndex(Index);
+            if (string.IsNullOrEmpty(currentLine))
+                return;
+
+            string[] parts = currentLine.Split('=', 2);
+            string newName = ";" + SearchValue + GS + Value + GS + parts[0];
+            string newValue = parts.Length > 1 ? parts[1] : "";
+
+            UpdateLineByIndex(Index, newName, newValue);
+        }
+
+        // Hash And Checksum
+        public void SetHash() => Add("SH");
+        public void SetChecksum() => Add("CS");
+
+        public string ChecksumCalculation(string Text)
+        {
+            int sum = 0;
+            int mod = 65536;
+            int shift = 5;
+
+            foreach (char c in Text)
+            {
+                sum = ((sum << shift) | (sum >> (16 - shift))) ^ c;
+                sum %= mod;
+            }
+
+            return sum.ToString();
+        }
+
+        public string GetChecksum() => ChecksumCalculation(GetWebFormsData());
+
+        // Get
+        public string GetFormsActionData()
+        {
+            if (WebFormsData.Length == 0)
+                return "";
+
+            return WebFormsData.ToString();
+        }
+
+        public string Response()
+        {
+            return "[web-forms]\n" + GetFormsActionData();
+        }
+
+        public string GetFormsActionDataLineBreak()
+        {
+            if (WebFormsData.Length == 0)
+                return "";
+
+            string data = WebFormsData.ToString();
+            string processedData = data.Replace("\"", "$[dq];");
+            return processedData.Replace('\n'.ToString(), "$[sln];");
+        }
+
+        // Export
+        public string ExportToHtmlComment(bool AddLine = false)
+        {
+            string response = Response().Replace("--", "$[dd];");
+            if (response[^1] == '-')
+                response = response.Substring(0, response.Length - 1) + "$[da];";
+
+            return (AddLine ? "\n" : "") + "<!--" + response + "-->";
+        }
+
+        // Using it for SSE Response
+        public string ExportToLineBreak(string src = null)
+        {
+            return "[web-forms]$[sln];" + GetFormsActionDataLineBreak();
+        }
+
+        public string GetWebFormsData()
+        {
+            return WebFormsData.ToString();
+        }
+
+        public void AppendForm(WebForms form)
+        {
+            if (form == null)
+                return;
+
+            string otherData = form.GetWebFormsData();
+            if (!string.IsNullOrEmpty(otherData))
+            {
+                if (WebFormsData.Length > 0)
+                    WebFormsData.Append('\n');
+                WebFormsData.Append(otherData);
+            }
+        }
+
+        public void Clean()
+        {
+            WebFormsData.Clear();
+        }
+    }
+
+    public class Security
+    {
+        public string SafeValue(string Value)
+        {
+            if (Value.Length < 1)
+                return Value;
+
+            if (Value[0] == '@')
+                Value = "@" + Value;
+
+            Value = Value
+            .Replace('\n'.ToString(), "$[ln];")
+            .Replace(",@", "$[co];@")
+            .Replace((char)28, '\0')
+            .Replace((char)29, '\0')
+            .Replace((char)30, '\0')
+            .Replace((char)31, '\0');
+
+            return Value;
+        }
+    }
+
+    // WebForms Place Criteria (WPC) DSL
+    public class InputPlace
+    {
+        public const string Document = ",";
+        public const string Window = "`";
+        // When Calling TransientDOM, Using Root will Result in the Selection of the Transient Tag.
+        public const string Root = "~";
+        public const string HTML = ".";
+        public const string Head = "^";
+        public const string ScreenOrientation = "%";
+        public const string All = "*";
+        public const string Parent = "/";
+        public const string Current = "$";
+        public const string Target = "!";
+        public const string Upper = "-";
+
+        public static string Id(string Id) => Id;
+        public static string Name(string Name) => '(' + Name + ')';
+        public static string Name(string Name, int Index) => '(' + Name + ')' + Index;
+        public static string AllNames(string Name) => "(" + Name + ")*";
+        public static string Tag(string Tag) => '<' + Tag + '>';
+        public static string Tag(string Tag, int Index) => '<' + Tag + '>' + Index;
+        public static string AllTags(string Tag) => "<" + Tag + ">*";
+        public static string Child() => "<>";
+        public static string Child(int Index) => "<>" + Index;
+        public static string AllChild() => "<>*";
+        public static string Class(string Class) => '{' + Class + '}';
+        public static string Class(string Class, int Index) => '{' + Class + '}' + Index;
+        public static string AllClasses(string Class) => "{" + Class + "}*";
+        public static string Attribute(string Name) => '"' + Name + '"';
+        public static string Attribute(string Name, int Index) => '"' + Name + '"' + Index;
+        public static string AllAttributes(string Name) => "\"" + Name + "\"*";
+        // Operator: '^', '$', '*', '~'
+        public static string Attribute(string Name, string Value, char Operator = '\0') => '"' + Name + ((Operator != '\0') ? Operator.ToString() : "") + "'" + Value + '"';
+        public static string Attribute(string Name, string Value, int Index, char Operator = '\0') => '"' + Name + ((Operator != '\0') ? Operator.ToString() : "") + "'" + Value + '"' + Index;
+        public static string AllAttributes(string Name, string Value, char Operator = '\0') => "\"" + Name + ((Operator != '\0') ? Operator.ToString() : "") + "'" + Value + "\"*";
+        public static string Query(string Query) => "*" + Query.Replace("=", "$[eq];").Replace("|", "$[vb];").Replace("?", "$[qu];");
+        public static string QueryAll(string Query) => "[" + Query.Replace("=", "$[eq];").Replace("|", "$[vb];").Replace("?", "$[qu];");
+    }
+
+    public class OutputPlace : InputPlace { }
+
+    // Do not Add any Data Before or After it
+    public class Fetch
+    {
+        private const char RS = (char)30;
+        private const char US = (char)31;
+
+        // Method
+        public static string Random(int MaxValue) => "@mr" + MaxValue;
+        public static string Random(int MinValue, int MaxValue) => "@mr" + MaxValue.ToString() + RS + MinValue.ToString();
+        public static string SpaceToChar(string Text, string Character = "-") => "@sc" + Character + RS + Text;
+        public static string EncodeURI(string Text) => "@ue" + Text;
+        public static string DecodeURI(string Text) => "@ud" + Text;
+
+        public static string Method(string MethodName, object[] Args = null)
+        {
+            string ReturnValue = "@cm" + MethodName;
+
+            if (Args != null)
+                ReturnValue += (Args.Length > 0) ? RS + string.Join(US, Args) : "";
+
+            return ReturnValue;
+        }
+
+        public static string ModuleMethod(string MethodName, object[] Args = null)
+        {
+            string ReturnValue = "@cM" + MethodName;
+
+            if (Args != null)
+                ReturnValue += (Args.Length > 0) ? RS + string.Join(US, Args) : "";
+
+            return ReturnValue;
+        }
+
+        // MethodName: The Method Name May Need to Include the Class Name, Separated by a Period. Example: MyClassName.MyMethodName
+        public static string WasmMethod(string WasmLanguage, string WasmUrl, string MethodName, object[] Args = null, string Key = ".")
+        {
+            string ReturnValue = "@wA" + WasmLanguage + RS + WasmUrl + RS + MethodName;
+
+            if (Args != null)
+                ReturnValue += (Args.Length > 0) ? RS + string.Join(US, Args) : "";
+
+            return ReturnValue;
+        }
+
+        public static string Script(string ScriptText) => "@_" + ScriptText.Replace('\n'.ToString(), "$[ln];");
+        public static string LoadUrl(string Url, bool FetchScript = false) => "@lu" + Url + (FetchScript ? RS + "1" : "");
+        public static string LoadHtml(string Url, string FetchInputPlace = "", bool FetchScript = false) => "@lh" + Url + RS + (FetchScript ? "1" : "0") + (!string.IsNullOrEmpty(FetchInputPlace) ? RS + FetchInputPlace : "");
+        public static string LoadLine(string Url, int Line) => "@ll" + Url + RS + Line.ToString();
+        public static string LoadINI(string Url, string Name, bool IsINILike = false) => "@li" + Url + RS + Name + (IsINILike? RS + "1" : "");
+        // Name: Name Or Nested Paths. Is Supprt Index (Student[8].Name). Nested Paths Index Starts At 0
+        public static string LoadJSON(string Url, string Name) => "@lj" + Url + RS + Name;
+        // Name: Name Or XPath; XPath Index Starts At 1
+        public static string LoadXML(string Url, string Name) => "@lx" + Url + RS + Name;
+        // MethodName: It's Check Function Or Variable
+        public static string HasMethod(string MethodName) => "@hm" + MethodName;
+        public static string HasModuleMethod(string MethodName) => "@hM" + MethodName;
+        // This Method Return True Or False If Key Pressed
+        // Modifier: Alt, AltGraph, Control, Meta, Shift, CapsLock, NumLock, ScrollLock
+        public static string GetModifierState(string Modifier) => "@ms" + Modifier;
+
+        // Math
+        public static string Math(string MethodName, object[] Args = null)
+        {
+            string ReturnValue = "@M#" + MethodName;
+
+            if (Args != null)
+                ReturnValue += (Args.Length > 0) ? RS + string.Join(US, Args) : "";
+
+            return ReturnValue;
+        }
+
+        // Data
+        public const string DateYear = "@dy";
+        // Month In JavaScript Is Start From Index 0, Month In WebForms Core Is Start From Index 1 
+        public const string DateMonth = "@dm";
+        public const string DateDay = "@dd";
+        public const string DateDate = "@dD";
+        public const string DateHours = "@dh";
+        public const string DateMinutes = "@di";
+        public const string DateSeconds = "@ds";
+        public const string DateMilliseconds = "@dl";
+
+        // String
+        public const string Space = "@sp";
+        public const string AtSign = "@sa";
+
+        // Tag
+        public static string GetId(string InputPlace) => "@$i" + InputPlace;
+        public static string GetName(string InputPlace) => "@$n" + InputPlace;
+        public static string GetValue(string InputPlace) => "@$v" + InputPlace;
+        public static string GetValueLength(string InputPlace) => "@$e" + InputPlace;
+        public static string GetClass(string InputPlace) => "@$c" + InputPlace;
+        public static string GetStyle(string InputPlace) => "@$s" + InputPlace;
+        public static string GetTitle(string InputPlace) => "@$l" + InputPlace;
+        public static string GetLabel(string InputPlace) => "@$A" + InputPlace;
+        public static string GetText(string InputPlace) => "@$t" + InputPlace;
+        public static string GetOuterText(string InputPlace) => "@$o" + InputPlace;
+        public static string GetTextLength(string InputPlace) => "@$g" + InputPlace;
+        public static string GetAttribute(string InputPlace, string Attribute) => "@$a" + InputPlace + RS + Attribute;
+        public static string GetWidth(string InputPlace) => "@$w" + InputPlace;
+        public static string GetHeight(string InputPlace) => "@$h" + InputPlace;
+        public static string GetIsReadOnly(string InputPlace) => "@$r" + InputPlace;
+        public static string GetSelectedIndex(string InputPlace) => "@$x" + InputPlace;
+        public static string GetIndex(string InputPlace) => "@$I" + InputPlace;
+        public static string GetTextAlign(string InputPlace) => "@$T" + InputPlace;
+        public static string GetNodeLength(string InputPlace) => "@$L" + InputPlace;
+        public static string GetIsVisible(string InputPlace) => "@$V" + InputPlace;
+
+        // Save
+        public static string HasHash(string Hash) => "@HH" + Hash;
+        public static string Cookie(string Key) => "@co" + Key;
+        public static string Save(string Key = ".") => "@cs" + Key;
+        public static string Save(string Key, string ReplaceValue) => "@cs" + Key + RS + ReplaceValue;
+        public static string SaveThenRemove(string Key) => "@cl" + Key;
+        public static string SaveLength(string Key = ".") => "@cg" + Key;
+        public static string Cache(string Key = ".") => "@cd" + Key;
+        public static string Cache(string Key, string ReplaceValue) => "@cd" + Key + RS + ReplaceValue;
+        public static string CacheThenRemove(string Key) => "@ct" + Key;
+        public static string CacheLength(string Key = ".") => "@cG" + Key;
+        public static string SaveLine(string Key = ".", int Line = 0) => "@lL" + Key + "[" + Line;
+        public static string SaveLineConsume(string Key = ".") => "@lL" + Key;
+        // INIKey: Only Direct Key is Supported
+        public static string SaveINI(string Key, string INIKey) => "@lI" + Key + "[" + INIKey;
+        public static string CacheLine(string Key = ".", int Line = 0) => "@dL" + Key + "[" + Line;
+        public static string CacheLineConsume(string Key = ".") => "@dL" + Key;
+        // INIKey: Only Direct Key is Supported
+        public static string CacheINI(string Key, string INIKey) => "@dI" + Key + "[" + INIKey;
+
+        // Format Storage
+        public static string FormatStore(string Key) => "@fr" + Key;
+        public static string FormatStoreByXMLQuery(string Key, string XPath) => "@fx" + Key + RS + XPath;
+        public static string FormatStoreByJSONQuery(string Key, string Query) => "@fj" + Key + RS + Query;
+        public static string FormatStoreByINI(string Key, string Name) => "@fi" + Key + RS + Name;
+        public static string FormatStoreByText(string Key, int Line) => "@ft" + Key + RS + Line.ToString();
+        public static string FormatStoreByVariable(string Key) => "@fv" + Key;
+
+        // State
+        public static string HasState(string Path) => "@hs" + Path;
+
+        // SSE
+        public static string SSEIsConnected(string Path) => "@Sc" + Path;
+
+        // WebSockets
+        public static string WebSocketsIsConnected(string Path = "") => "@Wc" + Path;
+
+        // Document
+        public const string TabIsActive = "@da";
+
+        // Window
+        public const string Href = "@wf";
+        public const string PathName = "@wP";
+        public static string Query(string Name = "*") => "@wq" + Name;
+        public const string Hash = "@wh";
+        public const string Host = "@wH";
+        public const string HostName = "@wn";
+        public const string Port = "@wT";
+        public const string Origin = "@wo";
+        public const string GetSelection = "@ws";
+        public const string ScrollX = "@wx";
+        public const string ScrollY = "@wy";
+        public static string Segment(int Index) => "@wS" + Index;
+        // It Only Works when the String Starts with the Tilde Character (~). The Path is Also Separated by the Slash Character (/). #~/Segment1/Segment2/Segment3
+        public static string HashSegment(int Index) => "@wt" + Index;
+
+        // Navigator
+        public const string ClipboardText = "@nC";
+        public const string GeoLatitude = "@nW";
+        public const string GeoLongitude = "@nO";
+        public const string Language = "@nL";
+        public const string IsOnLine = "@no";
+        public const string UserAgent = "@na";
+
+        // Screen
+        public const string ScreenWidth = "@sw";
+        public const string ScreenHeight = "@sh";
+        public const string ScreenOrientationType = "@so";
+        public const string ScreenOrientationAngle = "@sr";
+
+        // Performance
+        public const string TimeOrigin = "@pt";
+        public const string PerformanceNow = "@pn";
+
+        // Event
+        public const string Event = "@EV";
+        public const string EventSerialize = "@Es";
+        public const string EventKey = "@ek";
+        public const string EventWhich = "@ew";
+        public const string EventClientX = "@ex";
+        public const string EventClientY = "@ey";
+        public const string EventPageX = "@eX";
+        public const string EventPageY = "@eY";
+        public const string EventOffsetX = "@Ex";
+        public const string EventOffsetY = "@Ey";
+        public const string EventDeltaY = "@ed";
+    }
+
+    public class WasmLanguage
+    {
+        // The Suffix "Mediator" Means You Must Call the JavaScript Interface. In Other Cases, the WASM File Should Be Called Directly.
+        public const string C = "c";
+        public const string CPP = "c";
+        public const string Rust = "rust";
+        public const string CSharp = "csharp";
+        // .NET WebCIL Container. The "dotnet.js" File Should Be Invoked.
+        public const string CSharpMediator = "csharp-m";
+        public const string GO = "go";
+        public const string JAVA = "java";
+        public const string AssemblyScript = "as";
+    }
+
+    public class HtmlEvent
+    {
+        public const string OnAbort = "onabort";
+        public const string OnAfterPrint = "onafterprint";
+        public const string OnBeforePrint = "onbeforeprint";
+        public const string OnBeforeUnload = "onbeforeunload";
+        public const string OnBlur = "onblur";
+        public const string OnCanPlay = "oncanplay";
+        public const string OnCanPlayThrough = "oncanplaythrough";
+        public const string OnChange = "onchange";
+        public const string OnClick = "onclick";
+        public const string OnCopy = "oncopy";
+        public const string OnCut = "oncut";
+        public const string OnDoubleClick = "ondblclick";
+        public const string OnDrag = "ondrag";
+        public const string OnDragEnd = "ondragend";
+        public const string OnDragEnter = "ondragenter";
+        public const string OnDragLeave = "ondragleave";
+        public const string OnDragOver = "ondragover";
+        public const string OnDragStart = "ondragstart";
+        public const string OnDrop = "ondrop";
+        public const string OnDurationChange = "ondurationchange";
+        public const string OnEnded = "onended";
+        public const string OnError = "onerror";
+        public const string OnFocus = "onfocus";
+        public const string OnFocusin = "onfocusin";
+        public const string OnFocusOut = "onfocusout";
+        public const string OnHashChange = "onhashchange";
+        public const string OnInput = "oninput";
+        public const string OnInvalid = "oninvalid";
+        public const string OnKeyDown = "onkeydown";
+        public const string OnKeyPress = "onkeypress";
+        public const string OnKeyUp = "onkeyup";
+        public const string OnLoad = "onload";
+        public const string OnLoadedData = "onloadeddata";
+        public const string OnLoadedMetaData = "onloadedmetadata";
+        public const string OnLoadStart = "onloadstart";
+        public const string OnMouseDown = "onmousedown";
+        public const string OnMouseEnter = "onmouseenter";
+        public const string OnMouseLeave = "onmouseleave";
+        public const string OnMouseMove = "onmousemove";
+        public const string OnMouseOver = "onmouseover";
+        public const string OnMouseOut = "onmouseout";
+        public const string OnMouseUp = "onmouseup";
+        public const string OnOffline = "onoffline";
+        public const string OnOnline = "ononline";
+        public const string OnPageHide = "onpagehide";
+        public const string OnPageShow = "onpageshow";
+        public const string OnPaste = "onpaste";
+        public const string OnPause = "onpause";
+        public const string OnPlay = "onplay";
+        public const string OnPlaying = "onplaying";
+        public const string OnProgress = "onprogress";
+        public const string OnRateChange = "onratechange";
+        public const string OnResize = "onresize";
+        public const string OnReset = "onreset";
+        public const string OnScroll = "onscroll";
+        public const string OnSearch = "onsearch";
+        public const string OnSeeked = "onseeked";
+        public const string OnSeeking = "onseeking";
+        public const string OnSelect = "onselect";
+        public const string OnStalled = "onstalled";
+        public const string OnSubmit = "onsubmit";
+        public const string OnSuspend = "onsuspend";
+        public const string OnTimeUpdate = "ontimeupdate";
+        public const string OnToggle = "ontoggle";
+        public const string OnTouchCancel = "ontouchcancel";
+        public const string OnTouchend = "ontouchend";
+        public const string OnTouchMove = "ontouchmove";
+        public const string OnTouchStart = "ontouchstart";
+        public const string OnUnload = "onunload";
+        public const string OnVolumeChange = "onvolumechange";
+        public const string OnWaiting = "onwaiting";
+        public const string OnWheel = "onwheel";
+    }
+
+    public class HtmlEventListener
+    {
+        public const string Abort = "abort";
+        public const string AfterPrint = "afterprint";
+        public const string BeforePrint = "beforeprint";
+        public const string BeforeUnload = "beforeunload";
+        public const string Blur = "blur";
+        public const string CanPlay = "canplay";
+        public const string CanPlayThrough = "canplaythrough";
+        public const string Change = "change";
+        public const string Click = "click";
+        public const string Copy = "copy";
+        public const string Cut = "cut";
+        public const string DoubleClick = "dblclick";
+        public const string Drag = "drag";
+        public const string DragEnd = "dragend";
+        public const string DragEnter = "dragenter";
+        public const string DragLeave = "dragleave";
+        public const string DragOver = "dragover";
+        public const string DragStart = "dragstart";
+        public const string Drop = "drop";
+        public const string DurationChange = "durationchange";
+        public const string Ended = "ended";
+        public const string Error = "error";
+        public const string Focus = "focus";
+        public const string Focusin = "focusin";
+        public const string FocusOut = "focusout";
+        public const string HashChange = "hashchange";
+        public const string Input = "input";
+        public const string Invalid = "invalid";
+        public const string KeyDown = "keydown";
+        public const string KeyPress = "keypress";
+        public const string KeyUp = "keyup";
+        public const string Load = "load";
+        public const string LoadedData = "loadeddata";
+        public const string LoadedMetaData = "loadedmetadata";
+        public const string LoadStart = "loadstart";
+        public const string MouseDown = "mousedown";
+        public const string MouseEnter = "mouseenter";
+        public const string MouseLeave = "mouseleave";
+        public const string MouseMove = "mousemove";
+        public const string MouseOver = "mouseover";
+        public const string MouseOut = "mouseout";
+        public const string MouseUp = "mouseup";
+        public const string Offline = "offline";
+        public const string Online = "online";
+        public const string PageHide = "pagehide";
+        public const string PageShow = "pageshow";
+        public const string Paste = "paste";
+        public const string Pause = "pause";
+        public const string Play = "play";
+        public const string Playing = "playing";
+        public const string Progress = "progress";
+        public const string RateChange = "ratechange";
+        public const string Resize = "resize";
+        public const string Reset = "reset";
+        public const string Scroll = "scroll";
+        public const string Search = "search";
+        public const string Seeked = "seeked";
+        public const string Seeking = "seeking";
+        public const string Select = "select";
+        public const string Stalled = "stalled";
+        public const string Submit = "submit";
+        public const string Suspend = "suspend";
+        public const string TimeUpdate = "timeupdate";
+        public const string Toggle = "toggle";
+        public const string TouchCancel = "touchcancel";
+        public const string Touchend = "touchend";
+        public const string TouchMove = "touchmove";
+        public const string TouchStart = "touchstart";
+        public const string Unload = "unload";
+        public const string VolumeChange = "volumechange";
+        public const string Waiting = "waiting";
+        public const string Wheel = "wheel";
+
+        public const string AnimationEnd = "animationend";
+        public const string AnimationIteration = "animationiteration";
+        public const string AnimationStart = "animationstart";
+        public const string ContextMenu = "contextmenu";
+        public const string FullScreenChange = "fullscreenchange";
+        public const string FullScreenError = "fullscreenerror";
+        public const string PopState = "popstate";
+        public const string TransitionEnd = "transitionend";
+        public const string Storage = "storage";
+
+        // Custom
+        public const string ScrollBottom = "scrollbottom"; // Need Call EnableScrollBottomEvent Method Before
+        public const string ElementReached = "elementreached"; // Need Call EnableReachedElementEvent Method Before
+    }
+
+    public static class ExtensionWebFormsMethods
+    {
+        public static string Child(this string Text, string Value)
+        {
+            if (Text.Length < 1)
+                return Value;
+
+            return Text + "|" + Value;
+        }
+
+        public static string Parent(this string Text)
+        {
+            if (Text.Length < 1)
+                return Text;
+
+            if (Text.EndsWith("|/") || Text.EndsWith("//"))
+                return Text + '/';
+
+            return Text + "|/";
+        }
+
+        public static string Criteria(this string Text, string Value)
+        {
+            if (Text.Length < 1)
+                return Value;
+
+            return Text + "?" + Value.Replace("|", "$[vb];").Replace("?", "$[qu];");
+        }
+
+        public static string AppendFetchReplace(this string Text, string SearchValue, string Value)
+        {
+            const char FS = (char)28;
+
+            Text = Text.Remove(0, 1);
+            return "@;" + SearchValue + FS + Value + FS + Text;
+        }
+
+        public static string LineBreak(this string Text, bool EncodeLine = false)
+        {
+            string encode = EncodeLine ? "$[sln];" : "";
+            return Text.Replace("\r\n", encode).Replace("\n", encode).Replace("\r", encode);
+        }
+
+        // Converts Numbers to Strings
+        public static string ToJSString(this string Text)
+        {
+            return "\"" + Text + "\"";
+        }
+
+        // Get JS Object Momentary 
+        public static string ToJSObject(this string Text)
+        {
+            return "$" + Text;
+        }
+
+        // Get JS Object Returned Value Once
+        public static string ToJSReturnObject(this string Text)
+        {
+            return "$@" + Text;
+        }
+    }
+}
