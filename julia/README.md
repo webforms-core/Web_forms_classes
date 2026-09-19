@@ -7,54 +7,70 @@ using HTTP
 
 include("WebForms.jl")
 
+import .WebFormsCore
+import .WebFormsCore: WebForms, response, set_font_size, set_background_color,
+                       set_disabled, add_tag, set_text
+import .WebFormsCore.InputPlace
+
 function handle_request(req::HTTP.Request)
-    if HTTP.hasheader(req, "Content-Type") && occursin("application/x-www-form-urlencoded", req.headers["Content-Type"])
-        body = String(req.body)
-        params = HTTP.queryparams(body)
+	if req.target == "/script/web-forms.js"
+		js = read(joinpath(@__DIR__, "script", "web-forms.js"), String)
+		return HTTP.Response(
+			200,
+			["Content-Type" => "text/javascript"],
+			js
+		)
+	end
 
-        if haskey(params, "btn_SetBodyValue")
-            name = get(params, "txt_Name", "")
-            background_color = get(params, "txt_BackgroundColor", "")
-            font_size = parse(Int, get(params, "txt_FontSize", "16"))
+	if HTTP.hasheader(req, "Content-Type") &&
+	   occursin("application/x-www-form-urlencoded", req.headers["Content-Type"])
 
-            form = WebForms.WebForms()
+		body = String(req.body)
+		params = HTTP.queryparams(body)
 
-            WebForms.set_font_size!(form, InputPlace.tag("form"), "$font_size" * "px")
-            WebForms.set_background_color!(form, InputPlace.tag("form"), background_color)
-            WebForms.set_disabled!(form, InputPlace.name("btn_SetBodyValue"), true)
+		if haskey(params, "btn_SetBodyValue")
+			name = get(params, "txt_Name", "")
+			background_color = get(params, "txt_BackgroundColor", "")
+			font_size = parse(Int, get(params, "txt_FontSize", "16"))
 
-            WebForms.add_tag!(form, InputPlace.tag("form"), "h3")
-            WebForms.set_text!(form, InputPlace.tag("h3"), "Welcome $name!")
+			form = WebForms()
 
-            return HTTP.Response(200, WebForms.response(form))
-        end
-    end
+			set_font_size(form, InputPlace.tag("form"), font_size)
+			set_background_color(form, InputPlace.tag("form"), background_color)
+			set_disabled(form, InputPlace.name("btn_SetBodyValue"), true)
 
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Using WebForms Core</title>
-      <script type="text/javascript" src="/script/web-forms.js"></script>
-    </head>
-    <body>
-        <form method="post" action="/" >
-            <label for="txt_Name">Your Name</label>
-            <input name="txt_Name" id="txt_Name" type="text" />
-            <br>
-            <label for="txt_FontSize">Set Font Size</label>
-            <input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
-            <br>
-            <label for="txt_BackgroundColor">Set Background Color</label>
-            <input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
-            <br>
-            <input name="btn_SetBodyValue" type="submit" value="Click to send data" />
-        </form>
-    </body>
-    </html>
-    """
+			add_tag(form, InputPlace.tag("form"), "h3")
+			set_text(form, InputPlace.tag("h3"), "Welcome $(name)!")
 
-    return HTTP.Response(200, html)
+			return HTTP.Response(200, response(form))
+		end
+	end
+
+	html = """
+	<!DOCTYPE html>
+	<html>
+	<head>
+	  <title>Using WebForms Core</title>
+	  <script type="module" src="/script/web-forms.js"></script>
+	</head>
+	<body>
+		<form method="post" action="/">
+			<label for="txt_Name">Your Name</label>
+			<input name="txt_Name" id="txt_Name" type="text" />
+			<br>
+			<label for="txt_FontSize">Set Font Size</label>
+			<input name="txt_FontSize" id="txt_FontSize" type="number" value="16" min="10" max="36" />
+			<br>
+			<label for="txt_BackgroundColor">Set Background Color</label>
+			<input name="txt_BackgroundColor" id="txt_BackgroundColor" type="text" />
+			<br>
+			<input name="btn_SetBodyValue" type="submit" value="Click to send data" />
+		</form>
+	</body>
+	</html>
+	"""
+
+	return HTTP.Response(200, html)
 end
 
 HTTP.serve(handle_request, "127.0.0.1", 8080)
