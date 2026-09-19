@@ -8,8 +8,7 @@ using HTTP
 include("WebForms.jl")
 
 import .WebFormsCore
-import .WebFormsCore: WebForms, response, set_font_size, set_background_color,
-                       set_disabled, add_tag, set_text
+import .WebFormsCore: WebForms
 import .WebFormsCore.InputPlace
 
 function handle_request(req::HTTP.Request)
@@ -33,16 +32,16 @@ function handle_request(req::HTTP.Request)
 			background_color = get(params, "txt_BackgroundColor", "")
 			font_size = parse(Int, get(params, "txt_FontSize", "16"))
 
-			form = WebForms()
+			form = WebForms.Form()
 
-			set_font_size(form, InputPlace.tag("form"), font_size)
-			set_background_color(form, InputPlace.tag("form"), background_color)
-			set_disabled(form, InputPlace.name("btn_SetBodyValue"), true)
+			WebForms.set_font_size(form, InputPlace.tag("form"), font_size)
+			WebForms.set_background_color(form, InputPlace.tag("form"), background_color)
+			WebForms.set_disabled(form, InputPlace.name("btn_SetBodyValue"), true)
 
-			add_tag(form, InputPlace.tag("form"), "h3")
-			set_text(form, InputPlace.tag("h3"), "Welcome $(name)!")
+			WebForms.add_tag(form, InputPlace.tag("form"), "h3")
+			WebForms.set_text(form, InputPlace.tag("h3"), "Welcome $(name)!")
 
-			return HTTP.Response(200, response(form))
+			return HTTP.Response(200, WebForms.response(form))
 		end
 	end
 
