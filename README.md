@@ -147,6 +147,15 @@ Project settings
 
 ---
 
+**C++ in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/cpp)
+
+Copy file
+```text
+Get the WebForms.h file directly from the cpp directory.
+```
+
+---
+
 **Dart in Pub.dev** (https://pub.dev/packages/webforms)
 
 CLI
