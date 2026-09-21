@@ -133,6 +133,15 @@ npm install webformscore-wasm
 
 ---
 
+**C in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/c)
+
+Copy file
+```text
+Get the WebForms.h file directly from the c directory.
+```
+
+---
+
 **C# (.NET) in NuGet** (https://www.nuget.org/packages/WFC)
 
 CLI
