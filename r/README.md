@@ -5,55 +5,76 @@ To use WebForms Core, first copy the WebForms class file in this directory to yo
 ```r
 library(httpuv)
 
-# Load the WebForms.R script
-source("{WebForms.R path}")
+# Load the webforms.R script
+source("webforms.R")
 
 # Define the server logic
 app <- list(
   call = function(req) {
     tryCatch({
+
+      # Serve WebFormsJS
+      if (req$REQUEST_METHOD == "GET" &&
+          req$PATH_INFO == "/script/web-forms.js") {
+        return(list(
+          status = 200L,
+          headers = list("Content-Type" = "application/javascript"),
+          body = paste(
+            readLines("script/web-forms.js", warn = FALSE),
+            collapse = "\n"
+          )
+        ))
+      }
+
       if (req$REQUEST_METHOD == "POST") {
         form_data <- rawToChar(req$rook.input$read())
         form_data <- strsplit(form_data, "&")[[1]]
         form_data <- setNames(
-          lapply(form_data, function(x) URLdecode(strsplit(x, "=")[[1]][2])),
-          sapply(form_data, function(x) strsplit(x, "=")[[1]][1])
+          lapply(
+            form_data,
+            function(x) URLdecode(strsplit(x, "=")[[1]][2])
+          ),
+          sapply(
+            form_data,
+            function(x) strsplit(x, "=")[[1]][1]
+          )
         )
 
         if (!is.null(form_data$btn_SetBodyValue)) {
           name <- form_data$txt_Name
-          font_size <- form_data$txt_FontSize
+          font_size <- as.numeric(form_data$txt_FontSize)
           bg_color <- form_data$txt_BackgroundColor
 
-          form <- WebForms()
+          form <- WebForms$new()
 
           # Set form properties using WebForms methods
-          form$SetFontSize("<form>", paste0(font_size))
-          form$SetBackgroundColor("<form>", bg_color)
-          form$SetDisabled("(btn_SetBodyValue)", TRUE)
+          form$set_font_size("<form>", font_size)
+          form$set_background_color("<form>", bg_color)
+          form$set_disabled("(btn_SetBodyValue)", TRUE)
 
           # Add a new tag and set its text
-          form$AddTag("<form>", "h3")
-          form$SetText("<h3>", paste0("Welcome ", name, "!"))
+          form$add_tag("<form>", "h3")
+          form$set_text("<h3>", paste0("Welcome ", name, "!"))
 
           # Return a response to the client
           return(list(
             status = 200L,
-            headers = list('Content-Type' = 'text/plain'),
-			body = form$Response()
+            headers = list("Content-Type" = "text/plain"),
+            body = form$response()
           ))
         }
       }
 
-      # If the request is not a POST or the button was not clicked, return the HTML form
+      # If the request is not a POST or the button was not clicked,
+      # return the HTML form
       return(list(
         status = 200L,
-        headers = list('Content-Type' = 'text/html'),
+        headers = list("Content-Type" = "text/html"),
         body = '<!DOCTYPE html>
 <html>
 <head>
   <title>Using WebForms Core</title>
-  <script type="text/javascript" src="/script/web-forms.js"></script>
+  <script type="module" src="/script/web-forms.js"></script>
 </head>
 <body>
     <form method="POST" action="/">
@@ -71,10 +92,16 @@ app <- list(
 </body>
 </html>'
       ))
+
     }, error = function(e) {
-      # Print detailed error information
       message("An error occurred: ", e$message)
       traceback()
+
+      return(list(
+        status = 500L,
+        headers = list("Content-Type" = "text/plain"),
+        body = paste0("WebForms Core Error: ", e$message)
+      ))
     })
   }
 )
@@ -85,12 +112,6 @@ server <- startServer("127.0.0.1", 8080, app)
 
 In the upper part of the View file, it is first checked whether the submit button has been clicked or not, if it has been clicked, an instance of the WebForms class is created, then the WebForms methods are called, and then the response method is printed on the screen, and other parts Views are not displayed.
 Please note that if the submit button is not clicked (initial request), the view page will be displayed completely for the requester.
-
-> Note: To use the `WebForms.R` class (only in R), you need to install the `BH` package.
-The BH package is installed with the following command:
-```
-install.packages("BH")
-```
 
 As you can see, the WebFormsJS script has been added in the header section of the View file above.
 
