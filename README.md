@@ -331,6 +331,15 @@ Target dependencies
 
 ---
 
+**TypeScript in npm** (https://www.npmjs.com/package/webformscore-ts)
+
+CLI
+```bash
+npm install webformscore-ts
+```
+
+---
+
 ## Other programming languages 
 - **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
 - **Scala, Kotlin, Groovy, Clojure and ColdFusion:** Because the WebForms class is provided as a Java library on Maven Central, these JVM-based programming languages can directly use the Java WebForms class through their Java interoperability and standard build tools such as Maven, Gradle, or SBT.
