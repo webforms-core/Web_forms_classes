@@ -341,7 +341,6 @@ npm install webformscore-ts
 ---
 
 ## Other programming languages 
-- **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
 - **Scala, Kotlin, Groovy, Clojure and ColdFusion:** Because the WebForms class is provided as a Java library on Maven Central, these JVM-based programming languages can directly use the Java WebForms class through their Java interoperability and standard build tools such as Maven, Gradle, or SBT.
 - **Objective-C:** C functions can be called directly from Objective-C, so the C WebForms.h API can be used directly.
 - **Visual Basic:** You can easily use the C# [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class for Visual Basic programming language.
