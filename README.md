@@ -334,9 +334,9 @@ Target dependencies
 ## Other programming languages 
 - **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
 - **Scala, Kotlin, Groovy, Clojure and ColdFusion:** Because the WebForms class is provided as a Java library on Maven Central, these JVM-based programming languages can directly use the Java WebForms class through their Java interoperability and standard build tools such as Maven, Gradle, or SBT.
-- **Objective-C:** C calls are allowed in Objective-C, so you can easily use the C WebForms.h class.
+- **Objective-C:** C functions can be called directly from Objective-C, so the C WebForms.h API can be used directly.
 - **Visual Basic:** You can easily use the C# [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class for Visual Basic programming language.
-- **F#:** To use WebForms Core technology in F#, you can build the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class in C# and use the DLL created in F#.
+- **F#:** The .NET WebForms class can be used directly from F# through the WFC package on NuGet.
 - **Erlang and Gleam:** The Elixir WebForms class can be used from Erlang and Gleam through the Erlang VM.
 - **Less popular programming languages:** We strive to provide the WebForms class on the server for 99% of web development cases; if you would like to use WebForms Core technology in a less popular programming language (on the web), ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
 - **Deprecated programming languages:** The likelihood of using these programming languages ​​is low, but we respect the developers of these programming languages, so you can still ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
