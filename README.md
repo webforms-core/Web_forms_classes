@@ -8,9 +8,9 @@ A WebForms class allows server-side code to create, update, remove, and manipula
 
 In the WebForms Core architecture, the WebForms class acts as the **Commander**, while WebFormsJS acts as the **Executor**:
 
-**Client → Server → WebForms → Commands → WebFormsJS → HTML DOM**
+**Server → WebForms Class → Commands → WebFormsJS → HTML DOM**
 
-[**WebForms Core**](https://github.com/webforms-core) is a server-driven web technology created by [**Elanat**](https://elanat.net). It allows developers to manage interactive HTML interfaces from server-side code without requiring a separate front-end layer.
+[**WebForms Core**](https://github.com/webforms-core) is a server-driven web technology created by [**Elanat**](https://elanat.net). It allows developers to manage interactive HTML interfaces from server-side code without requiring a separate front-end application.
 
 **What Exactly Is WebForms Class?**
 
@@ -116,7 +116,7 @@ st<h3>=Adriano! Your message was sent successfully.
 :3000)de<h3>=1
 ```
 
-**Parent class:** WebForms classes in all programming languages are based on the C# WebForms class. The C# class is the parent implementation of all WebForms classes.
+**Parent class:** WebForms classes in all programming languages are based on the C# WebForms class. The C# WebForms class serves as the reference implementation for WebForms classes in other programming languages.
 
 > Note: WebForms Core technology was initially developed as a feature of the [CodeBehind framework](https://github.com/elanatframework/Code_behind). At Elanat, we provide WebForms Core implementations for multiple programming languages.
 
@@ -135,7 +135,7 @@ npm install webformscore-wasm
 
 **C in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/c)
 
-Copy file
+Download / Copy the file
 ```text
 Get the WebForms.h file directly from the c directory.
 ```
@@ -158,7 +158,7 @@ Project settings
 
 **C++ in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/cpp)
 
-Copy file
+Download / Copy the file
 ```text
 Get the WebForms.h file directly from the cpp directory.
 ```
@@ -242,7 +242,7 @@ npm install webformscore
 
 **Julia in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/julia)
 
-Copy file
+Download / Copy the file
 ```text
 Get the WebForms.jl file directly from the julia directory.
 ```
@@ -274,7 +274,7 @@ composer require webforms-core/php
 
 ---
 
-**Python in PyPi** (https://pypi.org/project/WFC/)
+**Python in PyPI** (https://pypi.org/project/WFC/)
 
 CLI
 ```bash
@@ -342,16 +342,16 @@ Target dependencies
 - **Deprecated programming languages:** The likelihood of using these programming languages ​​is low, but we respect the developers of these programming languages, so you can still ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
 
 ## Feel free to create pull requests
-In this repository, you convert the WebForms class in the CodeBehind framework (written in C# programming language) into a WebForms class in your desired programming language.
+In this repository, you can convert the WebForms class in the CodeBehind framework (written in C# programming language) into a WebForms class in your desired programming language.
 
 The WebForms class is available in the CodeBehind framework at the following link:
 
 https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs
 
-The pull request should include a directory with the same name as the programming language, and in this directory a class called WebForms with the corresponding postcode should be created. The WebForms class must be based on the WebForms class in the CodeBehind framework.
+The pull request should include a directory with the same name as the programming language, and in this directory a class called WebForms with the corresponding source code should be created. The WebForms class must be based on the WebForms class in the CodeBehind framework.
 
-We encourage web professionals to module the WebForms Core technology so that it is easily available in web frameworks. The contents of the module must be added in a directory with the same name as the corresponding framework in the framework's programming language.
+We encourage web professionals to integrate WebForms Core technology so that it is easily available in web frameworks. The contents of the module must be added in a directory with the same name as the corresponding framework in the framework's programming language.
 
 > Note: You do not need to use the CodeBehind namespace to create a WebForms class for programming languages. If you are creating a new module to be used in web frameworks, you must add the namespace for the relevant web framework.
 
-Please do not pull request to add new feature. The new features require a coordination between the WebFormsJS library and the WebForms class. So first, new features are added in the CodeBehind framework, and then you can pull requests for these new features in WebForms classes or WebForms modules.
+Please do not pull request to add new feature. The new features require a coordination between the WebFormsJS library and the WebForms class. So first, new features are added in the CodeBehind framework, and then you can submit pull requests for these new features in WebForms classes or WebForms modules.
