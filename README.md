@@ -337,7 +337,7 @@ Target dependencies
 - **Objective-C:** C calls are allowed in Objective-C, so you can easily use the C WebForms.h class.
 - **Visual Basic:** You can easily use the C# [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class for Visual Basic programming language.
 - **F#:** To use WebForms Core technology in F#, you can build the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class in C# and use the DLL created in F#.
-- **Erlang:** The WebForms class in the Elixir programming language can be used. 
+- **Erlang:** The Elixir WebForms class can be used from Erlang and Gleam through the Erlang VM.
 - **Less popular programming languages:** We strive to provide the WebForms class on the server for 99% of web development cases; if you would like to use WebForms Core technology in a less popular programming language (on the web), ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
 - **Deprecated programming languages:** The likelihood of using these programming languages ​​is low, but we respect the developers of these programming languages, so you can still ask senior developers to convert the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class to your preferred programming language and submit a pull request to this repository.
 
