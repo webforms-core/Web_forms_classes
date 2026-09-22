@@ -298,6 +298,30 @@ webformscore = "#.#.#"
 
 ---
 
+**Swift in Swift Package Manager** (https://github.com/webforms-core/swift)
+
+Project settings
+
+```swift
+dependencies: [
+    .package(
+        url: "https://github.com/webforms-core/swift.git",
+        from: "2.1.0"
+    )
+]
+```
+
+Target dependencies
+
+```swift
+.product(
+    name: "WebFormsCore",
+    package: "swift"
+)
+```
+
+---
+
 ## Other programming languages 
 - **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
 - **Scala, Kotlin, Groovy, Clojure and ColdFusion:** By configuring the build tools (such as Gradle, Maven, or SBT), you can use the [Java WebForms classes](https://github.com/elanatframework/Web_forms_classes/tree/elanat_framework/java/WebFormsCore) for Scala, Kotlin, Groovy, Clojure and ColdFusion programming languages.
