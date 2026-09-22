@@ -30,11 +30,25 @@ func routes(_ app: Application) throws {
         form.addTag(InputPlace.tag("form"), "h3")
         form.setText(InputPlace.tag("h3"), "Welcome \(name)!")
 
-        return form.response()
+        var headers = HTTPHeaders()
+        headers.contentType = HTTPMediaType(type: "text", subType: "plain", parameters: ["charset": "utf-8"])
+
+        return Response(
+            status: .ok,
+            headers: headers,
+            body: .init(string: form.response())
+        )
     }
 
     app.get { req in
-        return Response(status: .ok, body: .init(string: renderForm()))
+        var headers = HTTPHeaders()
+        headers.contentType = HTTPMediaType(type: "text", subType: "html", parameters: ["charset": "utf-8"])
+
+        return Response(
+            status: .ok,
+            headers: headers,
+            body: .init(string: renderForm())
+        )
     }
 }
 
@@ -69,15 +83,25 @@ public func configure(_ app: Application) throws {
     try routes(app)
 }
 
-let app = Application()
-defer { app.shutdown() }
+@main
+struct WebFormsApp {
+    static func main() async throws {
+        var env = try Environment.detect()
+        try LoggingSystem.bootstrap(from: &env)
 
-do {
-    try configure(app)
-    try app.run()
-} catch {
-    app.logger.error("Failed to start the app: \(error)")
-    throw error
+        let app = try await Application.make(env)
+
+        do {
+            try configure(app)
+            try await app.execute()
+        } catch {
+            app.logger.report(error: error)
+            try? await app.asyncShutdown()
+            throw error
+        }
+
+        try await app.asyncShutdown()
+    }
 }
 ```
 
