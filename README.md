@@ -240,6 +240,15 @@ npm install webformscore
 
 ---
 
+**Julia in GitHub** (https://github.com/webforms-core/Web_forms_classes/tree/elanat_framework/julia)
+
+Copy file
+```text
+Get the WebForms.jl file directly from the julia directory.
+```
+
+---
+
 **Perl in CPAN** (https://metacpan.org/dist/WFC)
 
 CLI
