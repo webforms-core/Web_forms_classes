@@ -333,7 +333,7 @@ Target dependencies
 
 ## Other programming languages 
 - **TypeScript:** You can easily use the JavaScript [WebForms.js](https://github.com/elanatframework/Web_forms_classes/blob/elanat_framework/nodejs/WebForms.js) NodeJS class for TypeScript programming language.
-- **Scala, Kotlin, Groovy, Clojure and ColdFusion:** By configuring the build tools (such as Gradle, Maven, or SBT), you can use the [Java WebForms classes](https://github.com/elanatframework/Web_forms_classes/tree/elanat_framework/java/WebFormsCore) for Scala, Kotlin, Groovy, Clojure and ColdFusion programming languages.
+- **Scala, Kotlin, Groovy, Clojure and ColdFusion:** Because the WebForms class is provided as a Java library on Maven Central, these JVM-based programming languages can directly use the Java WebForms class through their Java interoperability and standard build tools such as Maven, Gradle, or SBT.
 - **Objective-C:** C calls are allowed in Objective-C, so you can easily use the C WebForms.h class.
 - **Visual Basic:** You can easily use the C# [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class for Visual Basic programming language.
 - **F#:** To use WebForms Core technology in F#, you can build the [WebForms.cs](https://github.com/elanatframework/Code_behind/blob/elanat_framework/class/WebForms.cs) class in C# and use the DLL created in F#.
